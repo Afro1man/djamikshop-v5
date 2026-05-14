@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Demo — Sponsorisation DjamikShop</title>
+<style>
+  /* ── Tokens DjamikShop ── */
+  :root {
+    --primary: #E8501A;
+    --primary-dark: #C13E0E;
+    --primary-light: #FFE8DC;
+    --gold: #F5B100;
+    --gold-light: #FFF6D6;
+    --vip: #8B5CF6;
+    --vip-light: #EFE6FF;
+    --ink-1: #0F1115;
+    --ink-2: #2B2F36;
+    --ink-3: #6B7280;
+    --surface-1: #FFFFFF;
+    --surface-2: #F8F8F8;
+    --surface-3: #EEE;
+    --danger: #EF4444;
+    --r-sm: 8px;
+    --r-md: 12px;
+    --r-lg: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+    background: var(--surface-2);
+    color: var(--ink-1);
+    line-height: 1.5;
+    padding-bottom: 100px;
+  }
+
+  /* ── Sections demo ── */
+  .demo-section {
+    max-width: 1100px;
+    margin: 32px auto;
+    padding: 0 16px;
+  }
+  .demo-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--ink-1);
+  }
+  .demo-sub {
+    font-size: .9rem;
+    color: var(--ink-3);
+    margin-bottom: 18px;
+  }
+  .demo-card {
+    background: var(--surface-1);
+    border-radius: var(--r-lg);
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+  }
+
+  /* ═════════════════════════════════════════════ */
+  /* 1. CARTE PRODUIT — variantes                   */
+  /* ═════════════════════════════════════════════ */
+  .grid-products {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+  }
+  .pcard {
+    background: var(--surface-1);
+    border-radius: var(--r-md);
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    transition: transform .15s, box-shadow .15s;
+  }
+  .pcard:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,.1); }
+  .pcard-img {
+    aspect-ratio: 1/1;
+    background: linear-gradient(135deg, #FFD7C4, #FFB48C);
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-weight: 700; font-size: 1.4rem;
+  }
+  .pcard-body { padding: 10px 12px; }
+  .pcard-title { font-size: .9rem; font-weight: 600; }
+  .pcard-price { color: var(--primary); font-weight: 800; margin-top: 4px; }
+  .pcard-meta { font-size: .72rem; color: var(--ink-3); margin-top: 4px; }
+
+  /* ── Variante : SPONSORISÉ ── */
+  .pcard.sponsor {
+    border: 2px solid var(--primary);
+    box-shadow: 0 4px 14px rgba(232, 80, 26, .18);
+  }
+  .pcard.sponsor::before {
+    content: '✦ Sponsorisé';
+    position: absolute;
+    top: 10px; left: 10px;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: .65rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    box-shadow: 0 2px 6px rgba(232, 80, 26, .35);
+    z-index: 2;
+  }
+
+  /* ── Variante : VIP ── */
+  .pcard.vip {
+    border: 2px solid var(--gold);
+    box-shadow: 0 4px 14px rgba(245, 177, 0, .22);
+    background: linear-gradient(180deg, var(--gold-light) 0%, #fff 30%);
+  }
+  .pcard.vip::before {
+    content: '👑 VIP';
+    position: absolute;
+    top: 10px; left: 10px;
+    background: linear-gradient(135deg, #F5B100, #D49500);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: .65rem;
+    font-weight: 800;
+    box-shadow: 0 2px 6px rgba(245, 177, 0, .4);
+    z-index: 2;
+  }
+  .pcard.vip::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--r-md);
+    pointer-events: none;
+    background: linear-gradient(120deg, transparent 30%, rgba(255,215,0,.25) 50%, transparent 70%);
+    background-size: 200% 100%;
+    animation: shine 3s ease-in-out infinite;
+  }
+  @keyframes shine {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* ── Variante : Boutique Premium ── */
+  .pcard.premium {
+    border: 2px solid var(--vip);
+    box-shadow: 0 4px 14px rgba(139, 92, 246, .2);
+  }
+  .pcard.premium::before {
+    content: '⭐ Boutique Premium';
+    position: absolute;
+    top: 10px; left: 10px;
+    background: linear-gradient(135deg, #8B5CF6, #6D28D9);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: .65rem;
+    font-weight: 700;
+    box-shadow: 0 2px 6px rgba(139, 92, 246, .35);
+    z-index: 2;
+  }
+
+  /* ═════════════════════════════════════════════ */
+  /* 2. PAGE PRICING — 3 OFFRES                     */
+  /* ═════════════════════════════════════════════ */
+  .pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+  }
+  .price-card {
+    background: var(--surface-1);
+    border-radius: var(--r-lg);
+    padding: 24px 20px;
+    border: 2px solid var(--surface-3);
+    position: relative;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .price-card:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(0,0,0,.08); }
+  .price-card.featured {
+    border-color: var(--gold);
+    transform: scale(1.04);
+    box-shadow: 0 8px 20px rgba(245, 177, 0, .2);
+  }
+  .price-card.featured::before {
+    content: 'PLUS POPULAIRE';
+    position: absolute;
+    top: -12px; left: 50%; transform: translateX(-50%);
+    background: var(--gold);
+    color: #fff;
+    padding: 5px 14px;
+    border-radius: 100px;
+    font-size: .65rem;
+    font-weight: 800;
+    letter-spacing: .08em;
+  }
+  .price-icon {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem;
+    margin-bottom: 14px;
+  }
+  .price-icon.s1 { background: var(--primary-light); color: var(--primary); }
+  .price-icon.s2 { background: var(--gold-light); color: #B88500; }
+  .price-icon.s3 { background: var(--vip-light); color: var(--vip); }
+
+  .price-name { font-size: 1.1rem; font-weight: 700; }
+  .price-amount {
+    font-size: 2.2rem; font-weight: 800; color: var(--ink-1);
+    margin-top: 8px;
+  }
+  .price-amount span { font-size: .9rem; font-weight: 500; color: var(--ink-3); }
+  .price-duration { color: var(--ink-3); font-size: .85rem; margin-top: 2px; }
+  .price-features {
+    list-style: none;
+    margin-top: 18px;
+    padding: 0;
+  }
+  .price-features li {
+    padding: 8px 0;
+    font-size: .9rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    border-bottom: 1px dashed var(--surface-3);
+  }
+  .price-features li::before {
+    content: '✓';
+    color: var(--primary);
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .price-cta {
+    width: 100%;
+    margin-top: 18px;
+    padding: 12px;
+    border: none;
+    border-radius: var(--r-md);
+    background: var(--surface-2);
+    color: var(--ink-1);
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+  }
+  .price-card.featured .price-cta {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #fff;
+  }
+  .price-cta:hover { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: #fff; }
+
+  /* ═════════════════════════════════════════════ */
+  /* 3. BOOST CTA — bouton "Booster mon annonce"    */
+  /* ═════════════════════════════════════════════ */
+  .boost-banner {
+    background: linear-gradient(135deg, #FFE8DC, #FFD0B5);
+    border-radius: var(--r-lg);
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    border: 1px dashed var(--primary);
+  }
+  .boost-icon {
+    font-size: 2.4rem;
+    line-height: 1;
+  }
+  .boost-text { flex: 1; }
+  .boost-text h4 { font-size: 1rem; margin-bottom: 4px; }
+  .boost-text p { font-size: .85rem; color: var(--ink-2); }
+  .boost-btn {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: #fff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: var(--r-md);
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(232, 80, 26, .3);
+  }
+
+  /* ═════════════════════════════════════════════ */
+  /* 4. EN-TÊTE SHOP avec section "Annonces vedette"*/
+  /* ═════════════════════════════════════════════ */
+  .featured-strip {
+    background: linear-gradient(135deg, #FFF6D6, #FFE8B8);
+    border-radius: var(--r-lg);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .featured-strip-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .featured-strip-header h3 {
+    font-size: 1rem; font-weight: 700;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .featured-strip-header a {
+    font-size: .8rem; color: var(--primary); text-decoration: none; font-weight: 600;
+  }
+
+  @media(max-width: 600px) {
+    .price-card.featured { transform: none; }
+    .boost-banner { flex-direction: column; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─────────────────────────────────────────────── -->
+<!-- 1. CARTES PRODUIT — comparaison visuelle       -->
+<!-- ─────────────────────────────────────────────── -->
+<section class="demo-section">
+  <h2 class="demo-title">1. Cartes produit — variantes de mise en avant</h2>
+  <p class="demo-sub">Comparaison visuelle : carte normale vs Sponsorisé / VIP / Boutique Premium.</p>
+  <div class="demo-card">
+    <div class="grid-products">
+      <div class="pcard">
+        <div class="pcard-img">📱</div>
+        <div class="pcard-body">
+          <div class="pcard-title">iPhone 13 — 128 Go</div>
+          <div class="pcard-price">350 000 FCFA</div>
+          <div class="pcard-meta">Niamey · il y a 2j</div>
+        </div>
+      </div>
+      <div class="pcard sponsor">
+        <div class="pcard-img" style="background: linear-gradient(135deg,#FFB48C,#E8501A);">💻</div>
+        <div class="pcard-body">
+          <div class="pcard-title">MacBook Air M2</div>
+          <div class="pcard-price">650 000 FCFA</div>
+          <div class="pcard-meta">Niamey · il y a 1j</div>
+        </div>
+      </div>
+      <div class="pcard vip">
+        <div class="pcard-img" style="background: linear-gradient(135deg,#FFE5A3,#F5B100);">⌚</div>
+        <div class="pcard-body">
+          <div class="pcard-title">Apple Watch Series 9</div>
+          <div class="pcard-price">220 000 FCFA</div>
+          <div class="pcard-meta">Maradi · aujourd'hui</div>
+        </div>
+      </div>
+      <div class="pcard premium">
+        <div class="pcard-img" style="background: linear-gradient(135deg,#C4A8FF,#8B5CF6);">👜</div>
+        <div class="pcard-body">
+          <div class="pcard-title">Sac à main cuir véritable</div>
+          <div class="pcard-price">85 000 FCFA</div>
+          <div class="pcard-meta">Boutique Élégance · 12 ventes</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<!-- 2. STRIP "Annonces vedette" en haut de shop    -->
+<!-- ─────────────────────────────────────────────── -->
+<section class="demo-section">
+  <h2 class="demo-title">2. Section "Annonces vedette" en haut du shop</h2>
+  <p class="demo-sub">Ce qui s'affichera tout en haut de la page Recherche / Accueil.</p>
+  <div class="featured-strip">
+    <div class="featured-strip-header">
+      <h3>✨ Annonces vedette</h3>
+      <a href="#">Voir tout →</a>
+    </div>
+    <div class="grid-products">
+      <div class="pcard sponsor">
+        <div class="pcard-img" style="background: linear-gradient(135deg,#FFB48C,#E8501A);">🚗</div>
+        <div class="pcard-body">
+          <div class="pcard-title">Toyota Corolla 2019</div>
+          <div class="pcard-price">7 200 000 FCFA</div>
+          <div class="pcard-meta">Niamey</div>
+        </div>
+      </div>
+      <div class="pcard vip">
+        <div class="pcard-img" style="background: linear-gradient(135deg,#FFE5A3,#F5B100);">🏠</div>
+        <div class="pcard-body">
+          <div class="pcard-title">Villa 4 chambres à louer</div>
+          <div class="pcard-price">450 000 FCFA/mois</div>
+          <div class="pcard-meta">Niamey · Yantala</div>
+        </div>
+      </div>
+      <div class="pcard sponsor">
+        <div class="pcard-img" style="background: linear-gradient(135deg,#FFB48C,#E8501A);">🛵</div>
+        <div class="pcard-body">
+          <div class="pcard-title">Moto Yamaha Crypton</div>
+          <div class="pcard-price">580 000 FCFA</div>
+          <div class="pcard-meta">Zinder</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<!-- 3. PAGE PRICING — 3 OFFRES                     -->
+<!-- ─────────────────────────────────────────────── -->
+<section class="demo-section">
+  <h2 class="demo-title">3. Page "Booster mon annonce" — 3 formules</h2>
+  <p class="demo-sub">Ce que verra l'utilisateur quand il clique sur "Booster". Prix d'exemple à valider.</p>
+  <div class="pricing-grid">
+
+    <!-- Sponsorisé -->
+    <div class="price-card">
+      <div class="price-icon s1">✦</div>
+      <div class="price-name">Sponsorisé</div>
+      <div class="price-amount">500 <span>FCFA</span></div>
+      <div class="price-duration">pour 3 jours</div>
+      <ul class="price-features">
+        <li>Badge "Sponsorisé" sur l'annonce</li>
+        <li>Position prioritaire dans les résultats</li>
+        <li>Contour orange visible</li>
+        <li>+200% de visibilité estimée</li>
+      </ul>
+      <button class="price-cta">Choisir</button>
+    </div>
+
+    <!-- VIP — featured -->
+    <div class="price-card featured">
+      <div class="price-icon s2">👑</div>
+      <div class="price-name">VIP</div>
+      <div class="price-amount">1 500 <span>FCFA</span></div>
+      <div class="price-duration">pour 7 jours</div>
+      <ul class="price-features">
+        <li>Badge "VIP" doré + animation brillance</li>
+        <li>Section "Annonces vedette" en haut</li>
+        <li>Affichée sur la page d'accueil</li>
+        <li>Notification push aux acheteurs</li>
+        <li>+500% de visibilité estimée</li>
+      </ul>
+      <button class="price-cta">Choisir VIP</button>
+    </div>
+
+    <!-- Premium -->
+    <div class="price-card">
+      <div class="price-icon s3">⭐</div>
+      <div class="price-name">Boutique Premium</div>
+      <div class="price-amount">5 000 <span>FCFA</span></div>
+      <div class="price-duration">pour 30 jours</div>
+      <ul class="price-features">
+        <li>Toutes tes annonces deviennent Premium</li>
+        <li>Badge "Boutique Premium" sur ton profil</li>
+        <li>Stats détaillées (vues, contacts)</li>
+        <li>Support prioritaire WhatsApp</li>
+        <li>Annonces illimitées (vs 30 max)</li>
+      </ul>
+      <button class="price-cta">Devenir Premium</button>
+    </div>
+
+  </div>
+</section>
+
+<!-- ─────────────────────────────────────────────── -->
+<!-- 4. CTA "Booster" depuis le profil              -->
+<!-- ─────────────────────────────────────────────── -->
+<section class="demo-section">
+  <h2 class="demo-title">4. Bannière "Booster" sur l'annonce du vendeur</h2>
+  <p class="demo-sub">Affichée à côté de chaque annonce du vendeur dans "Mes annonces".</p>
+  <div class="boost-banner">
+    <div class="boost-icon">🚀</div>
+    <div class="boost-text">
+      <h4>Vends plus vite avec un boost</h4>
+      <p>Mets ton annonce en avant et touche jusqu'à 5× plus d'acheteurs. À partir de 500 FCFA.</p>
+    </div>
+    <button class="boost-btn">Booster →</button>
+  </div>
+</section>
+
+</body>
+</html>
