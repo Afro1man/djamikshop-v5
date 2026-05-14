@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Checkout — DjamikShop</title>
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#E8501A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="DjamikShop">
+  <link rel="apple-touch-icon" href="/assets/icons/icon.svg">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/icon.svg">
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="DjamikShop">
+  <meta property="og:title" content="DjamikShop — La marketplace du Niger">
+  <meta property="og:description" content="Achetez et vendez partout au Niger : Niamey, Zinder, Maradi, Tahoua, Agadez et plus.">
+  <meta property="og:image" content="https://djamikshop-v5.vercel.app/assets/icons/og-image.svg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="fr_FR">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="DjamikShop — La marketplace du Niger">
+  <meta name="twitter:description" content="Achetez et vendez partout au Niger.">
+  <meta name="twitter:image" content="https://djamikshop-v5.vercel.app/assets/icons/og-image.svg">
+  <link rel="stylesheet" href="../assets/css/main.css">
+</head>
+<body>
+<script>if(typeof window.supabase==='undefined')window.supabase=null;</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" onerror=""></script>
+<script src="../assets/js/app.js"></script>
+<div class="page-body">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="index.html">Accueil</a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <a href="cart.html">Panier</a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <span>Paiement</span>
+    </div>
+    <h1 style="margin-bottom:var(--space-6)"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Paiement</h1>
+    <div id="checkout-root"></div>
+  </div>
+</div>
+<script src="../assets/js/features/checkout.js"></script>
+</body>
+</html>

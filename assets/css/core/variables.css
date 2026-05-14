@@ -1,0 +1,135 @@
+/* ═══════════════════════════════════════════════════════════════════
+   DjamikShop v5 — Design System
+   Variables CSS avec support dark mode natif
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ─── BRAND ─── */
+  --brand:           #FF5722;
+  --brand-hover:     #E64A19;
+  --brand-light:     #FFF3E0;
+  --brand-soft:      rgba(255, 87, 34, 0.12);
+  --brand-glow:      rgba(255, 87, 34, 0.25);
+
+  /* ─── ACCENTS ─── */
+  --accent:          #6366F1;
+  --accent-hover:    #4F46E5;
+  --accent-light:    #E0E7FF;
+  --gold:            #F59E0B;
+  --gold-light:      #FEF3C7;
+
+  /* ─── SEMANTIC ─── */
+  --success:         #10B981;
+  --success-soft:    #D1FAE5;
+  --danger:          #EF4444;
+  --danger-soft:     #FEE2E2;
+  --info:            #3B82F6;
+  --info-soft:       #DBEAFE;
+  --warning:         #F59E0B;
+
+  /* ─── INK ─── */
+  --ink:             #0F172A;
+  --ink-2:           #334155;
+  --ink-3:           #64748B;
+  --ink-4:           #94A3B8;
+
+  /* ─── SURFACE ─── */
+  --surface:         #F8FAFC;
+  --surface-2:       #F1F5F9;
+  --surface-3:       #E2E8F0;
+  --surface-4:       #CBD5E1;
+  --white:           #FFFFFF;
+
+  /* ─── GLASS ─── */
+  --glass:           rgba(255, 255, 255, 0.72);
+  --glass-border:    rgba(255, 255, 255, 0.5);
+  --glass-dark:      rgba(15, 23, 42, 0.75);
+  --glass-border-dark: rgba(255, 255, 255, 0.08);
+
+  /* ─── SHADOWS ─── */
+  --shadow-xs:       0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-sm:       0 1px 3px rgba(15, 23, 42, 0.08), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md:       0 4px 16px rgba(15, 23, 42, 0.08), 0 2px 6px rgba(15, 23, 42, 0.04);
+  --shadow-lg:       0 12px 32px rgba(15, 23, 42, 0.12), 0 4px 12px rgba(15, 23, 42, 0.04);
+  --shadow-xl:       0 20px 48px rgba(15, 23, 42, 0.16);
+  --shadow-brand:    0 4px 20px rgba(255, 87, 34, 0.3);
+  --shadow-inset:    inset 0 2px 4px rgba(15, 23, 42, 0.04);
+
+  /* ─── RADIUS ─── */
+  --r-xs:  6px;
+  --r-sm:  8px;
+  --r-md:  12px;
+  --r-lg:  16px;
+  --r-xl:  24px;
+  --r-2xl: 32px;
+  --r-full: 9999px;
+
+  /* ─── SPACING ─── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ─── NAVBAR ─── */
+  --nav-h: 64px;
+
+  /* ─── TRANSITION ─── */
+  --transition-fast:   0.15s cubic-bezier(.4, 0, .2, 1);
+  --transition-base:   0.22s cubic-bezier(.4, 0, .2, 1);
+  --transition-slow:   0.35s cubic-bezier(.4, 0, .2, 1);
+  --transition-bounce: 0.5s cubic-bezier(.34, 1.56, .64, 1);
+
+  /* ─── Z-INDEX ─── */
+  --z-toast:    9999;
+  --z-modal:    3000;
+  --z-menu:     2001;
+  --z-backdrop: 2000;
+  --z-navbar:   1000;
+  --z-sticky:   50;
+
+  /* ─── PAGE PADDING ─── */
+  --page-px: 24px;
+  --max-w:   1280px;
+}
+
+/* ─── DARK MODE ─── */
+[data-theme="dark"] {
+  --brand:           #FF7043;
+  --brand-hover:     #FF5722;
+  --brand-light:     rgba(255, 112, 67, 0.15);
+  --brand-soft:      rgba(255, 112, 67, 0.15);
+  --brand-glow:      rgba(255, 112, 67, 0.3);
+
+  --accent:          #818CF8;
+  --accent-hover:    #6366F1;
+  --accent-light:    rgba(99, 102, 241, 0.15);
+
+  --ink:             #F1F5F9;
+  --ink-2:           #CBD5E1;
+  --ink-3:           #94A3B8;
+  --ink-4:           #64748B;
+
+  --surface:         #0A0A0F;
+  --surface-2:       #14141F;
+  --surface-3:       #1E1E2D;
+  --surface-4:       #2A2A3C;
+  --white:           #1A1A2E;
+
+  --glass:           rgba(20, 20, 31, 0.85);
+  --glass-border:    rgba(255, 255, 255, 0.06);
+
+  --shadow-xs:       0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-sm:       0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md:       0 4px 16px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.2);
+  --shadow-lg:       0 12px 32px rgba(0, 0, 0, 0.5), 0 4px 12px rgba(0, 0, 0, 0.2);
+  --shadow-xl:       0 20px 48px rgba(0, 0, 0, 0.6);
+  --shadow-brand:    0 4px 20px rgba(255, 112, 67, 0.35);
+
+  color-scheme: dark;
+}

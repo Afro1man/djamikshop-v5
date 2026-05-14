@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Messages — DjamikShop</title>
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#E8501A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="DjamikShop">
+  <link rel="apple-touch-icon" href="/assets/icons/icon.svg">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/icon.svg">
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="DjamikShop">
+  <meta property="og:title" content="DjamikShop — La marketplace du Niger">
+  <meta property="og:description" content="Achetez et vendez partout au Niger : Niamey, Zinder, Maradi, Tahoua, Agadez et plus.">
+  <meta property="og:image" content="https://djamikshop-v5.vercel.app/assets/icons/og-image.svg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="fr_FR">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="DjamikShop — La marketplace du Niger">
+  <meta name="twitter:description" content="Achetez et vendez partout au Niger.">
+  <meta name="twitter:image" content="https://djamikshop-v5.vercel.app/assets/icons/og-image.svg">
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    /* ═══ MESSAGES — design qualité WhatsApp/Telegram ═══ */
+    .msg-app {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 0;
+      height: calc(100vh - var(--nav-h, 60px) - env(safe-area-inset-bottom, 0px));
+      max-height: calc(100vh - var(--nav-h, 60px));
+      background: var(--surface);
+      border: 1px solid var(--surface-3);
+      border-radius: var(--r-xl);
+      overflow: hidden;
+      margin-top: var(--space-3);
+    }
+
+    /* Sidebar conversations */
+    .msg-sidebar {
+      display: flex;
+      flex-direction: column;
+      background: var(--white);
+      border-right: 1px solid var(--surface-3);
+      min-width: 0;
+    }
+    .msg-sidebar-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 18px 12px;
+      border-bottom: 1px solid var(--surface-2);
+    }
+    .msg-sidebar-title {
+      font-family: 'Outfit', sans-serif; font-weight: 800;
+      font-size: 1.4rem; color: var(--ink); display: flex; align-items: center; gap: 8px;
+    }
+    .msg-sidebar-search {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--surface-2);
+    }
+    .msg-search-wrap {
+      position: relative;
+    }
+    .msg-search-wrap svg {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      color: var(--ink-3); pointer-events: none;
+    }
+    .msg-search-wrap input {
+      width: 100%; padding: 9px 12px 9px 38px; border-radius: 999px;
+      border: 1px solid var(--surface-3); background: var(--surface-2);
+      font-size: .85rem; outline: none; color: var(--ink);
+      font-family: inherit; transition: all .15s;
+    }
+    .msg-search-wrap input:focus {
+      border-color: var(--primary, #E8501A);
+      background: var(--white);
+    }
+    .msg-conv-scroll {
+      flex: 1; overflow-y: auto;
+    }
+
+    /* Chat area */
+    .msg-chat {
+      display: flex; flex-direction: column;
+      min-width: 0;
+      min-height: 0;       /* CRITIQUE : permet au flex child .msg-scroll de shrink */
+      overflow: hidden;     /* coupe le débordement, le scroll est dans .msg-scroll */
+      background:
+        radial-gradient(ellipse at top, rgba(232,80,26,.04) 0%, transparent 60%),
+        var(--surface);
+    }
+    .msg-sidebar { min-height: 0; overflow: hidden; }
+    .msg-empty {
+      flex: 1; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 40px 20px; text-align: center;
+      color: var(--ink-3);
+    }
+    .msg-empty-icon {
+      width: 96px; height: 96px; border-radius: 50%;
+      background: var(--surface-2);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 20px;
+    }
+    .msg-empty h3 {
+      font-family: 'Outfit', sans-serif; color: var(--ink);
+      font-size: 1.2rem; margin-bottom: 8px;
+    }
+    .msg-empty p { font-size: .9rem; max-width: 320px; line-height: 1.55; margin-bottom: 16px; }
+
+    /* Chat header */
+    .msg-chat-header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px;
+      background: var(--white);
+      border-bottom: 1px solid var(--surface-3);
+      box-shadow: 0 1px 3px rgba(0,0,0,.03);
+      z-index: 5;
+    }
+    .msg-back-btn {
+      display: none;
+      width: 36px; height: 36px; border-radius: 50%;
+      align-items: center; justify-content: center;
+      background: transparent; border: none; cursor: pointer;
+      color: var(--ink-2); flex-shrink: 0;
+    }
+    .msg-back-btn:hover { background: var(--surface-2); }
+    .msg-chat-avatar-wrap { position: relative; flex-shrink: 0; }
+    .msg-chat-avatar {
+      width: 44px; height: 44px; border-radius: 50%;
+      object-fit: cover; background: var(--surface-2);
+      border: 2px solid var(--white);
+    }
+    .msg-chat-online-dot {
+      position: absolute; bottom: 0; right: 0;
+      width: 12px; height: 12px; border-radius: 50%;
+      background: var(--success, #16a34a);
+      border: 2px solid var(--white);
+    }
+    .msg-chat-info { flex: 1; min-width: 0; }
+    .msg-chat-name {
+      font-weight: 700; font-size: .95rem; color: var(--ink);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .msg-chat-status {
+      font-size: .72rem; color: var(--success, #16a34a);
+      display: flex; align-items: center; gap: 4px; margin-top: 1px;
+    }
+    .msg-chat-actions { display: flex; gap: 4px; flex-shrink: 0; }
+    .msg-chat-actions .icon-btn {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: transparent; border: none; cursor: pointer;
+      color: var(--ink-3); transition: all .15s;
+    }
+    .msg-chat-actions .icon-btn:hover { background: var(--surface-2); color: var(--ink); }
+
+    /* Messages scroll */
+    .msg-scroll {
+      flex: 1; overflow-y: auto;
+      padding: 16px 14px 12px;
+    }
+
+    /* Input bar */
+    .msg-input-bar {
+      display: flex; align-items: center; gap: 6px;
+      padding: 10px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+      background: var(--white);
+      border-top: 1px solid var(--surface-3);
+    }
+    .msg-input-icon-btn {
+      width: 38px; height: 38px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: transparent; border: none; cursor: pointer;
+      color: var(--ink-3); flex-shrink: 0; transition: all .15s;
+    }
+    .msg-input-icon-btn:hover { background: var(--surface-2); color: var(--primary, #E8501A); }
+    .msg-input-textarea {
+      flex: 1; min-width: 0;
+      padding: 10px 16px;
+      border-radius: 22px;
+      border: 1px solid var(--surface-3);
+      background: var(--surface-2);
+      font-size: .92rem; outline: none; color: var(--ink);
+      font-family: inherit;
+      resize: none; line-height: 1.4;
+      max-height: 100px;
+      transition: all .15s;
+    }
+    .msg-input-textarea:focus {
+      border-color: var(--primary, #E8501A);
+      background: var(--white);
+    }
+    .msg-send-btn {
+      width: 40px; height: 40px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--primary, #E8501A); border: none; cursor: pointer;
+      color: #fff; flex-shrink: 0;
+      transition: transform .12s, background .15s;
+      box-shadow: 0 2px 8px rgba(232,80,26,.3);
+    }
+    .msg-send-btn:hover { background: #d44310; }
+    .msg-send-btn:active { transform: scale(.9); }
+    .msg-send-btn:disabled { background: var(--surface-3); color: var(--ink-3); cursor: not-allowed; box-shadow: none; }
+
+    /* Mobile : empile + nav entre liste / chat. Cache la bottom-nav (pattern WhatsApp). */
+    @media (max-width: 900px) {
+      body { padding-bottom: 0 !important; overflow: hidden !important; }
+      .bottom-nav { display: none !important; }
+      .page-body { padding: 0 !important; }
+      .msg-app {
+        grid-template-columns: 1fr;
+        position: fixed;
+        top: var(--nav-h, 60px);
+        left: 0; right: 0; bottom: 0;
+        height: auto;
+        max-height: none;
+        margin: 0;
+        border: none;
+        border-radius: 0;
+      }
+      .msg-sidebar { border-right: none; height: 100%; }
+      .msg-app.show-chat .msg-sidebar { display: none; }
+      .msg-app:not(.show-chat) .msg-chat { display: none; }
+      .msg-back-btn { display: flex; }
+    }
+  </style>
+</head>
+<body>
+<div id="toast-container"></div>
+
+<div class="page-body" style="padding:0">
+  <div class="container" style="padding:0;max-width:1200px">
+    <div class="msg-app" id="msg-app">
+
+      <!-- ═══════ SIDEBAR : LISTE CONVERSATIONS ═══════ -->
+      <aside class="msg-sidebar">
+        <div class="msg-sidebar-header">
+          <div class="msg-sidebar-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            Messages
+          </div>
+        </div>
+        <div class="msg-sidebar-search">
+          <div class="msg-search-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+            <input type="search" placeholder="Rechercher une conversation…">
+          </div>
+        </div>
+        <div class="msg-conv-scroll" id="conv-list-body">
+          <div style="padding:30px 16px;text-align:center">
+            <div class="skeleton skeleton-line" style="margin:0 auto 8px;width:60%"></div>
+            <div class="skeleton skeleton-line" style="margin:0 auto;width:40%"></div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ═══════ CHAT AREA ═══════ -->
+      <main class="msg-chat">
+
+        <!-- Empty state -->
+        <div class="msg-empty" id="chat-empty">
+          <div class="msg-empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="46" height="46" style="color:var(--ink-3)"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          </div>
+          <h3>Vos conversations</h3>
+          <p>Sélectionnez une conversation à gauche, ou contactez un vendeur depuis une fiche produit pour commencer à discuter.</p>
+          <a href="index.html" class="btn btn-primary btn-sm">
+            Parcourir les annonces
+          </a>
+        </div>
+
+        <!-- Active chat -->
+        <div id="chat-active" class="hidden" style="display:flex;flex-direction:column;flex:1;min-height:0;height:100%;overflow:hidden">
+
+          <!-- Header -->
+          <header class="msg-chat-header">
+            <button class="msg-back-btn" id="msg-back-btn" aria-label="Retour">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="20" height="20"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <div class="msg-chat-avatar-wrap">
+              <img id="chat-partner-avatar" src="https://ui-avatars.com/api/?name=V&background=E8501A&color=fff" class="msg-chat-avatar" alt="">
+              <span class="msg-chat-online-dot"></span>
+            </div>
+            <div class="msg-chat-info">
+              <div class="msg-chat-name" id="chat-partner-name"></div>
+              <div class="msg-chat-status">En ligne</div>
+            </div>
+            <div class="msg-chat-actions">
+              <a id="btn-view-profile" href="#" class="icon-btn" title="Voir le profil">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+              </a>
+              <button class="icon-btn" id="btn-chat-menu" title="Plus" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+              </button>
+            </div>
+          </header>
+
+          <!-- Messages -->
+          <div class="msg-scroll" id="chat-messages"></div>
+
+          <!-- Input bar -->
+          <form class="msg-input-bar" id="chat-send-form">
+            <button type="button" class="msg-input-icon-btn" id="btn-attach" title="Pièce jointe (à venir)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg>
+            </button>
+            <button type="button" class="msg-input-icon-btn" id="btn-emoji" title="Emoji (à venir)">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+            </button>
+            <textarea class="msg-input-textarea" id="chat-input-text" placeholder="Écrivez un message…" autocomplete="off" rows="1" required></textarea>
+            <button type="submit" class="msg-send-btn" title="Envoyer" id="btn-send" disabled>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="18" height="18"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
+          </form>
+        </div>
+
+      </main>
+    </div>
+  </div>
+</div>
+
+<script>if(typeof window.supabase==="undefined")window.supabase=null;</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" onerror="console.warn('Supabase CDN indisponible - mode demo actif')"></script>
+<script src="../assets/js/app.js"></script>
+<script src="../assets/js/features/messages.js"></script>
+<script>
+// Cart badge
+const cart = (window.getCart ? window.getCart() : []);
+const cb = document.getElementById('cart-badge');
+if (cb && cart.length) { cb.textContent = cart.length; cb.classList.remove('hidden'); }
+
+// Fix hidden → flex for active chat
+const chatActive = document.getElementById('chat-active');
+if (chatActive) {
+  const observer = new MutationObserver(() => {
+    if (!chatActive.classList.contains('hidden')) {
+      chatActive.style.display = 'flex';
+    }
+  });
+  observer.observe(chatActive, { attributes: true, attributeFilter: ['class'] });
+}
+</script>
+</body>
+</html>
