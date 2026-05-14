@@ -81,6 +81,7 @@ window.onDjamikReady(async function() {
       r = await sb.from('conversations')
         .select('*')
         .contains('participants', [meId])
+        .not('deleted_for', 'cs', '{' + meId + '}')
         .order('last_message_at', { ascending: false, nullsFirst: false });
     } catch(e) { r = { data: [] }; }
     var convs = (r && r.data) || [];
@@ -191,13 +192,94 @@ window.onDjamikReady(async function() {
             (time ? '<div class="conv-time">' + time + '</div>' : '') +
             (c.unread > 0 ? '<span class="conv-badge">' + c.unread + '</span>' : '') +
           '</div>' +
+          '<button class="conv-menu-btn" data-id="' + c.id + '" aria-label="Options" title="Options">⋯</button>' +
         '</div>'
       );
     }).join('');
 
     container.querySelectorAll('.conv-item').forEach(function(el) {
-      el.addEventListener('click', function() { _openConv(this.dataset.id); });
+      el.addEventListener('click', function(e) {
+        if (e.target.closest('.conv-menu-btn')) return; // ignore clicks on menu
+        _openConv(this.dataset.id);
+      });
     });
+    container.querySelectorAll('.conv-menu-btn').forEach(function(btn) {
+      btn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        _showConvMenu(this);
+      });
+    });
+  }
+
+  // ────────────────────────────────────────────────────────────
+  //  MENU CONV (⋯) → Supprimer
+  // ────────────────────────────────────────────────────────────
+  function _showConvMenu(btn) {
+    _closeConvMenu();
+    var convId = btn.dataset.id;
+    var menu = document.createElement('div');
+    menu.className = 'conv-menu-pop';
+    menu.innerHTML =
+      '<button class="conv-menu-item danger" data-act="delete">' +
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+        '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14H7L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>' +
+        '</svg>' +
+        '<span>Supprimer la discussion</span>' +
+      '</button>';
+    document.body.appendChild(menu);
+
+    var rect = btn.getBoundingClientRect();
+    var menuW = 220;
+    var left = Math.min(rect.right - menuW, window.innerWidth - menuW - 8);
+    menu.style.left = Math.max(8, left) + 'px';
+    menu.style.top  = (rect.bottom + 4) + 'px';
+
+    menu.querySelector('[data-act="delete"]').addEventListener('click', function() {
+      _closeConvMenu();
+      _confirmDeleteConv(convId);
+    });
+
+    setTimeout(function() {
+      document.addEventListener('click', _closeConvMenu, { once: true });
+    }, 0);
+  }
+  function _closeConvMenu() {
+    var existing = document.querySelector('.conv-menu-pop');
+    if (existing) existing.remove();
+  }
+
+  function _confirmDeleteConv(convId) {
+    if (!confirm('Supprimer cette discussion ?\n\nElle sera retirée de ta liste. Si la personne te répond, elle réapparaîtra.')) return;
+    _deleteConv(convId);
+  }
+
+  async function _deleteConv(convId) {
+    try {
+      // append meId to deleted_for via RPC-style update
+      var r = await sb.from('conversations').select('deleted_for').eq('id', convId).single();
+      var arr = (r && r.data && r.data.deleted_for) || [];
+      if (arr.indexOf(meId) === -1) arr.push(meId);
+      await sb.from('conversations').update({ deleted_for: arr }).eq('id', convId);
+
+      // Si on était sur cette conv, on revient à la liste
+      if (currentConvId === convId) {
+        currentConvId = null;
+        var chatActive = document.getElementById('chat-active');
+        var chatEmpty  = document.getElementById('chat-empty');
+        if (chatActive) chatActive.style.display = 'none';
+        if (chatEmpty)  chatEmpty.style.display  = '';
+        // Mobile : retour à la liste
+        var app = document.querySelector('.msg-app');
+        if (app) app.classList.remove('show-chat');
+      }
+
+      cachedConvs = cachedConvs.filter(function(c){ return c.id !== convId; });
+      _renderConvList();
+      if (window.toast) window.toast('Discussion supprimée', 'success');
+    } catch(e) {
+      console.error('[messages] delete conv failed', e);
+      if (window.toast) window.toast('Échec de la suppression', 'error');
+    }
   }
 
   // ────────────────────────────────────────────────────────────
@@ -822,6 +904,20 @@ window.onDjamikReady(async function() {
       '.conv-meta{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}',
       '.conv-time{font-size:.7rem;color:var(--ink-3)}',
       '.conv-badge{background:var(--primary);color:#fff;border-radius:50%;width:18px;height:18px;font-size:.7rem;display:flex;align-items:center;justify-content:center;font-weight:700}',
+
+      // Bouton ⋯ + menu popup
+      '.conv-item{position:relative}',
+      '.conv-menu-btn{position:absolute;top:50%;right:6px;transform:translateY(-50%);width:28px;height:28px;border:none;background:transparent;color:var(--ink-3);font-size:1.2rem;line-height:1;border-radius:50%;cursor:pointer;opacity:0;transition:opacity .15s,background .15s;font-family:inherit;padding:0;display:flex;align-items:center;justify-content:center}',
+      '.conv-item:hover .conv-menu-btn{opacity:1}',
+      '.conv-menu-btn:hover{background:var(--surface-3);color:var(--ink)}',
+      '@media(max-width:768px){.conv-menu-btn{opacity:.6}}',
+      '.conv-menu-pop{position:fixed;width:220px;background:var(--white);border:1px solid var(--surface-3);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.15);padding:6px;z-index:1000;animation:convMenuPop .15s ease}',
+      '@keyframes convMenuPop{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}',
+      '.conv-menu-item{width:100%;display:flex;align-items:center;gap:10px;padding:10px 12px;background:transparent;border:none;cursor:pointer;border-radius:8px;font-family:inherit;font-size:.88rem;color:var(--ink);text-align:left;transition:background .12s}',
+      '.conv-menu-item:hover{background:var(--surface-2)}',
+      '.conv-menu-item.danger{color:var(--danger,#ef4444)}',
+      '.conv-menu-item.danger:hover{background:#fef2f2}',
+
 
       // Product banner
       '.chat-product-banner{display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--surface-2);border-bottom:1px solid var(--surface-3);text-decoration:none;color:var(--ink);transition:background .15s}',
