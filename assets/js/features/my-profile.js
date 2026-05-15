@@ -166,9 +166,10 @@ window.onDjamikReady(function() {
         '<button class="btn btn-outline btn-sm" id="btn-share-profile">' + _icon('share') + ' Partager</button>';
     }
 
-    return '<div class="profile-card">' +
+    var tierCls = (p._tier === 'vip') ? ' tier-vip' : (p._tier === 'premium' ? ' tier-premium' : '');
+    return '<div class="profile-card' + tierCls + '">' +
       '<div class="profile-cover"></div>' +
-      '<div class="profile-avatar-wrap">' +
+      '<div class="profile-avatar-wrap' + tierCls + '">' +
         '<img src="' + avatar + '" alt="" class="profile-avatar" id="profile-avatar-img">' +
         (verified ? '<div class="profile-verified" title="Vendeur vérifié">' + _icon('check') + '</div>' : '') +
       '</div>' +
@@ -219,7 +220,8 @@ window.onDjamikReady(function() {
       daysHtml = '<div class="my-sub-days">⏱ ' + daysLeft + ' jour' + (daysLeft > 1 ? 's' : '') + ' restant' + (daysLeft > 1 ? 's' : '') + '</div>';
     }
 
-    return '<div class="my-sub" style="background:' + nfo.bg + '">' +
+    var subClass = 'my-sub' + (tier === 'vip' ? ' is-vip' : (tier === 'premium' ? ' is-premium' : ''));
+    return '<div class="' + subClass + '" style="background:' + nfo.bg + '">' +
       '<div class="my-sub-icon" style="color:' + nfo.accent + '">' + icon + '</div>' +
       '<div class="my-sub-body">' +
         '<div class="my-sub-name" style="color:' + nfo.accent + '">Plan ' + nfo.name + '</div>' +
@@ -619,6 +621,23 @@ window.onDjamikReady(function() {
 
       // Card
       '.profile-card{position:relative;background:var(--white);border:1px solid var(--surface-3);border-radius:var(--r-xl);overflow:hidden;margin-bottom:var(--space-4);box-shadow:var(--shadow-sm)}',
+
+      // ── Profile card VIP/Premium animée ──
+      '.profile-card.tier-vip{border:none;box-shadow:0 4px 16px rgba(245,177,0,.2),0 0 0 2px rgba(245,177,0,.5);animation:profileGlowVip 3s ease-in-out infinite}',
+      '.profile-card.tier-vip .profile-cover{background:linear-gradient(135deg,#0F172A 0%,#1E293B 30%,#8C6500 70%,#F5B100 100%);background-size:200% 200%;animation:profileCoverFlow 8s ease-in-out infinite}',
+      '@keyframes profileGlowVip{0%,100%{box-shadow:0 4px 16px rgba(245,177,0,.2),0 0 0 2px rgba(245,177,0,.5)}50%{box-shadow:0 8px 32px rgba(245,177,0,.4),0 0 0 2px rgba(245,177,0,.7)}}',
+
+      '.profile-card.tier-premium{border:none;box-shadow:0 4px 16px rgba(124,58,237,.2),0 0 0 2px rgba(124,58,237,.5);animation:profileGlowPrem 3.5s ease-in-out infinite}',
+      '.profile-card.tier-premium .profile-cover{background:linear-gradient(135deg,#0F172A 0%,#1E293B 30%,#4C1D95 70%,#7C3AED 100%);background-size:200% 200%;animation:profileCoverFlow 9s ease-in-out infinite}',
+      '@keyframes profileGlowPrem{0%,100%{box-shadow:0 4px 16px rgba(124,58,237,.2),0 0 0 2px rgba(124,58,237,.5)}50%{box-shadow:0 8px 32px rgba(124,58,237,.4),0 0 0 2px rgba(124,58,237,.7)}}',
+      '@keyframes profileCoverFlow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}',
+
+      // Avatar wrap : double anneau qui tourne pour VIP/Premium
+      '.profile-avatar-wrap.tier-vip::before,.profile-avatar-wrap.tier-premium::before{content:"";position:absolute;inset:-6px;border-radius:50%;background:conic-gradient(from 0deg,#FFE08A,#F5B100,#B8830C,#FFE08A);animation:avatarRing 4s linear infinite;z-index:0}',
+      '.profile-avatar-wrap.tier-premium::before{background:conic-gradient(from 0deg,#C4B5FD,#7C3AED,#4C1D95,#C4B5FD)}',
+      '.profile-avatar-wrap.tier-vip .profile-avatar,.profile-avatar-wrap.tier-premium .profile-avatar{position:relative;z-index:1;border-width:5px}',
+      '@keyframes avatarRing{from{transform:rotate(0)}to{transform:rotate(360deg)}}',
+
       '.profile-cover{height:80px;background:linear-gradient(135deg,#0F172A 0%,#1E293B 50%,#E8501A 150%)}',
       '.profile-avatar-wrap{position:relative;width:96px;height:96px;margin:-48px auto 0;display:block}',
       '.profile-avatar{width:96px;height:96px;border-radius:50%;border:4px solid var(--white);object-fit:cover;display:block;background:var(--surface-2)}',
@@ -626,8 +645,20 @@ window.onDjamikReady(function() {
       '.profile-verified svg{width:14px;height:14px}',
       '.profile-body{padding:14px 20px 22px;text-align:center}',
       '.profile-name{font-family:Outfit,sans-serif;font-size:1.25rem;font-weight:800;margin:6px 0 4px;color:var(--ink);display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center}',
-      '.my-sub{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:var(--r-lg);margin-bottom:var(--space-4);border:1px solid var(--surface-3);box-shadow:var(--shadow-sm)}',
-      '.my-sub-icon{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;flex-shrink:0}',
+      '.my-sub{position:relative;display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:var(--r-lg);margin-bottom:var(--space-4);border:none;box-shadow:0 4px 12px rgba(0,0,0,.06);overflow:hidden;background-size:200% 200%;animation:mySubFlow 8s ease-in-out infinite}',
+      '@keyframes mySubFlow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}',
+      // Bordure animée pour VIP/Premium
+      '.my-sub.is-vip{box-shadow:0 4px 16px rgba(245,177,0,.25),0 0 0 2px rgba(245,177,0,.5);animation:mySubFlow 8s ease-in-out infinite,mySubGlowVip 3s ease-in-out infinite}',
+      '@keyframes mySubGlowVip{0%,100%{box-shadow:0 4px 16px rgba(245,177,0,.25),0 0 0 2px rgba(245,177,0,.5)}50%{box-shadow:0 6px 28px rgba(245,177,0,.4),0 0 0 2px rgba(245,177,0,.7)}}',
+      '.my-sub.is-premium{box-shadow:0 4px 16px rgba(124,58,237,.25),0 0 0 2px rgba(124,58,237,.5);animation:mySubFlow 8s ease-in-out infinite,mySubGlowPrem 3.5s ease-in-out infinite}',
+      '@keyframes mySubGlowPrem{0%,100%{box-shadow:0 4px 16px rgba(124,58,237,.25),0 0 0 2px rgba(124,58,237,.5)}50%{box-shadow:0 6px 28px rgba(124,58,237,.4),0 0 0 2px rgba(124,58,237,.7)}}',
+      // Brillance qui passe
+      '.my-sub.is-vip::after,.my-sub.is-premium::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);background-size:250% 100%;background-position:200% 0;animation:tierShine 3.5s ease-in-out infinite;pointer-events:none}',
+      '.my-sub > *{position:relative;z-index:2}',
+
+      '.my-sub-icon{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 6px rgba(0,0,0,.1)}',
+      '.my-sub.is-vip .my-sub-icon{box-shadow:0 0 0 2px #fff,0 0 0 4px #F5B100,0 4px 10px rgba(245,177,0,.5)}',
+      '.my-sub.is-premium .my-sub-icon{box-shadow:0 0 0 2px #fff,0 0 0 4px #7C3AED,0 4px 10px rgba(124,58,237,.5)}',
       '.my-sub-body{flex:1;min-width:0}',
       '.my-sub-name{font-family:Outfit,sans-serif;font-weight:800;font-size:1rem;letter-spacing:-.01em}',
       '.my-sub-meta{font-size:.78rem;color:var(--ink-2);margin-top:2px}',

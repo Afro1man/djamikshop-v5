@@ -169,18 +169,35 @@
       '.tier-badge.tier-vip{background:linear-gradient(135deg,#FFE08A,#F5B100,#B8830C);color:#3D2700;box-shadow:0 1px 3px rgba(245,177,0,.4),inset 0 1px 0 rgba(255,255,255,.4);text-shadow:0 1px 0 rgba(255,255,255,.3)}',
       '.tier-badge.tier-premium{background:linear-gradient(135deg,#C4B5FD,#7C3AED,#4C1D95);color:#fff;box-shadow:0 1px 3px rgba(124,58,237,.4),inset 0 1px 0 rgba(255,255,255,.2)}',
 
-      // Cards VIP/Premium (appliqué via .product-card.tier-vip ou .tier-premium)
-      '.product-card.tier-vip{border:2px solid transparent !important;background:linear-gradient(180deg,#fff,#fff) padding-box,linear-gradient(135deg,#FFE08A,#F5B100,#B8830C) border-box !important;box-shadow:0 4px 16px rgba(245,177,0,.18) !important;position:relative}',
-      '.product-card.tier-vip:hover{box-shadow:0 12px 32px rgba(245,177,0,.32) !important}',
-      '.product-card.tier-vip::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,220,130,.25) 50%,transparent 70%);background-size:250% 100%;background-position:200% 0;animation:tierShine 3.5s ease-in-out infinite;pointer-events:none;border-radius:inherit;z-index:1}',
-      '@keyframes tierShine{to{background-position:-200% 0}}',
+      // ── CARDS VIP : bordure flow + double brillance + glow pulsé ──
+      '.product-card.tier-vip{border:none !important;position:relative;background:#fff !important;box-shadow:0 4px 16px rgba(245,177,0,.18),0 0 0 2px rgba(245,177,0,.4) !important;animation:tierVipGlow 3s ease-in-out infinite}',
+      '.product-card.tier-vip::before{content:"";position:absolute;inset:-2px;border-radius:inherit;padding:2px;background:linear-gradient(135deg,#FFE08A,#F5B100,#B8830C,#FFE08A,#F5B100,#B8830C);background-size:300% 300%;-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:tierBorderFlow 4s linear infinite;pointer-events:none;z-index:2}',
+      '.product-card.tier-vip::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,220,130,.45) 50%,transparent 70%);background-size:250% 100%;background-position:200% 0;animation:tierShine 3s ease-in-out infinite;pointer-events:none;border-radius:inherit;z-index:1;mix-blend-mode:screen}',
+      '.product-card.tier-vip:hover{box-shadow:0 16px 36px rgba(245,177,0,.45),0 0 0 2px rgba(245,177,0,.6) !important}',
+      '@keyframes tierVipGlow{0%,100%{box-shadow:0 4px 16px rgba(245,177,0,.18),0 0 0 2px rgba(245,177,0,.4)}50%{box-shadow:0 6px 24px rgba(245,177,0,.35),0 0 0 2px rgba(245,177,0,.6)}}',
+      '@keyframes tierBorderFlow{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}',
+      '@keyframes tierShine{0%{background-position:200% 0}100%{background-position:-200% 0}}',
 
-      '.product-card.tier-premium{border:2px solid transparent !important;background:linear-gradient(180deg,#fff,#fff) padding-box,linear-gradient(135deg,#C4B5FD,#7C3AED,#4C1D95) border-box !important;box-shadow:0 4px 16px rgba(124,58,237,.18) !important;position:relative}',
-      '.product-card.tier-premium:hover{box-shadow:0 12px 32px rgba(124,58,237,.32) !important}',
+      // ── CARDS PREMIUM : bordure violette flow + halo radial pulsé ──
+      '.product-card.tier-premium{border:none !important;position:relative;background:#fff !important;box-shadow:0 4px 16px rgba(124,58,237,.18),0 0 0 2px rgba(124,58,237,.4) !important;animation:tierPremGlow 3.5s ease-in-out infinite}',
+      '.product-card.tier-premium::before{content:"";position:absolute;inset:-2px;border-radius:inherit;padding:2px;background:linear-gradient(135deg,#C4B5FD,#7C3AED,#4C1D95,#C4B5FD,#7C3AED,#4C1D95);background-size:300% 300%;-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:tierBorderFlow 4.5s linear infinite;pointer-events:none;z-index:2}',
+      '.product-card.tier-premium::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 80% 20%,rgba(196,181,253,.35) 0,transparent 50%),radial-gradient(circle at 20% 80%,rgba(124,58,237,.25) 0,transparent 50%);pointer-events:none;border-radius:inherit;z-index:1;animation:tierPremPulse 4s ease-in-out infinite}',
+      '.product-card.tier-premium:hover{box-shadow:0 16px 36px rgba(124,58,237,.45),0 0 0 2px rgba(124,58,237,.6) !important}',
+      '@keyframes tierPremGlow{0%,100%{box-shadow:0 4px 16px rgba(124,58,237,.18),0 0 0 2px rgba(124,58,237,.4)}50%{box-shadow:0 6px 24px rgba(124,58,237,.35),0 0 0 2px rgba(124,58,237,.6)}}',
+      '@keyframes tierPremPulse{0%,100%{opacity:.7}50%{opacity:1}}',
+
+      // Le contenu doit etre au-dessus des effets
+      '.product-card.tier-vip > *,.product-card.tier-premium > *{position:relative;z-index:3}',
 
       // Badge boost actif
-      '.boost-badge-active{position:absolute;top:8px;right:50px;background:linear-gradient(135deg,#FF8A3D,#E8501A);color:#fff;padding:4px 9px;border-radius:100px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;box-shadow:0 2px 8px rgba(232,80,26,.35);z-index:3;display:inline-flex;align-items:center;gap:4px}',
-      '.boost-badge-active svg{width:11px;height:11px}'
+      '.boost-badge-active{position:absolute;top:8px;right:50px;background:linear-gradient(135deg,#FF8A3D,#E8501A);color:#fff;padding:4px 9px;border-radius:100px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;box-shadow:0 2px 8px rgba(232,80,26,.35);z-index:5;display:inline-flex;align-items:center;gap:4px;animation:boostPulse 2s ease-in-out infinite}',
+      '.boost-badge-active svg{width:11px;height:11px}',
+      '@keyframes boostPulse{0%,100%{transform:scale(1);box-shadow:0 2px 8px rgba(232,80,26,.35)}50%{transform:scale(1.05);box-shadow:0 4px 16px rgba(232,80,26,.55)}}',
+
+      // Badges tier animés
+      '.tier-badge.tier-vip{animation:badgeShine 3s ease-in-out infinite;background-size:200% 200% !important}',
+      '.tier-badge.tier-premium{animation:badgeShine 3.5s ease-in-out infinite;background-size:200% 200% !important}',
+      '@keyframes badgeShine{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}'
     ].join('');
     document.head.appendChild(s);
   }
