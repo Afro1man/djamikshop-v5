@@ -67,7 +67,7 @@ window.onDjamikReady(function() {
 
       // ── Photos ──
       '<div class="form-group">' +
-        '<label class="form-label">Photos <span style="color:var(--ink-3);font-weight:400">(max 10)</span></label>' +
+        '<label class="form-label">Photos <span style="color:var(--ink-3);font-weight:400">(max 3)</span></label>' +
         '<div id="ap-photo-drop" class="ap-photo-drop">' +
           '<div style="pointer-events:none">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="36" height="36" style="display:block;margin:0 auto 8px;color:var(--ink-3)"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>' +
@@ -209,7 +209,7 @@ window.onDjamikReady(function() {
 
     function _addFiles(fl) {
       Array.from(fl).forEach(function(file) {
-        if (_totalCount() >= 10) { window.toast && window.toast('Maximum 10 photos.', 'error'); return; }
+        if (_totalCount() >= 3) { window.toast && window.toast('Maximum 3 photos.', 'error'); return; }
         if (!file.type.startsWith('image/')) return;
         if (file.size > 5 * 1024 * 1024) {
           window.toast && window.toast('Image > 5 Mo ignorée.', 'error');
