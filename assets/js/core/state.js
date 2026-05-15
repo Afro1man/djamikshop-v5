@@ -206,9 +206,27 @@ window.markAllRead = function() {
   _ls.set('dj_notifications', notifs);
   window.updateNotifBadge && window.updateNotifBadge();
 };
-window.updateNotifBadge = function() {
-  var count = window.getNotifications().filter(function(n){ return !n.read; }).length;
-  document.querySelectorAll('.notif-badge').forEach(function(el) {
+window.updateNotifBadge = async function() {
+  var count = 0;
+  // Source de vérité : Supabase (les notifs locales restent en fallback)
+  if (window._supabase) {
+    try {
+      var u = await window._supabase.auth.getUser();
+      var uid = u && u.data && u.data.user && u.data.user.id;
+      if (uid) {
+        var r = await window._supabase.from('notifications')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', uid)
+          .is('read_at', null);
+        count = (r && r.count) || 0;
+      }
+    } catch(e) { /* fallback ci-dessous */ }
+  }
+  if (count === 0) {
+    // Fallback localStorage (pour anciens enregistrements)
+    count = window.getNotifications().filter(function(n){ return !n.read; }).length;
+  }
+  document.querySelectorAll('.notif-badge, #sm-notif-badge').forEach(function(el) {
     el.textContent = count > 9 ? '9+' : count;
     el.classList.toggle('hidden', count === 0);
   });
