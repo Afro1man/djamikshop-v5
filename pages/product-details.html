@@ -85,17 +85,14 @@
     .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; }
     .gallery-badge-overlay { position: absolute; top: var(--space-3); left: var(--space-3); display: flex; flex-direction: column; gap: var(--space-1); z-index: 2; }
 
-    /* Mobile : image entière visible (pas croppée), hauteur réduite */
+    /* Mobile : image remplit (pas de bandes noires) + fleches conservees + swipe */
     @media (max-width: 768px) {
       .gallery-main {
-        aspect-ratio: auto;
-        height: 50vh;          /* moitié de l'écran max */
-        max-height: 420px;
-        background: #0F1115;   /* fond noir pour les bandes si image portrait/paysage */
+        aspect-ratio: 1/1;
+        max-height: 50vh;
+        background: var(--surface-2);
       }
-      .gallery-main img {
-        object-fit: contain;   /* image entière visible, jamais croppée */
-      }
+      .gallery-main img { object-fit: cover; }
       .gallery-nav { opacity: .85; width: 40px; height: 40px; background: rgba(255,255,255,.95); }
       .gallery-thumb { width: 64px; height: 64px; }
       .gallery-counter { bottom: 10px; right: 10px; font-size: .75rem; padding: 3px 9px; }
