@@ -217,6 +217,7 @@ window.onDjamikReady(function() {
             window.relativeDate(p.created_at) +
           '</div>' +
           (withActions && !p.sold ? '<div class="profile-listing-actions">' +
+            '<button class="profile-act-btn edit" data-id="' + p.id + '" data-act="edit">' + _icon('edit') + ' Modifier</button>' +
             (boosted ? '' : '<button class="profile-act-btn boost" data-id="' + p.id + '" data-act="boost">' + _icon('rocket') + ' Booster</button>') +
             '<button class="profile-act-btn" data-id="' + p.id + '" data-act="sold">' + _icon('check') + ' Vendu</button>' +
             '<button class="profile-act-btn danger" data-id="' + p.id + '" data-act="delete">' + _icon('trash') + '</button>' +
@@ -282,6 +283,10 @@ window.onDjamikReady(function() {
     var product = await _findProduct(productId);
     if (!product) { window.toast && window.toast('Annonce introuvable.', 'error'); return; }
 
+    if (act === 'edit') {
+      window.location.href = 'add-product.html?edit=' + encodeURIComponent(productId);
+      return;
+    }
     if (act === 'boost') {
       if (window.boostProduct) window.boostProduct(productId);
       setTimeout(function() { window.location.reload(); }, 800);
@@ -584,6 +589,7 @@ window.onDjamikReady(function() {
       '.profile-act-btn{display:inline-flex;align-items:center;gap:4px;padding:5px 9px;background:var(--surface-2);border:1px solid var(--surface-3);border-radius:6px;font-size:.7rem;font-weight:600;cursor:pointer;color:var(--ink-2);font-family:inherit;transition:all .15s}',
       '.profile-act-btn:hover{background:var(--surface-3)}',
       '.profile-act-btn.boost{color:#7C3AED;border-color:rgba(124,58,237,.3)}',
+      '.profile-act-btn.edit{color:var(--primary,#E8501A);border-color:rgba(232,80,26,.3)}',
       '.profile-act-btn.danger{color:var(--danger,#ef4444);border-color:rgba(239,68,68,.3)}',
       '.profile-act-btn svg{width:11px;height:11px}',
 

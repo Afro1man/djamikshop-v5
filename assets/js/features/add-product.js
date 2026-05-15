@@ -6,12 +6,57 @@ window.onDjamikReady(function() {
   var panel = document.getElementById('add-product-form');
   if (!panel) return;
 
-  (window.requireAuth ? window.requireAuth('add-product.html') : Promise.resolve(true)).then(function(user) {
+  // ── Mode édition : ?edit=PRODUCT_ID dans l'URL ──
+  var urlParams = new URLSearchParams(window.location.search);
+  var editId    = urlParams.get('edit');
+  var editMode  = !!editId;
+
+  (window.requireAuth ? window.requireAuth('add-product.html' + (editMode ? '?edit=' + editId : '')) : Promise.resolve(true)).then(async function(user) {
     if (!user) return;
-    _buildForm(panel, user);
+
+    var existingProduct = null;
+    if (editMode) {
+      existingProduct = await _fetchProductForEdit(editId, user);
+      if (!existingProduct) return;   // erreur déjà affichée
+
+      // Met à jour titre/breadcrumb pour refléter le mode édition
+      document.title = 'Modifier l\'annonce — DjamikShop';
+      var h1 = document.querySelector('.page-body h1');
+      if (h1) h1.lastChild.textContent = ' Modifier l\'annonce';
+      var crumb = document.querySelector('.breadcrumb span');
+      if (crumb) crumb.textContent = 'Modifier';
+    }
+
+    _buildForm(panel, user, existingProduct);
   });
 
-  function _buildForm(panel, user) {
+  // ── Récupère l'annonce à éditer + check ownership ──
+  async function _fetchProductForEdit(productId, user) {
+    if (!window._supabase) {
+      window.toast && window.toast('Connexion requise.', 'error');
+      return null;
+    }
+    try {
+      var r = await window._supabase.from('products').select('*').eq('id', productId).single();
+      if (!r || r.error || !r.data) {
+        window.toast && window.toast('Annonce introuvable.', 'error');
+        setTimeout(function(){ window.location.href = 'my-profile.html'; }, 1200);
+        return null;
+      }
+      if (r.data.seller_id !== user.id) {
+        window.toast && window.toast('Vous ne pouvez modifier que vos propres annonces.', 'error');
+        setTimeout(function(){ window.location.href = 'my-profile.html'; }, 1500);
+        return null;
+      }
+      return r.data;
+    } catch(e) {
+      window.toast && window.toast('Erreur de chargement.', 'error');
+      return null;
+    }
+  }
+
+  function _buildForm(panel, user, existing) {
+    existing = existing || null;
     var cats     = (window.APP && window.APP.categories)     || [];
     var conds    = (window.APP && window.APP.conditions)     || [];
     var cities   = (window.APP && window.APP.cities)         || [];
@@ -100,28 +145,54 @@ window.onDjamikReady(function() {
 
       // ── Submit ──
       '<div style="display:flex;gap:12px;margin-top:var(--space-6)">' +
-        '<a href="index.html" class="btn btn-outline" style="flex:1;text-align:center">Annuler</a>' +
+        '<a href="' + (existing ? 'my-profile.html' : 'index.html') + '" class="btn btn-outline" style="flex:1;text-align:center">Annuler</a>' +
         '<button type="submit" class="btn btn-primary" id="ap-submit" style="flex:2">' +
-          '<svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>' +
-          ' Publier l\'annonce' +
+          (existing
+            ? '<svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg> Enregistrer les modifications'
+            : '<svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Publier l\'annonce'
+          ) +
         '</button>' +
       '</div>' +
 
       '</form>';
 
     _injectStyles();
-    _initImages();
+    _initImages(existing);
     _initCounter();
-    _initSubmit(user);
+    _prefillForm(existing);
+    _initSubmit(user, existing);
+  }
+
+  // ── Pré-remplit le formulaire en mode édition ──
+  function _prefillForm(existing) {
+    if (!existing) return;
+    var byId = function(id){ return document.getElementById(id); };
+    if (byId('ap-title'))      byId('ap-title').value      = existing.title       || '';
+    if (byId('ap-category'))   byId('ap-category').value   = existing.category    || '';
+    if (byId('ap-condition'))  byId('ap-condition').value  = existing.condition   || '';
+    if (byId('ap-price'))      byId('ap-price').value      = existing.price       || '';
+    if (byId('ap-city'))       byId('ap-city').value       = existing.city        || '';
+    if (byId('ap-desc'))       { byId('ap-desc').value     = existing.description || ''; var c = byId('ap-desc-count'); if (c) c.textContent = (existing.description || '').length; }
+    if (byId('ap-negotiable')) byId('ap-negotiable').checked = !!existing.negotiable;
+    var pms = existing.payment_methods || [];
+    document.querySelectorAll('input[name=ap-payment]').forEach(function(cb){
+      cb.checked = pms.indexOf(cb.value) !== -1;
+    });
   }
 
   // ── Image upload & preview ──
   // On garde 2 listes synchronisées :
   //   files[]    = File natifs (pour upload Storage au submit)
   //   previews[] = data URLs base64 (pour affichage local immédiat)
-  function _initImages() {
-    var files     = [];
-    var previewsArr = [];
+  function _initImages(existing) {
+    var files       = [];        // nouveaux fichiers à uploader
+    var previewsArr = [];        // data URLs des nouveaux fichiers
+    var existingUrls = [];       // URLs déjà uploadées (mode édition)
+    if (existing && Array.isArray(existing.images)) {
+      existingUrls = existing.images.slice();
+    } else if (existing && existing.image_url) {
+      existingUrls = [existing.image_url];
+    }
     var fileInput = document.getElementById('ap-file-input');
     var drop      = document.getElementById('ap-photo-drop');
     var previewsEl = document.getElementById('ap-previews');
@@ -134,9 +205,11 @@ window.onDjamikReady(function() {
       _addFiles(e.dataTransfer.files);
     });
 
+    function _totalCount() { return existingUrls.length + files.length; }
+
     function _addFiles(fl) {
       Array.from(fl).forEach(function(file) {
-        if (files.length >= 10) { window.toast && window.toast('Maximum 10 photos.', 'error'); return; }
+        if (_totalCount() >= 10) { window.toast && window.toast('Maximum 10 photos.', 'error'); return; }
         if (!file.type.startsWith('image/')) return;
         if (file.size > 5 * 1024 * 1024) {
           window.toast && window.toast('Image > 5 Mo ignorée.', 'error');
@@ -153,25 +226,38 @@ window.onDjamikReady(function() {
     }
 
     function _render() {
-      previewsEl.innerHTML = previewsArr.map(function(src, i) {
+      var existingHtml = existingUrls.map(function(url, i) {
         return '<div class="ap-preview-item">' +
-          '<img src="' + src + '" alt="">' +
-          '<button type="button" class="ap-preview-del" data-i="' + i + '" title="Supprimer">×</button>' +
+          '<img src="' + url + '" alt="">' +
+          '<button type="button" class="ap-preview-del" data-type="existing" data-i="' + i + '" title="Supprimer">×</button>' +
         '</div>';
       }).join('');
+      var newHtml = previewsArr.map(function(src, i) {
+        return '<div class="ap-preview-item">' +
+          '<img src="' + src + '" alt="">' +
+          '<button type="button" class="ap-preview-del" data-type="new" data-i="' + i + '" title="Supprimer">×</button>' +
+        '</div>';
+      }).join('');
+      previewsEl.innerHTML = existingHtml + newHtml;
       previewsEl.querySelectorAll('.ap-preview-del').forEach(function(btn) {
         btn.addEventListener('click', function() {
           var i = parseInt(this.dataset.i);
-          files.splice(i, 1);
-          previewsArr.splice(i, 1);
+          if (this.dataset.type === 'existing') {
+            existingUrls.splice(i, 1);
+          } else {
+            files.splice(i, 1);
+            previewsArr.splice(i, 1);
+          }
           _render();
         });
       });
     }
+    _render();   // affiche les images existantes immédiatement
 
     // Expose pour le submit handler
-    drop._files       = files;
-    drop._previewsArr = previewsArr;
+    drop._files        = files;
+    drop._previewsArr  = previewsArr;
+    drop._existingUrls = existingUrls;
   }
 
   // ── Upload des images vers Supabase Storage ──
@@ -217,7 +303,7 @@ window.onDjamikReady(function() {
   }
 
   // ── Form submit ──
-  function _initSubmit(user) {
+  function _initSubmit(user, existing) {
     var form = document.getElementById('ap-form');
     if (!form) return;
 
@@ -233,8 +319,9 @@ window.onDjamikReady(function() {
       var negotiable = (document.getElementById('ap-negotiable') || {}).checked;
       var payChecks  = Array.from(document.querySelectorAll('input[name=ap-payment]:checked')).map(function(c){ return c.value; });
       var dropEl     = document.getElementById('ap-photo-drop') || {};
-      var imageFiles    = dropEl._files       || [];
-      var imagePreviews = dropEl._previewsArr || [];
+      var imageFiles    = dropEl._files        || [];
+      var imagePreviews = dropEl._previewsArr  || [];
+      var existingUrls  = dropEl._existingUrls || [];
       var price      = parseInt(priceRaw, 10);
 
       if (!title)        { window.toast && window.toast('Ajoutez un titre.', 'error'); return; }
@@ -274,8 +361,8 @@ window.onDjamikReady(function() {
         }
       }
 
-      // ── Limite anti-spam : max 30 annonces actives par user ──
-      if (window._supabase) {
+      // ── Limite anti-spam : max 30 annonces actives par user (uniquement à la création) ──
+      if (!existing && window._supabase) {
         try {
           var countRes = await window._supabase
             .from('products')
@@ -292,7 +379,7 @@ window.onDjamikReady(function() {
 
       var btn = document.getElementById('ap-submit');
       btn.disabled = true;
-      btn.innerHTML = '<span class="btn-spinner"></span> Publication…';
+      btn.innerHTML = '<span class="btn-spinner"></span> ' + (existing ? 'Enregistrement…' : 'Publication…');
 
       // session déjà résolue plus haut → alias
       var session = sessionUser;
@@ -311,9 +398,10 @@ window.onDjamikReady(function() {
       var sellerAvatar = profile.avatar_url ||
         ('https://ui-avatars.com/api/?name=' + encodeURIComponent(sellerName) + '&background=E8501A&color=fff&size=120');
 
-      // Upload des images vers Storage avant de créer le produit
+      // Upload des NOUVELLES images vers Storage, puis fusionne avec les existantes (mode édition)
       btn.innerHTML = '<span class="btn-spinner"></span> Upload images…';
-      var images = await _uploadImages(imageFiles, imagePreviews, sellerId);
+      var newUrls = await _uploadImages(imageFiles, imagePreviews, sellerId);
+      var images  = existingUrls.concat(newUrls);
 
       var product = {
         id:              window.genId ? window.genId() : ('p-' + Date.now()),
@@ -335,31 +423,68 @@ window.onDjamikReady(function() {
         created_at:      new Date().toISOString()
       };
 
-      btn.innerHTML = '<span class="btn-spinner"></span> Publication…';
+      btn.innerHTML = '<span class="btn-spinner"></span> ' + (existing ? 'Enregistrement…' : 'Publication…');
 
-      // 1. Insert Supabase (laisse la DB générer l'UUID id pour matcher le schéma)
+      // Payload commun INSERT/UPDATE
+      var dbPayload = {
+        title:           product.title,
+        category:        product.category,
+        condition:       product.condition,
+        price:           product.price,
+        city:            product.city,
+        description:     product.description,
+        image_url:       product.image,
+        images:          product.images,
+        payment_methods: product.payment_methods,
+        negotiable:      product.negotiable
+      };
+
       var supabaseOK = false;
+
+      if (existing) {
+        // ── UPDATE (mode édition) ──
+        if (window._supabase) {
+          try {
+            var upd = await window._supabase.from('products')
+              .update(dbPayload)
+              .eq('id', existing.id)
+              .eq('seller_id', sellerId)   // garde-fou : ne touche que mes annonces
+              .select().single();
+            if (upd && !upd.error) {
+              supabaseOK = true;
+              product.id         = existing.id;
+              product.created_at = existing.created_at;
+            } else if (upd && upd.error) {
+              console.warn('[add-product] Supabase update failed:', upd.error);
+              window._lastSupabaseError = upd.error.message || JSON.stringify(upd.error);
+            }
+          } catch(err) {
+            console.warn('[add-product] Supabase update exception:', err);
+            window._lastSupabaseError = err && err.message;
+          }
+        }
+        // Mise à jour locale
+        try {
+          if (window.updateMyProduct) window.updateMyProduct(existing.id, product);
+        } catch(err) { console.warn('[add-product] local update error', err); }
+
+        var msgU = supabaseOK
+          ? 'Annonce mise à jour !'
+          : ('Échec : ' + (window._lastSupabaseError || 'erreur inconnue'));
+        window.toast && window.toast(msgU, supabaseOK ? 'success' : 'error', 6000);
+        setTimeout(function() { window.location.href = 'my-profile.html'; }, 1000);
+        return;
+      }
+
+      // ── INSERT (création) ──
+      dbPayload.sold      = false;
+      dbPayload.seller_id = sellerId;
+
       if (window._supabase) {
         try {
-          var dbPayload = {
-            // Pas de id : laisse Supabase générer l'UUID via default uuid_generate_v4()
-            title:           product.title,
-            category:        product.category,
-            condition:       product.condition,
-            price:           product.price,
-            city:            product.city,
-            description:     product.description,
-            image_url:       product.image,
-            images:          product.images,            // jsonb, supporté par le schéma
-            payment_methods: product.payment_methods,
-            negotiable:      product.negotiable,
-            sold:            false,
-            seller_id:       sellerId
-          };
           var ins = await window._supabase.from('products').insert([dbPayload]).select().single();
           if (ins && !ins.error) {
             supabaseOK = true;
-            // Utilise l'UUID retourné par Supabase pour la cohérence (au lieu du genId local)
             if (ins.data && ins.data.id) {
               product.id         = ins.data.id;
               product.created_at = ins.data.created_at || product.created_at;
@@ -374,7 +499,6 @@ window.onDjamikReady(function() {
         }
       }
 
-      // 2. Sauvegarde locale uniquement de "Mes annonces" (Supabase reste la source publique)
       try {
         if (window.addMyProduct) window.addMyProduct(product);
         else { var myProds = JSON.parse(localStorage.getItem('dj_my_products') || '[]'); myProds.unshift(product); localStorage.setItem('dj_my_products', JSON.stringify(myProds)); }
@@ -384,7 +508,6 @@ window.onDjamikReady(function() {
         ? 'Annonce publiée avec succès !'
         : ('Échec mise en ligne : ' + (window._lastSupabaseError || 'erreur inconnue') + '. Sauvée en local.');
       window.toast && window.toast(msg, supabaseOK ? 'success' : 'error', 6000);
-      // Propose de partager directement sur WhatsApp via modal natif (style cohérent)
       if (window.shareProduct && window.confirm2) {
         setTimeout(function() {
           window.confirm2('Partager votre annonce sur WhatsApp maintenant ?').then(function(ok) {
