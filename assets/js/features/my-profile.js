@@ -120,12 +120,16 @@ window.onDjamikReady(function() {
     var sold       = products.filter(function(p){ return p.sold; });
     var totalViews = active.reduce(function(s, p){ return s + (window.getViews ? window.getViews(p.id) : 0); }, 0);
 
-    // Mon tier
-    if (window.myTier) user._tier = await window.myTier();
+    // Mon tier + sub info + boosts restants
+    var subInfo = { tier:'free', days_left:null };
+    var boostsUsed = 0;
+    if (window.mySubscriptionInfo) subInfo = await window.mySubscriptionInfo();
+    if (window.boostsUsedToday)    boostsUsed = await window.boostsUsedToday();
+    user._tier = subInfo.tier || 'free';
 
     root.innerHTML =
       _profileCardHtml(user, { editable: true }) +
-      _subscriptionBlock(user._tier || 'free') +
+      _subscriptionBlock(user._tier, subInfo.days_left, boostsUsed) +
       _statsHtml(active.length, sold.length, totalViews) +
       _tabsHtml(active.length, sold.length) +
       '<div id="profile-listings"></div>';
@@ -182,23 +186,47 @@ window.onDjamikReady(function() {
     '</div>';
   }
 
-  function _subscriptionBlock(tier) {
-    var nfo = {
-      free:    { name: 'Gratuit',  bg:'#F1F2F6', accent:'#5A6273', limit:10, boosts:0,  cta:'Booster mon compte' },
-      vip:     { name: 'VIP',      bg:'linear-gradient(135deg,#FFFAEB,#FEF0C7)', accent:'#8C6500', limit:50, boosts:5,  cta:'Passer Premium' },
-      premium: { name: 'Premium',  bg:'linear-gradient(135deg,#F4F1FF,#EDE9FE)', accent:'#5B21B6', limit:100, boosts:15, cta:'Voir les tarifs' }
-    }[tier] || nfo.free;
+  function _subscriptionBlock(tier, daysLeft, boostsUsed) {
+    boostsUsed = boostsUsed || 0;
+    var nfoMap = {
+      free:    { name: 'Gratuit',  bg:'#F1F2F6', accent:'#5A6273', limit:10,  boosts:0  },
+      vip:     { name: 'VIP',      bg:'linear-gradient(135deg,#FFFAEB,#FEF0C7)', accent:'#8C6500', limit:50,  boosts:5  },
+      premium: { name: 'Premium',  bg:'linear-gradient(135deg,#F4F1FF,#EDE9FE)', accent:'#5B21B6', limit:100, boosts:15 }
+    };
+    var nfo = nfoMap[tier] || nfoMap.free;
+    var boostsLeft = Math.max(0, nfo.boosts - boostsUsed);
+
+    var icon = tier==='vip'   ? '<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M2 7l4.5 4L12 4l5.5 7L22 7l-2 12H4L2 7z"/></svg>'
+             : tier==='premium' ? '<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>'
+             : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/></svg>';
+
+    var cta;
+    if (tier === 'free') {
+      cta = '<a href="tarifs.html" class="btn btn-primary btn-sm">Booster mon compte</a>';
+    } else {
+      cta = '<a href="tarifs.html" class="btn btn-outline btn-sm">' + (tier === 'vip' ? 'Passer Premium' : 'Tarifs') + '</a>';
+    }
+
+    var meta = nfo.limit + ' annonces';
+    if (nfo.boosts > 0) {
+      meta += ' · <strong style="color:' + nfo.accent + '">' + boostsLeft + '/' + nfo.boosts + ' boosts restants</strong>';
+    } else {
+      meta += ' · pas de boost';
+    }
+
+    var daysHtml = '';
+    if (daysLeft !== null && daysLeft !== undefined && tier !== 'free') {
+      daysHtml = '<div class="my-sub-days">⏱ ' + daysLeft + ' jour' + (daysLeft > 1 ? 's' : '') + ' restant' + (daysLeft > 1 ? 's' : '') + '</div>';
+    }
+
     return '<div class="my-sub" style="background:' + nfo.bg + '">' +
-      '<div class="my-sub-icon" style="color:' + nfo.accent + '">' +
-        (tier==='vip'   ? '<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M2 7l4.5 4L12 4l5.5 7L22 7l-2 12H4L2 7z"/></svg>'
-       : tier==='premium' ? '<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>'
-       : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/></svg>') +
-      '</div>' +
+      '<div class="my-sub-icon" style="color:' + nfo.accent + '">' + icon + '</div>' +
       '<div class="my-sub-body">' +
         '<div class="my-sub-name" style="color:' + nfo.accent + '">Plan ' + nfo.name + '</div>' +
-        '<div class="my-sub-meta">' + nfo.limit + ' annonces · ' + (nfo.boosts > 0 ? nfo.boosts + ' boosts/jour' : 'pas de boost') + '</div>' +
+        '<div class="my-sub-meta">' + meta + '</div>' +
+        daysHtml +
       '</div>' +
-      '<a href="tarifs.html" class="btn btn-outline btn-sm">' + nfo.cta + '</a>' +
+      cta +
     '</div>';
   }
 
@@ -603,6 +631,7 @@ window.onDjamikReady(function() {
       '.my-sub-body{flex:1;min-width:0}',
       '.my-sub-name{font-family:Outfit,sans-serif;font-weight:800;font-size:1rem;letter-spacing:-.01em}',
       '.my-sub-meta{font-size:.78rem;color:var(--ink-2);margin-top:2px}',
+      '.my-sub-days{font-size:.72rem;color:var(--ink-3);margin-top:4px;font-weight:600}',
       '.profile-bio{font-size:.88rem;color:var(--ink-2);margin:8px 0 10px;line-height:1.5;max-width:340px;margin-left:auto;margin-right:auto}',
       '.profile-meta{font-size:.82rem;color:var(--ink-3);margin:4px 0;display:flex;align-items:center;gap:6px;justify-content:center;flex-wrap:wrap}',
       '.profile-meta svg{width:14px;height:14px;flex-shrink:0}',

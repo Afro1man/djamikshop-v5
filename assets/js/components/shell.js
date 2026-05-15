@@ -388,14 +388,32 @@
       var u = await window._supabase.auth.getUser();
       var uid = u && u.data && u.data.user && u.data.user.id;
       if (!uid) return;
+
+      // 1. Lien admin si admin
       var ad = await window._supabase.from('admins').select('user_id').eq('user_id', uid).maybeSingle();
-      if (!ad || !ad.data) return;   // pas admin
-      // Affiche le lien
-      var link = document.getElementById('sm-admin-link');
-      if (link) link.style.display = '';
-      // Compte les signalements ouverts
-      var c = await window._supabase.from('reports').select('id', { count: 'exact', head: true }).eq('status', 'open');
-      _setBadge('sm-admin-badge', (c && c.count) || 0);
+      if (ad && ad.data) {
+        var link = document.getElementById('sm-admin-link');
+        if (link) link.style.display = '';
+        var c = await window._supabase.from('reports').select('id', { count: 'exact', head: true }).eq('status', 'open');
+        _setBadge('sm-admin-badge', (c && c.count) || 0);
+      }
+
+      // 2. Lien abonnement : transforme "Booster mon compte" en "Mon abonnement (Xj)" si paye
+      if (window.mySubscriptionInfo) {
+        var info = await window.mySubscriptionInfo();
+        var tarifsLink = document.querySelector('.sm-tarifs');
+        if (tarifsLink && info && info.tier && info.tier !== 'free') {
+          var days = info.days_left;
+          var tierLabel = info.tier === 'vip' ? 'VIP' : 'Premium';
+          var icon = info.tier === 'vip'
+            ? '<svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M2 7l4.5 4L12 4l5.5 7L22 7l-2 12H4L2 7z"/></svg>'
+            : '<svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>';
+          tarifsLink.classList.add('sm-tarifs-active');
+          tarifsLink.classList.remove('sm-tarifs');
+          tarifsLink.innerHTML = icon + ' Mon abonnement ' + tierLabel +
+            (days !== null && days !== undefined ? ' <span class="sm-days-left">' + days + 'j restant' + (days > 1 ? 's' : '') + '</span>' : '');
+        }
+      }
     } catch(e) {}
   }
 

@@ -109,6 +109,35 @@
     return 0;
   };
 
+  // ── Infos abonnement (tier + jours restants) ──
+  var _subInfoCache = null;
+  var _subInfoTime  = 0;
+  window.mySubscriptionInfo = async function(force) {
+    if (!force && _subInfoCache && (Date.now() - _subInfoTime) < TIER_CACHE_MS) return _subInfoCache;
+    if (!window._supabase) return { tier: 'free', days_left: null };
+    try {
+      var r = await window._supabase.rpc('my_subscription_info');
+      _subInfoCache = (r && r.data) || { tier: 'free', days_left: null };
+      _subInfoTime = Date.now();
+      return _subInfoCache;
+    } catch(e) { return { tier: 'free', days_left: null }; }
+  };
+
+  // ── Auto-downgrade : appelé silencieusement au démarrage ──
+  window.processExpiredSubs = async function() {
+    if (!window._supabase) return;
+    try {
+      // Appel quotidien max (cache localStorage)
+      var last = parseInt(localStorage.getItem('dj_last_downgrade_check') || '0', 10);
+      if (Date.now() - last < 6 * 3600 * 1000) return;   // max 1× / 6h
+      await window._supabase.rpc('process_expired_subscriptions');
+      localStorage.setItem('dj_last_downgrade_check', String(Date.now()));
+    } catch(e) { /* silencieux */ }
+  };
+
+  // Au démarrage, vérifie après 3s (laisse l'app se charger)
+  setTimeout(function(){ window.processExpiredSubs && window.processExpiredSubs(); }, 3000);
+
   window.tierListingLimit = function(t) {
     if (t === 'premium') return 100;
     if (t === 'vip') return 50;

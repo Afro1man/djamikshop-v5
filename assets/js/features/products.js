@@ -27,7 +27,7 @@ async function _fetchProducts(f) {
   var supabaseList = [];
   if (window._supabase) {
     try {
-      var req = window._supabase.from('products').select('*').eq('sold', false);
+      var req = window._supabase.from('products').select('*').eq('sold', false).is('inactive_at', null);
       if (f.category)  req = req.eq('category', f.category);
       if (f.city)      req = req.eq('city', f.city);
       if (f.condition) req = req.eq('condition', f.condition);

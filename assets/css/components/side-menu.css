@@ -168,6 +168,31 @@
 }
 .side-menu-item.sm-tarifs svg { color: #C99100; }
 
+/* Mon abonnement actif — VIP/Premium */
+.side-menu-item.sm-tarifs-active {
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-3); border-radius: var(--r-md);
+  font-size: 0.9rem; font-weight: 700; color: var(--ink);
+  text-decoration: none;
+  background: linear-gradient(135deg, #FFFAEB, #FEF0C7);
+  border: 1px solid rgba(245,177,0,.4);
+  position: relative;
+}
+.side-menu-item.sm-tarifs-active:hover {
+  background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+}
+.side-menu-item.sm-tarifs-active svg { color: #C99100; flex-shrink: 0; width: 20px; height: 20px; }
+.sm-days-left {
+  margin-left: auto;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: rgba(196,145,0,.15);
+  color: #8C6500;
+  padding: 3px 8px;
+  border-radius: 100px;
+  white-space: nowrap;
+}
+
 .side-menu-item svg {
   width: 20px;
   height: 20px;
