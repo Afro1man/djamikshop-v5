@@ -40,7 +40,11 @@
       var btn = this;
       btn.disabled = true; btn.textContent = 'Envoi…';
       try {
-        await window._supabase.auth.resend({ type: 'signup', email: email });
+        await window._supabase.auth.resend({
+          type: 'signup',
+          email: email,
+          options: { emailRedirectTo: window.location.origin + '/pages/auth-callback.html' }
+        });
         window.toast && window.toast('Email renvoyé. Vérifie ta boîte de réception (et les spams).', 'success', 6000);
         btn.textContent = 'Email envoyé ✓';
       } catch(e) {

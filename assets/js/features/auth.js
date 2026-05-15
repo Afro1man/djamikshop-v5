@@ -288,7 +288,11 @@ if (signupForm) {
     var res = await _sb().auth.signUp({
       email: email,
       password: pwd,
-      options: { data: { full_name: fname } }
+      options: {
+        data: { full_name: fname },
+        // Redirige vers notre page de callback après confirmation email
+        emailRedirectTo: window.location.origin + '/pages/auth-callback.html'
+      }
     }).catch(function(err){ return { error: err }; });
 
     if (res.error) {
