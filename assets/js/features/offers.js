@@ -41,11 +41,13 @@ window.onDjamikReady(async function() {
   var receivedPromise = sb.from('offers')
     .select('*, products!inner(id, title, image_url, price, seller_id)')
     .eq('products.seller_id', meId)
+    .not('deleted_for', 'cs', '{' + meId + '}')
     .order('created_at', { ascending: false });
 
   var sentPromise = sb.from('offers')
     .select('*, products(id, title, image_url, price, seller_id)')
     .eq('buyer_id', meId)
+    .not('deleted_for', 'cs', '{' + meId + '}')
     .order('created_at', { ascending: false });
 
   var [recvRes, sentRes] = await Promise.all([receivedPromise, sentPromise]);
@@ -98,7 +100,10 @@ window.onDjamikReady(async function() {
       var buyerAvatar = buyer && buyer.avatar_url ||
         (buyer ? 'https://ui-avatars.com/api/?name=' + encodeURIComponent(buyerName) + '&background=E8501A&color=fff' : null);
 
-      return '<article class="offer-card">' +
+      return '<article class="offer-card" data-offer-id="' + o.id + '">' +
+        '<button class="offer-del" data-act="delete" data-id="' + o.id + '" aria-label="Supprimer" title="Supprimer">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14H7L5 6"/><path d="M10 11v6M14 11v6"/></svg>' +
+        '</button>' +
         '<div class="offer-product" onclick="window.location.href=\'product-details.html?id=' + p.id + '\'">' +
           (img ? '<img src="' + img + '" alt="">' : '<div class="offer-product-ph">' + (window.ICONS && window.ICONS.package || '') + '</div>') +
           '<div class="offer-product-info">' +
@@ -186,6 +191,39 @@ window.onDjamikReady(async function() {
           if (productId) url += '&product=' + encodeURIComponent(productId);
           window.location.href = url;
         }
+
+        else if (act === 'delete') {
+          window.confirm2('Supprimer cette offre de ta liste ?\n\nL\'autre partie la garde de son côté.', true).then(async function(ok) {
+            if (!ok) return;
+            try {
+              // Récupère deleted_for actuel et append meId
+              var r = await sb.from('offers').select('deleted_for').eq('id', id).single();
+              var arr = (r && r.data && r.data.deleted_for) || [];
+              if (arr.indexOf(meId) === -1) arr.push(meId);
+              await sb.from('offers').update({ deleted_for: arr }).eq('id', id);
+
+              // Retire de la liste locale
+              received = received.filter(function(x){ return x.id !== id; });
+              sent     = sent.filter(function(x){ return x.id !== id; });
+
+              // Retire le DOM + maj compteurs
+              var card = document.querySelector('[data-offer-id="' + id + '"]');
+              if (card) card.remove();
+              var rTab = document.querySelector('[data-tab="received"]');
+              var sTab = document.querySelector('[data-tab="sent"]');
+              if (rTab) rTab.textContent = 'Reçues (' + received.length + ')';
+              if (sTab) sTab.textContent = 'Envoyées (' + sent.length + ')';
+
+              window.toast && window.toast('Offre supprimée', 'success');
+
+              // Si la liste est vide -> render empty state
+              var activeTab = document.querySelector('#offers-tabs .profile-tab.active');
+              if (activeTab) _renderTab(activeTab.dataset.tab);
+            } catch(err) {
+              window.toast && window.toast('Échec : ' + (err.message || 'erreur'), 'error');
+            }
+          });
+        }
       });
     });
   }
@@ -222,7 +260,10 @@ window.onDjamikReady(async function() {
       '.profile-tab{flex:1;padding:8px 12px;background:transparent;border:none;border-radius:calc(var(--r-md) - 2px);font-weight:600;font-size:.85rem;color:var(--ink-3);cursor:pointer;font-family:inherit;transition:all .15s}',
       '.profile-tab.active{background:var(--white);color:var(--ink);box-shadow:var(--shadow-sm)}',
 
-      '.offer-card{background:var(--white);border:1px solid var(--surface-3);border-radius:var(--r-xl);padding:14px;margin-bottom:14px;box-shadow:var(--shadow-sm)}',
+      '.offer-card{position:relative;background:var(--white);border:1px solid var(--surface-3);border-radius:var(--r-xl);padding:14px;margin-bottom:14px;box-shadow:var(--shadow-sm)}',
+      '.offer-del{position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:50%;border:none;background:transparent;color:var(--ink-3);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .15s,color .15s;padding:0;z-index:2}',
+      '.offer-del:hover{background:#fef2f2;color:var(--danger,#ef4444)}',
+      '.offer-del svg{width:16px;height:16px}',
       '.offer-product{display:flex;gap:12px;align-items:center;cursor:pointer;padding-bottom:12px;border-bottom:1px solid var(--surface-2);margin-bottom:12px}',
       '.offer-product img,.offer-product-ph{width:60px;height:60px;border-radius:var(--r-md);object-fit:cover;background:var(--surface-2);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--ink-3)}',
       '.offer-product-info{flex:1;min-width:0}',

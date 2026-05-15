@@ -59,6 +59,9 @@
   .notif-title { font-weight:600; font-size:.92rem; margin-bottom:3px; color:var(--ink); }
   .notif-text { font-size:.85rem; color:var(--ink-3); line-height:1.5; }
   .notif-time { font-size:.72rem; color:var(--ink-4); margin-top:6px; }
+  .notif-del { flex-shrink:0; width:30px; height:30px; border-radius:50%; border:none; background:transparent; color:var(--ink-3); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background .15s, color .15s; padding:0; align-self:center; }
+  .notif-del:hover { background:#fef2f2; color:var(--danger,#ef4444); }
+  .notif-del svg { width:16px; height:16px; }
 </style>
 <script>
 window.onDjamikReady(async function() {
@@ -116,24 +119,44 @@ window.onDjamikReady(async function() {
     container.innerHTML = notifs.map(function(n) {
       var iconType = icons[n.type] ? n.type : 'default';
       var url = n.data && n.data.url ? n.data.url : null;
+      var delBtn = '<button class="notif-del" data-del="' + n.id + '" aria-label="Supprimer" title="Supprimer">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-2 14H7L5 6"/><path d="M10 11v6M14 11v6"/></svg>' +
+        '</button>';
       var inner =
         '<div class="notif-icon ' + iconType + '">' + icons[iconType] + '</div>' +
         '<div class="notif-body">' +
           '<div class="notif-title">' + window.escHtml(n.title || '') + '</div>' +
           '<div class="notif-text">' + window.escHtml(n.body || '') + '</div>' +
           '<div class="notif-time">' + window.relativeDate(n.date) + '</div>' +
-        '</div>';
+        '</div>' + delBtn;
       var cls = 'notif-card ' + (n.read ? '' : 'unread');
       return url
         ? '<a href="' + url + '" class="' + cls + '" data-id="' + n.id + '" style="text-decoration:none;color:inherit">' + inner + '</a>'
         : '<div class="' + cls + '" data-id="' + n.id + '">' + inner + '</div>';
     }).join('');
 
-    // Marquer une notif comme lue au clic
+    // Marquer une notif comme lue au clic (sauf si on a cliqué sur supprimer)
     container.querySelectorAll('[data-id]').forEach(function(el) {
-      el.addEventListener('click', async function() {
+      el.addEventListener('click', async function(e) {
+        if (e.target.closest('[data-del]')) return;
         var id = this.dataset.id;
         await _markRead([id]);
+      });
+    });
+
+    // Bouton supprimer
+    container.querySelectorAll('[data-del]').forEach(function(btn) {
+      btn.addEventListener('click', async function(e) {
+        e.preventDefault(); e.stopPropagation();
+        var id = this.dataset.del;
+        try {
+          await window._supabase.from('notifications').delete().eq('id', id);
+          notifs = notifs.filter(function(n){ return n.id !== id; });
+          _render();
+          if (window.toast) window.toast('Notification supprimée', 'success');
+        } catch(err) {
+          if (window.toast) window.toast('Échec de la suppression', 'error');
+        }
       });
     });
   }
