@@ -189,10 +189,10 @@
       // Le contenu doit etre au-dessus des effets
       '.product-card.tier-vip > *,.product-card.tier-premium > *{position:relative;z-index:3}',
 
-      // Badge boost actif
-      '.boost-badge-active{position:absolute;top:8px;right:50px;background:linear-gradient(135deg,#FF8A3D,#E8501A);color:#fff;padding:4px 9px;border-radius:100px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;box-shadow:0 2px 8px rgba(232,80,26,.35);z-index:5;display:inline-flex;align-items:center;gap:4px;animation:boostPulse 2s ease-in-out infinite}',
-      '.boost-badge-active svg{width:11px;height:11px}',
-      '@keyframes boostPulse{0%,100%{transform:scale(1);box-shadow:0 2px 8px rgba(232,80,26,.35)}50%{transform:scale(1.05);box-shadow:0 4px 16px rgba(232,80,26,.55)}}',
+      // Badge boost actif — coin haut-gauche, compact et propre
+      '.boost-badge-active{position:absolute !important;top:8px !important;left:8px !important;right:auto !important;width:auto !important;max-width:none !important;background:linear-gradient(135deg,#FF8A3D,#E8501A) !important;color:#fff !important;padding:4px 10px !important;border-radius:100px !important;font-size:10px !important;font-weight:800 !important;text-transform:uppercase !important;letter-spacing:.06em !important;line-height:1 !important;box-shadow:0 2px 8px rgba(232,80,26,.35) !important;z-index:5 !important;display:inline-flex !important;align-items:center !important;gap:4px !important;white-space:nowrap !important;animation:boostPulse 2s ease-in-out infinite !important}',
+      '.boost-badge-active svg{width:11px !important;height:11px !important;flex-shrink:0 !important}',
+      '@keyframes boostPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}',
 
       // Badges tier animés
       '.tier-badge.tier-vip{animation:badgeShine 3s ease-in-out infinite;background-size:200% 200% !important}',
