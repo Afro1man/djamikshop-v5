@@ -633,13 +633,20 @@ window.onDjamikReady(async function () {
   }
 
   // ── SIMILAR ──────────────────────────────────────────────────────
+  // Priorise : 1) même catégorie + même ville  2) même catégorie autres villes
+  //            3) (fallback) autres catégories. Tri par récence (created_at desc).
   function renderSimilar(p) {
     var section = document.getElementById('similar-section');
     var grid = document.getElementById('similar-grid');
     if (!section || !grid) return;
     var all = window.getAllProducts ? window.getAllProducts() : [];
-    var similar = all.filter(function(q) { return q.id !== p.id && !q.sold && q.category === p.category; }).slice(0, 6);
-    if (!similar.length) similar = all.filter(function(q) { return q.id !== p.id && !q.sold; }).slice(0, 6);
+    var pool = all.filter(function(q) { return q.id !== p.id && !q.sold; });
+
+    var sameCatSameCity = pool.filter(function(q){ return q.category === p.category && q.city && p.city && q.city === p.city; });
+    var sameCatOther    = pool.filter(function(q){ return q.category === p.category && (!q.city || !p.city || q.city !== p.city); });
+    var fallback        = pool.filter(function(q){ return q.category !== p.category; });
+
+    var similar = sameCatSameCity.concat(sameCatOther).concat(fallback).slice(0, 6);
     if (!similar.length) return;
     section.style.display = 'block';
     grid.innerHTML = similar.map(function(q) {
