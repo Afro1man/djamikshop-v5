@@ -221,6 +221,21 @@
     @keyframes fadein { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 
     /* ── CATEGORIES ── */
+    /* Géoloc prompt */
+    .geo-prompt { background: linear-gradient(135deg, #FFE3D1, #FFD0B5); padding: 12px 0; border-bottom: 1px solid var(--surface-3); animation: geoSlide .3s ease; }
+    .geo-prompt-inner { display: flex; align-items: center; gap: 12px; padding-left: var(--page-px); padding-right: var(--page-px); }
+    .geo-prompt svg { color: var(--brand, #E8501A); flex-shrink: 0; }
+    .geo-prompt-text { flex: 1; min-width: 0; }
+    .geo-prompt-title { font-weight: 700; font-size: .92rem; color: var(--ink, #0F1115); }
+    .geo-prompt-sub { font-size: .78rem; color: var(--ink-2, #2B313D); margin-top: 1px; }
+    .geo-prompt-close { background: transparent; border: none; font-size: 22px; color: var(--ink-3); cursor: pointer; padding: 4px 8px; line-height: 1; flex-shrink: 0; }
+    .geo-prompt .btn { flex-shrink: 0; padding: 8px 14px; font-size: .85rem; }
+    @media (max-width: 600px) {
+      .geo-prompt-sub { display: none; }
+      .geo-prompt-title { font-size: .85rem; }
+    }
+    @keyframes geoSlide { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
     .cats-section { background: var(--surface); padding: var(--space-5) 0; border-bottom: 1px solid var(--surface-3); }
     .cats-head-compact {
       display: flex; align-items: baseline; gap: 8px;
@@ -466,6 +481,19 @@
   </div>
 </section>
 
+<!-- ═══ GÉOLOC PROMPT (caché par défaut, JS l'affiche si pertinent) ═══ -->
+<div id="geo-prompt" class="geo-prompt" style="display:none">
+  <div class="container geo-prompt-inner">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="22" height="22"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+    <div class="geo-prompt-text">
+      <div class="geo-prompt-title">Voir les annonces près de toi</div>
+      <div class="geo-prompt-sub">Active ta position pour découvrir les annonces de ta ville en priorité.</div>
+    </div>
+    <button id="geo-prompt-yes" class="btn btn-primary btn-sm">Activer</button>
+    <button id="geo-prompt-no" class="geo-prompt-close" aria-label="Plus tard">×</button>
+  </div>
+</div>
+
 <!-- ═══ CATÉGORIES ═══ -->
 <section class="cats-section">
   <div class="container">
@@ -517,6 +545,42 @@ function searchKw(kw) {
   window.loadProducts && window.loadProducts();
   document.getElementById('products-grid') && document.getElementById('products-grid').scrollIntoView({behavior:'smooth', block:'start'});
 }
+
+// ── Géoloc prompt (1ère visite ou si dismissed expiré) ──
+window.onDjamikReady && window.onDjamikReady(function() {
+  var prompt = document.getElementById('geo-prompt');
+  if (!prompt) return;
+
+  // Déjà localisé ? Cache encore valide ? On masque.
+  if (window.getStoredLocation && window.getStoredLocation()) return;
+
+  // Refusé récemment ? On respecte.
+  var dismissed = parseInt(localStorage.getItem('dj_geo_dismissed') || '0', 10);
+  if (dismissed && Date.now() < dismissed) return;
+
+  // Affichage différé pour ne pas pourrir le 1er paint
+  setTimeout(function() { prompt.style.display = 'block'; }, 1500);
+
+  document.getElementById('geo-prompt-yes').addEventListener('click', async function() {
+    if (!window.requestUserLocation) return;
+    var loc = await window.requestUserLocation();
+    prompt.style.display = 'none';
+    if (loc && loc.city) {
+      window.toast && window.toast('Position détectée : ' + loc.city + '. Annonces près de toi prioritaires.', 'success', 4000);
+      // Pré-applique le filtre ville si disponible
+      if (window.filters) { window.filters.city = loc.city; }
+      window.loadProducts && window.loadProducts();
+    } else {
+      window.toast && window.toast('Position non disponible. Tu peux la réactiver depuis le menu.', 'error');
+    }
+  });
+
+  document.getElementById('geo-prompt-no').addEventListener('click', function() {
+    prompt.style.display = 'none';
+    // Re-propose dans 7 jours
+    localStorage.setItem('dj_geo_dismissed', String(Date.now() + 7 * 24 * 3600 * 1000));
+  });
+});
 </script>
 
 </body>

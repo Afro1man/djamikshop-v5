@@ -537,21 +537,9 @@ window.onDjamikReady(async function () {
     // Hydrate la seller card avec le vrai profil (avatar + nom)
     if (p.seller_id) hydrateSellerCard(p.seller_id);
 
-    // Bouton Signaler — ouvre le mailto avec contexte pré-rempli
+    // Bouton Signaler — modal avec choix de raison + insert en DB
     var btnReport = document.getElementById('btn-report');
-    if (btnReport) btnReport.addEventListener('click', function() {
-      var url = window.location.origin + '/pages/product-details.html?id=' + p.id;
-      var subject = encodeURIComponent('Signalement annonce #' + (p.id || '').slice(-6).toUpperCase());
-      var body = encodeURIComponent(
-        'Bonjour,\n\nJe souhaite signaler cette annonce :\n\n' +
-        'Titre : ' + (p.title || '') + '\n' +
-        'Lien : ' + url + '\n' +
-        'Vendeur : ' + (p.seller_name || p.seller_id || '') + '\n\n' +
-        'Raison du signalement :\n[Précisez ici ce qui vous semble inapproprié : annonce trompeuse, contenu interdit, prix manifestement faux, suspicion d\'arnaque, etc.]\n\n' +
-        'Merci.'
-      );
-      window.location.href = 'mailto:contact@djamikshop.com?subject=' + subject + '&body=' + body;
-    });
+    if (btnReport) btnReport.addEventListener('click', function() { _openReportModal(p); });
   }
 
   // ── Charge le profil vendeur depuis Supabase et met à jour la card
@@ -630,6 +618,111 @@ window.onDjamikReady(async function () {
   function starsStr(n) {
     n = Math.round(n || 0);
     return '<svg class="dj-icon" viewBox="0 0 24 24" fill="#FBBF24" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'.repeat(n) + '<svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'.repeat(Math.max(0, 5 - n));
+  }
+
+  // ── REPORT MODAL ──────────────────────────────────────────────────
+  function _openReportModal(p) {
+    if (document.getElementById('report-modal')) return;
+
+    var REASONS = [
+      { id: 'scam',         label: 'Suspicion d\'arnaque' },
+      { id: 'forbidden',    label: 'Contenu interdit (drogue, arme, etc.)' },
+      { id: 'false_price',  label: 'Prix manifestement faux' },
+      { id: 'duplicate',    label: 'Annonce en double' },
+      { id: 'offensive',    label: 'Contenu offensant ou inapproprié' },
+      { id: 'other',        label: 'Autre' }
+    ];
+
+    var optionsHtml = REASONS.map(function(r, i){
+      return '<label class="rep-radio"><input type="radio" name="rep-reason" value="' + r.id + '"' + (i===0?' checked':'') + '><span>' + r.label + '</span></label>';
+    }).join('');
+
+    var modal = document.createElement('div');
+    modal.id = 'report-modal';
+    modal.className = 'rep-backdrop';
+    modal.innerHTML =
+      '<div class="rep-modal">' +
+        '<button class="rep-close" aria-label="Fermer">×</button>' +
+        '<h3>Signaler cette annonce</h3>' +
+        '<p class="rep-sub">Aide-nous à garder DjamikShop sûr. Ton signalement reste anonyme pour le vendeur.</p>' +
+        '<div class="rep-product"><strong>' + window.escHtml(p.title || '') + '</strong></div>' +
+        '<div class="rep-options">' + optionsHtml + '</div>' +
+        '<textarea class="rep-message" id="rep-msg" placeholder="Détails (optionnel) — décris ce qui te semble suspect" maxlength="500" rows="3"></textarea>' +
+        '<div class="rep-actions">' +
+          '<button class="btn btn-outline" id="rep-cancel">Annuler</button>' +
+          '<button class="btn btn-primary" id="rep-send">Envoyer le signalement</button>' +
+        '</div>' +
+      '</div>';
+
+    document.body.appendChild(modal);
+    _injectReportStyles();
+
+    var close = function(){ modal.remove(); };
+    modal.querySelector('.rep-close').addEventListener('click', close);
+    modal.querySelector('#rep-cancel').addEventListener('click', close);
+    modal.addEventListener('click', function(e){ if (e.target === modal) close(); });
+
+    modal.querySelector('#rep-send').addEventListener('click', async function() {
+      var btn = this;
+      var reason = (modal.querySelector('input[name=rep-reason]:checked') || {}).value;
+      var msg = modal.querySelector('#rep-msg').value.trim();
+      if (!reason) return;
+
+      if (!window._supabase) {
+        window.toast && window.toast('Connexion requise.', 'error'); return;
+      }
+      var u = await window._supabase.auth.getUser();
+      var uid = u && u.data && u.data.user && u.data.user.id;
+      if (!uid) {
+        window.toast && window.toast('Connecte-toi pour signaler.', 'error');
+        setTimeout(function(){ window.location.href = 'login.html?next=' + encodeURIComponent(window.location.pathname + window.location.search); }, 1200);
+        return;
+      }
+
+      btn.disabled = true; btn.textContent = 'Envoi…';
+      try {
+        var r = await window._supabase.from('reports').insert([{
+          product_id:  p.id,
+          reporter_id: uid,
+          reason:      reason,
+          message:     msg || null
+        }]);
+        if (r && r.error) throw r.error;
+        window.toast && window.toast('Merci. Notre équipe va examiner le signalement.', 'success', 5000);
+        close();
+      } catch(err) {
+        console.warn('[report] insert failed', err);
+        window.toast && window.toast('Échec de l\'envoi : ' + (err.message || 'erreur inconnue'), 'error');
+        btn.disabled = false; btn.textContent = 'Envoyer le signalement';
+      }
+    });
+  }
+
+  function _injectReportStyles() {
+    if (document.getElementById('rep-styles')) return;
+    var s = document.createElement('style');
+    s.id = 'rep-styles';
+    s.textContent = [
+      '.rep-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:5000;display:flex;align-items:center;justify-content:center;padding:16px;animation:repFade .2s}',
+      '.rep-modal{background:var(--white,#fff);border-radius:18px;padding:26px 22px 20px;max-width:460px;width:100%;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.3);font-family:inherit;animation:repPop .25s ease;max-height:90vh;overflow-y:auto}',
+      '.rep-modal h3{font-family:Outfit,sans-serif;font-size:1.15rem;font-weight:700;margin-bottom:6px;padding-right:30px}',
+      '.rep-sub{font-size:.84rem;color:var(--ink-3);margin-bottom:14px;line-height:1.5}',
+      '.rep-product{background:var(--surface-2);padding:10px 12px;border-radius:10px;font-size:.85rem;margin-bottom:14px;border-left:3px solid var(--brand,#E8501A)}',
+      '.rep-close{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;border:none;background:var(--surface-2);color:var(--ink-3);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;font-family:inherit}',
+      '.rep-close:hover{background:var(--surface-3);color:var(--ink)}',
+      '.rep-options{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}',
+      '.rep-radio{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--surface-3);border-radius:10px;cursor:pointer;font-size:.88rem;color:var(--ink-2);transition:all .15s}',
+      '.rep-radio:hover{border-color:var(--brand,#E8501A);background:rgba(232,80,26,.04)}',
+      '.rep-radio input{accent-color:var(--brand,#E8501A);margin:0;flex-shrink:0;width:18px;height:18px}',
+      '.rep-radio:has(input:checked){border-color:var(--brand,#E8501A);background:rgba(232,80,26,.06);color:var(--ink)}',
+      '.rep-message{width:100%;padding:10px 12px;border:1px solid var(--surface-3);border-radius:10px;font-family:inherit;font-size:.88rem;resize:vertical;min-height:60px;margin-bottom:14px;outline:none;color:var(--ink)}',
+      '.rep-message:focus{border-color:var(--brand,#E8501A)}',
+      '.rep-actions{display:flex;gap:10px}',
+      '.rep-actions .btn{flex:1}',
+      '@keyframes repFade{from{opacity:0}to{opacity:1}}',
+      '@keyframes repPop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}'
+    ].join('');
+    document.head.appendChild(s);
   }
 
   // ── SIMILAR ──────────────────────────────────────────────────────

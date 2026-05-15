@@ -58,6 +58,22 @@ async function _fetchProducts(f) {
   // 4. Tri final (au cas où local ait été ajouté hors-ordre)
   if (f.sort === 'price_asc')       all.sort(function(a,b){ return (a.price||0) - (b.price||0); });
   else if (f.sort === 'price_desc') all.sort(function(a,b){ return (b.price||0) - (a.price||0); });
+  else if (f.sort === 'distance') {
+    // Trie par proximité de l'utilisateur. Si pas de géoloc, fallback récence.
+    var loc = window.getStoredLocation && window.getStoredLocation();
+    if (!loc) {
+      window.toast && window.toast('Active la géolocalisation pour trier par proximité.', 'error');
+      all.sort(function(a,b){ return new Date(b.created_at||0) - new Date(a.created_at||0); });
+    } else {
+      all.sort(function(a,b){
+        var da = window.distanceToProduct ? window.distanceToProduct(a) : null;
+        var db = window.distanceToProduct ? window.distanceToProduct(b) : null;
+        if (da == null) da = 999999;
+        if (db == null) db = 999999;
+        return da - db;
+      });
+    }
+  }
   else all.sort(function(a,b){ return new Date(b.created_at||0) - new Date(a.created_at||0); });
 
   return all;
@@ -91,7 +107,12 @@ function _renderGrid(grid, products) {
       '<div class="card-body" onclick="window.location.href=\'product-details.html?id=' + p.id + '\'">' +
         '<div class="card-title">' + window.escHtml(p.title || '') + '</div>' +
         '<div class="card-price">' + window.formatPrice(p.price) + (oldPx > 0 ? '<span class="old">' + window.formatPrice(oldPx) + '</span>' : '') + '</div>' +
-        '<div class="card-meta"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> ' + (p.city || '—') + ' · ' + window.relativeDate(p.created_at) + '</div>' +
+        '<div class="card-meta"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> ' + (p.city || '—') +
+          (function(){
+            var d = window.distanceToProduct ? window.distanceToProduct(p) : null;
+            return d != null ? ' <span style="color:var(--brand,#E8501A);font-weight:600">· ' + window.formatDistance(d) + '</span>' : '';
+          })() +
+          ' · ' + window.relativeDate(p.created_at) + '</div>' +
         (p.condition ? '<div style="margin-top:6px">' + window.conditionBadge(p.condition) + '</div>' : '') +
       '</div></div>';
   }).join('');

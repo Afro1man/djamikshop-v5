@@ -25,6 +25,7 @@ window.onDjamikReady = function(cb) {
     base + 'core/payment.js',
     base + 'core/push.js',
     base + 'core/security.js',
+    base + 'core/geo.js',
     // Auth chargé en core pour exposer window.logout/requireAuth partout
     base + 'features/auth.js',
     // Components
