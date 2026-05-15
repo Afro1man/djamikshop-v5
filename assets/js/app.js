@@ -26,6 +26,7 @@ window.onDjamikReady = function(cb) {
     base + 'core/push.js',
     base + 'core/security.js',
     base + 'core/geo.js',
+    base + 'core/email-verify.js',
     // Auth chargé en core pour exposer window.logout/requireAuth partout
     base + 'features/auth.js',
     // Components
