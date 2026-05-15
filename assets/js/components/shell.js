@@ -124,6 +124,7 @@
     var marketplace =
       '<div class="sm-section">' +
         '<div class="sm-section-title">Marketplace</div>' +
+        '<a href="' + getPath('comment-ca-marche.html') + '" class="side-menu-item sm-highlight">' + _icon('info') + ' Comment ça marche</a>' +
         '<a href="' + getPath('add-product.html') + '" class="side-menu-sell">' + _icon('plus') + ' Publier une annonce</a>' +
         '<a href="' + getPath('index.html') + '" class="side-menu-item">' + _icon('home') + ' Accueil</a>' +
         '<a href="' + getPath('shop.html') + '" class="side-menu-item">' + _icon('search') + ' Rechercher</a>' +

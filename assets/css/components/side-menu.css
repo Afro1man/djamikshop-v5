@@ -144,6 +144,18 @@
   color: var(--danger);
 }
 
+/* Comment ça marche — link mis en avant */
+.side-menu-item.sm-highlight {
+  background: linear-gradient(135deg, rgba(232,80,26,.06), rgba(245,177,0,.06));
+  border: 1px solid rgba(232,80,26,.18);
+  color: var(--brand);
+  font-weight: 600;
+}
+.side-menu-item.sm-highlight:hover {
+  background: linear-gradient(135deg, rgba(232,80,26,.12), rgba(245,177,0,.12));
+}
+.side-menu-item.sm-highlight svg { color: var(--brand); }
+
 .side-menu-item svg {
   width: 20px;
   height: 20px;
