@@ -139,6 +139,11 @@
           '<a href="' + getPath('offers.html') + '" class="side-menu-item">' + _icon('chat') + ' Mes offres</a>' +
           '<a href="' + getPath('wishlist.html') + '" class="side-menu-item">' + _icon('heart') + ' Mes favoris <span class="sm-badge hidden" id="sm-fav-badge">0</span></a>' +
           '<a href="' + getPath('notifications.html') + '" class="side-menu-item">' + _icon('bell') + ' Notifications <span class="sm-badge hidden" id="sm-notif-badge">0</span></a>' +
+          // Lien admin (caché par défaut, dévoilé par JS si user est admin)
+          '<a href="' + getPath('admin-reports.html') + '" class="side-menu-item sm-admin-link" id="sm-admin-link" style="display:none">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>' +
+            ' Modération <span class="sm-badge hidden" id="sm-admin-badge">0</span>' +
+          '</a>' +
         '</div>'
       : '';
 
@@ -367,6 +372,26 @@
       var convs = window.getConversations ? window.getConversations() : [];
       var msgUnread = convs.reduce(function(s, x){ return s + (x.unread || 0); }, 0);
       _setBadge('sm-msg-badge', msgUnread);
+    } catch(e) {}
+
+    // Lien admin (visible si user is admin) + badge signalements en attente
+    _checkAdminAndBadge();
+  }
+
+  async function _checkAdminAndBadge() {
+    if (!window._supabase) return;
+    try {
+      var u = await window._supabase.auth.getUser();
+      var uid = u && u.data && u.data.user && u.data.user.id;
+      if (!uid) return;
+      var ad = await window._supabase.from('admins').select('user_id').eq('user_id', uid).maybeSingle();
+      if (!ad || !ad.data) return;   // pas admin
+      // Affiche le lien
+      var link = document.getElementById('sm-admin-link');
+      if (link) link.style.display = '';
+      // Compte les signalements ouverts
+      var c = await window._supabase.from('reports').select('id', { count: 'exact', head: true }).eq('status', 'open');
+      _setBadge('sm-admin-badge', (c && c.count) || 0);
     } catch(e) {}
   }
 
