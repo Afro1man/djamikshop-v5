@@ -221,20 +221,48 @@
     @keyframes fadein { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
 
     /* ── CATEGORIES ── */
-    .cats-section { background: var(--surface); padding: var(--space-10) 0; border-bottom: 1px solid var(--surface-3); }
-    .cat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: var(--space-3); padding: 0 var(--page-px); }
-    .cat-card {
-      background: var(--white); border: 1px solid var(--surface-3);
-      border-radius: var(--r-lg); padding: var(--space-4) var(--space-3);
-      cursor: pointer; transition: all .2s; text-align: center; position: relative; overflow: hidden;
-      border: none;
+    .cats-section { background: var(--surface); padding: var(--space-5) 0; border-bottom: 1px solid var(--surface-3); }
+    .cats-head-compact {
+      display: flex; align-items: baseline; gap: 8px;
+      padding: 0 var(--page-px); margin-bottom: var(--space-3);
     }
-    .cat-card:hover { border-color: var(--brand); transform: translateY(-3px); box-shadow: var(--shadow-md); }
-    .cat-card.active { border-color: var(--brand); background: var(--brand-light); }
-    .cat-card-icon { font-size: 2rem; margin-bottom: var(--space-2); display: block; transition: transform .2s; }
-    .cat-card:hover .cat-card-icon { transform: scale(1.1); }
-    .cat-card-label { font-size: .82rem; font-weight: 600; color: var(--ink-2); }
-    .cat-card.active .cat-card-label { color: var(--brand); }
+    .cats-head-compact .eyebrow { font-size: .68rem; }
+    .cats-head-compact h2 {
+      font-family: 'Outfit', sans-serif; font-size: 1rem; font-weight: 700;
+      color: var(--ink-2); margin: 0;
+    }
+    .cat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
+      gap: 8px;
+      padding: 0 var(--page-px);
+    }
+    /* Cartes catégorie compactes (icône seule, label = tooltip) */
+    .cat-card {
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+      aspect-ratio: 1/1;
+      background: var(--white);
+      border: 1px solid var(--surface-3);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform .15s, border-color .15s, background .15s;
+      padding: 0;
+    }
+    .cat-card:hover { border-color: var(--brand); transform: translateY(-2px); background: var(--brand-light, #FFF4EE); }
+    .cat-card.active { border-color: var(--brand); background: var(--brand-light, #FFF4EE); }
+    .cat-card-icon { font-size: 1.5rem; line-height: 1; transition: transform .15s; }
+    .cat-card:hover .cat-card-icon { transform: scale(1.15); }
+    .cat-card-label {
+      /* Tooltip natif via CSS — apparaît au survol */
+      position: absolute; bottom: -28px; left: 50%; transform: translateX(-50%);
+      font-size: .68rem; font-weight: 600; color: #fff;
+      background: var(--ink, #0F1115); padding: 4px 8px; border-radius: 6px;
+      opacity: 0; pointer-events: none; transition: opacity .15s;
+      white-space: nowrap; z-index: 10;
+    }
+    .cat-card:hover .cat-card-label { opacity: 1; }
+    .cat-card.active .cat-card-label { opacity: 1; background: var(--brand); }
 
     /* ── PRODUCTS SECTION ── */
     .products-section { background: var(--surface); padding: var(--space-10) 0 var(--space-12); }
@@ -268,7 +296,7 @@
     .recent-scroll::-webkit-scrollbar { display: none; }
 
     /* ── RESPONSIVE ── */
-    @media(max-width:900px){ .cat-grid { grid-template-columns: repeat(4,1fr); } }
+    @media(max-width:900px){ .cat-grid { grid-template-columns: repeat(auto-fit, minmax(54px, 1fr)); } }
     @media(max-width:640px){
       .hero { padding: 120px 16px 60px; }
       .hero-search { padding: 4px 4px 4px 14px; }
@@ -276,8 +304,8 @@
       .hero-search .sep { display: none; }
       .hero-search-btn span { display: none; }
       .hero-search-btn { padding: 10px 14px; }
-      .cat-grid { grid-template-columns: repeat(3, 1fr); gap: var(--space-2); }
-      .cat-card { padding: var(--space-3) var(--space-2); }
+      .cat-grid { grid-template-columns: repeat(auto-fit, minmax(48px, 1fr)); gap: 6px; }
+      .cat-card-icon { font-size: 1.3rem; }
       .product-grid { grid-template-columns: repeat(2, 1fr); gap: var(--space-3); }
       .filter-bar h2 { font-size: 1.1rem; width: 100%; }
       .hero-stats { gap: var(--space-5); }
@@ -441,11 +469,9 @@
 <!-- ═══ CATÉGORIES ═══ -->
 <section class="cats-section">
   <div class="container">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--space-5);padding:0 var(--page-px)">
-      <div>
-        <div class="eyebrow">Explorer</div>
-        <h2 class="section-heading">Toutes les catégories</h2>
-      </div>
+    <div class="cats-head-compact">
+      <span class="eyebrow">Explorer</span>
+      <h2>Catégories</h2>
     </div>
     <div class="cat-grid" id="cat-grid"></div>
   </div>

@@ -137,7 +137,7 @@ function _renderCats() {
   var cats = window.APP.categories || [];
   if (grid) {
     grid.innerHTML = cats.map(function(c) {
-      return '<button class="cat-card" data-cat="' + c.id + '" onclick="setCat(\'' + c.id + '\')">' +
+      return '<button class="cat-card" data-cat="' + c.id + '" title="' + c.label + '" aria-label="' + c.label + '" onclick="setCat(\'' + c.id + '\')">' +
         '<span class="cat-card-icon">' + c.icon + '</span>' +
         '<span class="cat-card-label">' + c.label + '</span></button>';
     }).join('');
