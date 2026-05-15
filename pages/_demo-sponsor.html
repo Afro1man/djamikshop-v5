@@ -3,716 +3,408 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Boost — DjamikShop</title>
+<title>Booster mon compte — DjamikShop</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
   /* ─────────────────────────────────────────────────────── */
-  /*  DESIGN TOKENS                                          */
+  /*  TOKENS                                                 */
   /* ─────────────────────────────────────────────────────── */
   :root {
-    /* Brand */
-    --brand-50:  #FFF4EE;
-    --brand-100: #FFE3D1;
-    --brand-200: #FFC7A3;
-    --brand-500: #E8501A;
-    --brand-600: #D14215;
-    --brand-700: #A8330F;
-
-    /* VIP gold */
-    --gold-50:  #FFFAEB;
-    --gold-100: #FEF0C7;
-    --gold-500: #F5B100;
-    --gold-600: #C99100;
-    --gold-700: #8C6500;
-
-    /* Premium */
-    --plat-50:  #F4F1FF;
-    --plat-500: #7C3AED;
-    --plat-600: #6D28D9;
-    --plat-700: #5B21B6;
-
-    /* Neutrals */
-    --ink-900: #0A0E1A;
-    --ink-700: #2B313D;
-    --ink-500: #5A6273;
-    --ink-300: #9AA1B0;
-    --ink-100: #E5E8EE;
-    --bg:      #FAFBFC;
-    --surface: #FFFFFF;
-    --border:  #ECEEF2;
-    --border-strong: #DCE0E8;
-
-    /* Shadows (multi-layer, subtle) */
-    --sh-sm: 0 1px 2px rgba(15,23,42,.04), 0 1px 1px rgba(15,23,42,.03);
-    --sh-md: 0 1px 3px rgba(15,23,42,.06), 0 4px 12px rgba(15,23,42,.05);
-    --sh-lg: 0 4px 6px rgba(15,23,42,.04), 0 12px 28px rgba(15,23,42,.10);
-    --sh-brand: 0 1px 2px rgba(232,80,26,.10), 0 8px 24px rgba(232,80,26,.18);
-    --sh-gold:  0 1px 2px rgba(245,177,0,.12),  0 8px 24px rgba(245,177,0,.22);
-    --sh-plat:  0 1px 2px rgba(124,58,237,.10), 0 8px 24px rgba(124,58,237,.18);
-
-    /* Radius */
-    --r-xs: 6px; --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 22px; --r-pill: 999px;
+    --brand-50:#FFF4EE; --brand-100:#FFE3D1; --brand-200:#FFC7A3; --brand-500:#E8501A; --brand-600:#D14215; --brand-700:#A8330F;
+    --gold-50:#FFFAEB;  --gold-100:#FEF0C7;  --gold-500:#F5B100;  --gold-600:#C99100;  --gold-700:#8C6500;
+    --plat-50:#F4F1FF;  --plat-500:#7C3AED;  --plat-600:#6D28D9;  --plat-700:#5B21B6;
+    --ink-900:#0A0E1A; --ink-700:#2B313D; --ink-500:#5A6273; --ink-300:#9AA1B0; --ink-100:#E5E8EE;
+    --bg:#FAFBFC; --surface:#FFFFFF; --border:#ECEEF2; --border-strong:#DCE0E8;
+    --sh-sm:0 1px 2px rgba(15,23,42,.04),0 1px 1px rgba(15,23,42,.03);
+    --sh-md:0 1px 3px rgba(15,23,42,.06),0 4px 12px rgba(15,23,42,.05);
+    --sh-lg:0 4px 6px rgba(15,23,42,.04),0 12px 28px rgba(15,23,42,.10);
+    --sh-brand:0 8px 24px rgba(232,80,26,.18);
+    --sh-gold:0 8px 24px rgba(245,177,0,.22);
+    --sh-plat:0 8px 24px rgba(124,58,237,.18);
+    --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:22px; --r-pill:999px;
   }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg)}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;color:var(--ink-900);line-height:1.5;-webkit-font-smoothing:antialiased;padding:0 0 80px}
+  ::selection{background:var(--brand-100);color:var(--brand-700)}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body { background: var(--bg); }
-  body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-    color: var(--ink-900);
-    line-height: 1.5;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    padding: 0 0 80px;
-  }
-  ::selection { background: var(--brand-100); color: var(--brand-700); }
+  .container{max-width:1180px;margin:0 auto;padding:0 24px}
 
   /* ─────────────────────────────────────────────────────── */
-  /*  LAYOUT                                                 */
+  /*  HERO                                                    */
   /* ─────────────────────────────────────────────────────── */
-  .container { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
-
-  /* ─────────────────────────────────────────────────────── */
-  /*  HERO                                                   */
-  /* ─────────────────────────────────────────────────────── */
-  .hero {
-    padding: 72px 24px 56px;
-    text-align: center;
-    background:
-      radial-gradient(ellipse 800px 400px at 50% 0%, rgba(232,80,26,.08), transparent 60%),
-      var(--bg);
-    border-bottom: 1px solid var(--border);
-  }
-  .hero-eyebrow {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 6px 12px;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-pill);
-    font-size: 12px; font-weight: 600; color: var(--ink-700);
-    box-shadow: var(--sh-sm);
-    margin-bottom: 20px;
-  }
-  .hero-eyebrow .dot {
-    width: 6px; height: 6px; border-radius: 50%; background: var(--brand-500);
-    box-shadow: 0 0 0 3px rgba(232,80,26,.15);
-  }
-  .hero h1 {
-    font-family: 'Outfit', sans-serif;
-    font-size: clamp(32px, 5vw, 48px);
-    font-weight: 800;
-    letter-spacing: -0.025em;
-    line-height: 1.1;
-    margin-bottom: 16px;
-  }
-  .hero h1 .accent {
-    background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  .hero p {
-    font-size: 17px; color: var(--ink-500);
-    max-width: 560px; margin: 0 auto;
-  }
+  .hero{padding:72px 24px 48px;text-align:center;background:radial-gradient(ellipse 800px 400px at 50% 0%,rgba(232,80,26,.08),transparent 60%),var(--bg);border-bottom:1px solid var(--border)}
+  .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-pill);font-size:12px;font-weight:600;color:var(--ink-700);box-shadow:var(--sh-sm);margin-bottom:20px}
+  .hero-eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--brand-500);box-shadow:0 0 0 3px rgba(232,80,26,.15)}
+  .hero h1{font-family:'Outfit',sans-serif;font-size:clamp(34px,5.5vw,52px);font-weight:800;letter-spacing:-.025em;line-height:1.05;margin-bottom:16px}
+  .hero h1 .accent{background:linear-gradient(135deg,var(--brand-500),var(--brand-700));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .hero p{font-size:17px;color:var(--ink-500);max-width:600px;margin:0 auto 28px}
+  .hero-stats{display:flex;justify-content:center;gap:36px;flex-wrap:wrap;margin-top:8px}
+  .hero-stat{text-align:center}
+  .hero-stat-val{font-family:'Outfit',sans-serif;font-size:28px;font-weight:800;color:var(--brand-500);letter-spacing:-.02em}
+  .hero-stat-lbl{font-size:11px;color:var(--ink-500);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
 
   /* ─────────────────────────────────────────────────────── */
-  /*  SECTION                                                */
+  /*  SECTION                                                 */
   /* ─────────────────────────────────────────────────────── */
-  section { padding: 64px 0; }
-  .section-head { text-align: center; margin-bottom: 40px; }
-  .section-head .label {
-    display: inline-block;
-    font-size: 12px; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 0.08em; color: var(--brand-500);
-    margin-bottom: 10px;
-  }
-  .section-head h2 {
-    font-family: 'Outfit', sans-serif;
-    font-size: clamp(24px, 3vw, 32px); font-weight: 700;
-    letter-spacing: -0.02em; margin-bottom: 8px;
-  }
-  .section-head p { color: var(--ink-500); max-width: 520px; margin: 0 auto; }
+  section{padding:64px 0}
+  .section-head{text-align:center;margin-bottom:40px}
+  .section-head .label{display:inline-block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--brand-500);margin-bottom:10px}
+  .section-head h2{font-family:'Outfit',sans-serif;font-size:clamp(24px,3vw,32px);font-weight:700;letter-spacing:-.02em;margin-bottom:8px}
+  .section-head p{color:var(--ink-500);max-width:560px;margin:0 auto}
 
   /* ─────────────────────────────────────────────────────── */
-  /*  PRODUCT CARDS                                          */
+  /*  PRICING — 3 TIERS                                       */
   /* ─────────────────────────────────────────────────────── */
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 16px;
-  }
-  .card {
-    background: var(--surface);
-    border-radius: var(--r-lg);
-    overflow: hidden;
-    border: 1px solid var(--border);
-    transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s;
-    position: relative;
-  }
-  .card:hover { transform: translateY(-3px); box-shadow: var(--sh-md); }
-  .card-img {
-    aspect-ratio: 4/3;
-    background: var(--ink-100);
-    position: relative;
-    overflow: hidden;
-  }
-  .card-img svg { width: 100%; height: 100%; }
-  .card-body { padding: 14px 14px 16px; }
-  .card-title {
-    font-size: 14px; font-weight: 600;
-    color: var(--ink-900);
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-  }
-  .card-price { font-size: 16px; font-weight: 700; color: var(--ink-900); margin-top: 6px; }
-  .card-meta {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 12px; color: var(--ink-500); margin-top: 8px;
-  }
-  .card-meta svg { width: 12px; height: 12px; flex-shrink: 0; }
+  .pricing{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;align-items:stretch;max-width:1100px;margin:0 auto}
+  .plan{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:32px 28px;position:relative;display:flex;flex-direction:column;transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s}
+  .plan:hover{transform:translateY(-4px);box-shadow:var(--sh-md)}
 
-  /* ─── Badges (subtle, refined) ─── */
-  .badge {
-    position: absolute; top: 10px; left: 10px;
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 5px 10px;
-    border-radius: var(--r-pill);
-    font-size: 11px; font-weight: 700;
-    letter-spacing: 0.02em;
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    z-index: 2;
-  }
-  .badge svg { width: 12px; height: 12px; }
-  .badge-sponsor {
-    background: rgba(232, 80, 26, .95);
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(232,80,26,.3);
-  }
-  .badge-vip {
-    background: linear-gradient(135deg, #FFD86F, #F5B100);
-    color: #5C3D00;
-    box-shadow: 0 2px 8px rgba(245,177,0,.3);
-  }
-  .badge-premium {
-    background: rgba(124, 58, 237, .95);
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(124,58,237,.3);
-  }
+  .plan.is-featured{border-color:transparent;background:linear-gradient(var(--surface),var(--surface)) padding-box,linear-gradient(135deg,var(--gold-500),var(--brand-500)) border-box;border:2px solid transparent;box-shadow:var(--sh-md);transform:scale(1.02)}
+  .plan-badge{position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--gold-500),var(--brand-500));color:#fff;padding:6px 14px;border-radius:var(--r-pill);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;box-shadow:var(--sh-md)}
 
-  /* Card variants */
-  .card.is-sponsor { border-color: var(--brand-200); }
-  .card.is-sponsor:hover { box-shadow: var(--sh-brand); }
+  .plan-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+  .plan-icon{width:44px;height:44px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .plan-icon.s1{background:var(--ink-100);color:var(--ink-500)}
+  .plan-icon.s2{background:linear-gradient(135deg,var(--gold-100),var(--gold-50));color:var(--gold-700)}
+  .plan-icon.s3{background:linear-gradient(135deg,var(--plat-50),#EDE9FE);color:var(--plat-500)}
+  .plan-icon svg{width:22px;height:22px}
+  .plan-name{font-family:'Outfit',sans-serif;font-size:20px;font-weight:700;letter-spacing:-.01em;color:var(--ink-900)}
+  .plan-tagline{font-size:13px;color:var(--ink-500);margin-top:2px}
 
-  .card.is-vip {
-    border-color: var(--gold-100);
-    background:
-      linear-gradient(180deg, var(--gold-50) 0%, var(--surface) 35%);
-  }
-  .card.is-vip:hover { box-shadow: var(--sh-gold); }
-  .card.is-vip::after {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(110deg, transparent 40%, rgba(255, 220, 130, .35) 50%, transparent 60%);
-    background-size: 250% 100%;
-    background-position: 200% 0;
-    animation: shine 4s ease-in-out infinite;
-    pointer-events: none;
-    border-radius: var(--r-lg);
-  }
-  @keyframes shine { to { background-position: -150% 0; } }
+  .plan-price{display:flex;align-items:baseline;gap:6px;margin-top:8px}
+  .plan-price .num{font-family:'Outfit',sans-serif;font-size:38px;font-weight:800;letter-spacing:-.03em;color:var(--ink-900)}
+  .plan-price .currency{font-size:14px;font-weight:600;color:var(--ink-500)}
+  .plan-period{font-size:13px;color:var(--ink-500);margin-bottom:24px}
 
-  .card.is-premium { border-color: #DDD0FF; }
-  .card.is-premium:hover { box-shadow: var(--sh-plat); }
+  .plan-features{list-style:none;margin-bottom:28px;flex:1}
+  .plan-features li{display:flex;align-items:flex-start;gap:10px;padding:9px 0;font-size:13.5px;color:var(--ink-700);border-bottom:1px dashed var(--border)}
+  .plan-features li:last-child{border-bottom:none}
+  .plan-features li svg{width:16px;height:16px;color:var(--brand-500);flex-shrink:0;margin-top:2px}
+  .plan-features li.bold{font-weight:600;color:var(--ink-900)}
+  .plan-features li.bold svg{color:var(--gold-600)}
+  .plan-features li .pill{display:inline-block;font-size:10px;font-weight:700;background:var(--brand-50);color:var(--brand-700);padding:2px 6px;border-radius:4px;text-transform:uppercase;letter-spacing:.04em}
+
+  .plan-cta{width:100%;padding:13px 20px;background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--r-md);font-family:inherit;font-size:14px;font-weight:600;color:var(--ink-900);cursor:pointer;transition:all .15s}
+  .plan-cta:hover{background:var(--ink-900);color:#fff;border-color:var(--ink-900)}
+  .plan.is-featured .plan-cta{background:linear-gradient(135deg,var(--brand-500),var(--brand-700));color:#fff;border-color:transparent;box-shadow:var(--sh-brand)}
+  .plan.is-featured .plan-cta:hover{transform:translateY(-1px)}
+  .plan.is-premium .plan-cta:hover{background:linear-gradient(135deg,var(--plat-500),var(--plat-700));border-color:transparent}
 
   /* ─────────────────────────────────────────────────────── */
-  /*  FEATURED STRIP (top of shop)                           */
+  /*  COMPARISON: VISUAL EXAMPLES                             */
   /* ─────────────────────────────────────────────────────── */
-  .featured {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-xl);
-    padding: 24px;
-    box-shadow: var(--sh-sm);
-  }
-  .featured-head {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 20px;
-  }
-  .featured-head .title {
-    display: flex; align-items: center; gap: 10px;
-    font-size: 15px; font-weight: 700; color: var(--ink-900);
-  }
-  .featured-head .star {
-    width: 28px; height: 28px;
-    background: linear-gradient(135deg, var(--gold-500), var(--gold-600));
-    border-radius: var(--r-sm);
-    display: flex; align-items: center; justify-content: center;
-    color: #fff;
-    box-shadow: var(--sh-gold);
-  }
-  .featured-head a {
-    font-size: 13px; font-weight: 600; color: var(--brand-500);
-    text-decoration: none; display: flex; align-items: center; gap: 4px;
-  }
-  .featured-head a:hover { color: var(--brand-700); }
+  .compare-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;max-width:1100px;margin:0 auto}
+  .compare-col{display:flex;flex-direction:column;gap:14px}
+  .compare-col-title{text-align:center;font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;color:var(--ink-700);padding:8px 12px;background:var(--surface);border-radius:var(--r-md);border:1px solid var(--border)}
+  .compare-col.vip .compare-col-title{background:linear-gradient(135deg,var(--gold-50),#FFF4DB);color:var(--gold-700);border-color:var(--gold-100)}
+  .compare-col.premium .compare-col-title{background:linear-gradient(135deg,var(--plat-50),#EDE9FE);color:var(--plat-600);border-color:#DDD0FF}
 
-  /* ─────────────────────────────────────────────────────── */
-  /*  PRICING                                                */
-  /* ─────────────────────────────────────────────────────── */
-  .pricing {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-    align-items: stretch;
-  }
-  .plan {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-xl);
-    padding: 32px 28px;
-    position: relative;
-    display: flex; flex-direction: column;
-    transition: transform .25s cubic-bezier(.2,.8,.2,1), box-shadow .25s;
-  }
-  .plan:hover { transform: translateY(-4px); box-shadow: var(--sh-md); }
+  /* Mock cards */
+  .mock-card{background:var(--surface);border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--border);position:relative;transition:transform .2s}
+  .mock-card:hover{transform:translateY(-2px)}
+  .mock-img{aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;font-size:2.4rem}
+  .mock-body{padding:12px}
+  .mock-title{font-size:14px;font-weight:600}
+  .mock-price{font-size:15px;font-weight:800;color:var(--brand-500);margin-top:4px}
+  .mock-meta{font-size:11px;color:var(--ink-500);margin-top:4px}
 
-  .plan.is-featured {
-    border-color: transparent;
-    background:
-      linear-gradient(var(--surface), var(--surface)) padding-box,
-      linear-gradient(135deg, var(--gold-500), var(--brand-500)) border-box;
-    border: 2px solid transparent;
-    box-shadow: var(--sh-md);
-  }
-  .plan.is-featured .plan-cta {
-    background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
-    color: #fff;
-    border-color: transparent;
-  }
-  .plan.is-featured .plan-cta:hover {
-    box-shadow: var(--sh-brand);
-    transform: translateY(-1px);
-  }
+  .badge-vip{position:absolute;top:10px;left:10px;background:linear-gradient(135deg,#FFD86F,var(--gold-500));color:#5C3D00;padding:5px 10px;border-radius:var(--r-pill);font-size:11px;font-weight:800;box-shadow:0 2px 8px rgba(245,177,0,.3);z-index:2;display:inline-flex;align-items:center;gap:4px}
+  .badge-premium{position:absolute;top:10px;left:10px;background:linear-gradient(135deg,#A78BFA,var(--plat-500));color:#fff;padding:5px 10px;border-radius:var(--r-pill);font-size:11px;font-weight:700;box-shadow:0 2px 8px rgba(124,58,237,.3);z-index:2;display:inline-flex;align-items:center;gap:4px}
 
-  .plan-badge {
-    position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
-    background: linear-gradient(135deg, var(--gold-500), var(--brand-500));
-    color: #fff;
-    padding: 6px 14px;
-    border-radius: var(--r-pill);
-    font-size: 11px; font-weight: 700;
-    letter-spacing: 0.06em; text-transform: uppercase;
-    box-shadow: var(--sh-md);
-  }
+  .mock-card.vip{border:2px solid var(--gold-100);background:linear-gradient(180deg,var(--gold-50) 0%,var(--surface) 30%)}
+  .mock-card.vip:hover{box-shadow:var(--sh-gold)}
+  .mock-card.vip::after{content:'';position:absolute;inset:0;background:linear-gradient(110deg,transparent 40%,rgba(255,220,130,.3) 50%,transparent 60%);background-size:250% 100%;background-position:200% 0;animation:shine 4s ease-in-out infinite;pointer-events:none;border-radius:var(--r-lg)}
+  @keyframes shine{to{background-position:-150% 0}}
 
-  .plan-icon {
-    width: 44px; height: 44px;
-    border-radius: var(--r-md);
-    display: flex; align-items: center; justify-content: center;
-    margin-bottom: 16px;
-  }
-  .plan-icon.s1 { background: var(--brand-50); color: var(--brand-500); }
-  .plan-icon.s2 { background: var(--gold-50); color: var(--gold-700); }
-  .plan-icon.s3 { background: var(--plat-50); color: var(--plat-500); }
-  .plan-icon svg { width: 22px; height: 22px; }
+  .mock-card.premium{border:2px solid #DDD0FF}
+  .mock-card.premium:hover{box-shadow:var(--sh-plat)}
 
-  .plan-name {
-    font-family: 'Outfit', sans-serif;
-    font-size: 20px; font-weight: 700; letter-spacing: -0.01em;
-    color: var(--ink-900);
-  }
-  .plan-tagline {
-    font-size: 13px; color: var(--ink-500);
-    margin-top: 4px; margin-bottom: 24px;
-  }
-  .plan-price {
-    display: flex; align-items: baseline; gap: 6px;
-    margin-bottom: 4px;
-  }
-  .plan-price .num {
-    font-family: 'Outfit', sans-serif;
-    font-size: 38px; font-weight: 800; letter-spacing: -0.03em;
-    color: var(--ink-900);
-  }
-  .plan-price .currency {
-    font-size: 14px; font-weight: 600; color: var(--ink-500);
-  }
-  .plan-period { font-size: 13px; color: var(--ink-500); margin-bottom: 24px; }
-
-  .plan-features {
-    list-style: none;
-    margin-bottom: 28px;
-    flex: 1;
-  }
-  .plan-features li {
-    display: flex; align-items: flex-start; gap: 10px;
-    padding: 8px 0;
-    font-size: 13.5px;
-    color: var(--ink-700);
-  }
-  .plan-features li svg {
-    width: 16px; height: 16px;
-    color: var(--brand-500);
-    flex-shrink: 0;
-    margin-top: 2px;
-  }
-
-  .plan-cta {
-    width: 100%;
-    padding: 12px 20px;
-    background: var(--surface);
-    border: 1px solid var(--border-strong);
-    border-radius: var(--r-md);
-    font-family: inherit;
-    font-size: 14px; font-weight: 600; color: var(--ink-900);
-    cursor: pointer;
-    transition: all .15s;
-  }
-  .plan-cta:hover {
-    background: var(--ink-900);
-    color: #fff;
-    border-color: var(--ink-900);
-  }
+  /* Profile mocks */
+  .mock-profile{display:flex;align-items:center;gap:12px;padding:16px;background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--border)}
+  .mock-profile.vip{border:2px solid var(--gold-100);background:linear-gradient(135deg,var(--gold-50),var(--surface))}
+  .mock-profile.premium{border:2px solid #DDD0FF;background:linear-gradient(135deg,var(--plat-50),var(--surface))}
+  .mock-profile-avatar{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,#FFC7A3,var(--brand-500));flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700}
+  .mock-profile.vip .mock-profile-avatar{box-shadow:0 0 0 3px var(--gold-500)}
+  .mock-profile.premium .mock-profile-avatar{box-shadow:0 0 0 3px var(--plat-500)}
+  .mock-profile-name{font-weight:700;font-size:14px;display:flex;align-items:center;gap:6px}
+  .mock-profile-sub{font-size:11px;color:var(--ink-500);margin-top:2px}
+  .mini-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:2px 6px;border-radius:4px;text-transform:uppercase;letter-spacing:.04em}
+  .mini-badge.vip{background:linear-gradient(135deg,#FFD86F,var(--gold-500));color:#5C3D00}
+  .mini-badge.premium{background:linear-gradient(135deg,#A78BFA,var(--plat-500));color:#fff}
 
   /* ─────────────────────────────────────────────────────── */
-  /*  BOOST BANNER                                           */
+  /*  MARKETING BENEFITS                                      */
   /* ─────────────────────────────────────────────────────── */
-  .boost {
-    background:
-      radial-gradient(ellipse at top right, rgba(232,80,26,.10), transparent 60%),
-      var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--r-xl);
-    padding: 28px;
-    display: flex; align-items: center; gap: 24px;
-    box-shadow: var(--sh-sm);
-  }
-  .boost-icon-wrap {
-    width: 56px; height: 56px;
-    border-radius: var(--r-md);
-    background: linear-gradient(135deg, var(--brand-500), var(--brand-700));
-    display: flex; align-items: center; justify-content: center;
-    color: #fff;
-    flex-shrink: 0;
-    box-shadow: var(--sh-brand);
-  }
-  .boost-text { flex: 1; min-width: 0; }
-  .boost-text h4 {
-    font-family: 'Outfit', sans-serif;
-    font-size: 17px; font-weight: 700;
-    margin-bottom: 4px;
-  }
-  .boost-text p { font-size: 14px; color: var(--ink-500); }
-  .boost-btn {
-    padding: 12px 22px;
-    background: var(--ink-900);
-    color: #fff;
-    border: none;
-    border-radius: var(--r-md);
-    font-family: inherit;
-    font-size: 14px; font-weight: 600;
-    cursor: pointer;
-    display: inline-flex; align-items: center; gap: 8px;
-    transition: all .15s;
-    flex-shrink: 0;
-  }
-  .boost-btn:hover { background: var(--brand-500); transform: translateY(-1px); }
-  .boost-btn svg { width: 14px; height: 14px; }
+  .benefits{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;max-width:1100px;margin:0 auto}
+  .benefit{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:24px;transition:transform .25s,box-shadow .25s}
+  .benefit:hover{transform:translateY(-3px);box-shadow:var(--sh-md)}
+  .benefit-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--brand-50),var(--gold-50));color:var(--brand-500);display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+  .benefit-icon svg{width:22px;height:22px}
+  .benefit h3{font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px}
+  .benefit p{font-size:13px;color:var(--ink-500);line-height:1.55}
 
-  @media (max-width: 640px) {
-    .boost { flex-direction: column; align-items: flex-start; }
-    .boost-btn { width: 100%; justify-content: center; }
-    .plan { padding: 28px 24px; }
-  }
+  /* ─────────────────────────────────────────────────────── */
+  /*  FAQ                                                     */
+  /* ─────────────────────────────────────────────────────── */
+  .faq{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+  .faq details{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:16px 20px;cursor:pointer;transition:border-color .15s}
+  .faq details[open]{border-color:var(--brand-200)}
+  .faq summary{font-weight:600;font-size:14px;list-style:none;display:flex;justify-content:space-between;align-items:center}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary::after{content:'+';font-size:1.4rem;color:var(--brand-500);transition:transform .2s;line-height:1}
+  .faq details[open] summary::after{transform:rotate(45deg)}
+  .faq details p{margin-top:10px;color:var(--ink-500);font-size:13.5px;line-height:1.6}
 </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- HERO                                                     -->
-<!-- ═══════════════════════════════════════════════════════ -->
+<!-- ═════ HERO ═════ -->
 <header class="hero">
   <div class="hero-eyebrow">
     <span class="dot"></span>
-    <span>Mise en avant</span>
+    <span>DjamikShop Boost</span>
   </div>
-  <h1>Vendez plus vite avec <span class="accent">DjamikShop Boost</span></h1>
-  <p>Donnez à vos annonces la visibilité qu'elles méritent. Atteignez jusqu'à 5× plus d'acheteurs partout au Niger.</p>
+  <h1>Vends plus, vends mieux.<br><span class="accent">Sans effort.</span></h1>
+  <p>3 formules pour propulser tes annonces. Choisis ce qui te correspond, sans engagement.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="hero-stat-val">×5</div><div class="hero-stat-lbl">Visibilité VIP</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">×10</div><div class="hero-stat-lbl">Visibilité Premium</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">3j</div><div class="hero-stat-lbl">Durée d'un boost</div></div>
+  </div>
 </header>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- 1. CARTES PRODUIT — variantes                            -->
-<!-- ═══════════════════════════════════════════════════════ -->
-<section>
-  <div class="container">
-    <div class="section-head">
-      <div class="label">Aperçu visuel</div>
-      <h2>3 niveaux de mise en avant</h2>
-      <p>Chaque option offre un traitement visuel distinctif pour faire ressortir vos annonces.</p>
-    </div>
-
-    <div class="grid">
-      <!-- Standard -->
-      <article class="card">
-        <div class="card-img">
-          <svg viewBox="0 0 240 180" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0" stop-color="#E5E8EE"/><stop offset="1" stop-color="#CBD0DA"/>
-              </linearGradient>
-            </defs>
-            <rect width="240" height="180" fill="url(#g1)"/>
-            <rect x="80" y="50" width="80" height="100" rx="8" fill="#fff" opacity=".7"/>
-            <circle cx="120" cy="80" r="12" fill="#fff"/>
-          </svg>
-        </div>
-        <div class="card-body">
-          <div class="card-title">iPhone 13 Pro 128 Go</div>
-          <div class="card-price">350 000 FCFA</div>
-          <div class="card-meta">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <span>Niamey · il y a 2j</span>
-          </div>
-        </div>
-      </article>
-
-      <!-- Sponsorisé -->
-      <article class="card is-sponsor">
-        <span class="badge badge-sponsor">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6 4.5 2.3 7.1-6.3-4.6L5.7 21l2.3-7.1-6-4.5h7.6z"/></svg>
-          Sponsorisé
-        </span>
-        <div class="card-img">
-          <svg viewBox="0 0 240 180" xmlns="http://www.w3.org/2000/svg">
-            <defs><linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFD3B5"/><stop offset="1" stop-color="#E8501A"/></linearGradient></defs>
-            <rect width="240" height="180" fill="url(#g2)"/>
-            <rect x="60" y="60" width="120" height="80" rx="6" fill="#fff" opacity=".85"/>
-            <rect x="70" y="70" width="100" height="6" rx="2" fill="#E8501A" opacity=".4"/>
-            <rect x="70" y="82" width="60" height="4" rx="2" fill="#E8501A" opacity=".3"/>
-          </svg>
-        </div>
-        <div class="card-body">
-          <div class="card-title">MacBook Air M2 13"</div>
-          <div class="card-price">650 000 FCFA</div>
-          <div class="card-meta">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <span>Niamey · il y a 1j</span>
-          </div>
-        </div>
-      </article>
-
-      <!-- VIP -->
-      <article class="card is-vip">
-        <span class="badge badge-vip">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 7l4.5 4L12 4l5.5 7L22 7l-2 12H4L2 7z"/></svg>
-          VIP
-        </span>
-        <div class="card-img">
-          <svg viewBox="0 0 240 180" xmlns="http://www.w3.org/2000/svg">
-            <defs><linearGradient id="g3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FFE5A3"/><stop offset="1" stop-color="#F5B100"/></linearGradient></defs>
-            <rect width="240" height="180" fill="url(#g3)"/>
-            <circle cx="120" cy="90" r="40" fill="#fff" opacity=".85"/>
-            <circle cx="120" cy="90" r="28" fill="#F5B100" opacity=".3"/>
-          </svg>
-        </div>
-        <div class="card-body">
-          <div class="card-title">Apple Watch Series 9 GPS</div>
-          <div class="card-price">220 000 FCFA</div>
-          <div class="card-meta">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <span>Maradi · aujourd'hui</span>
-          </div>
-        </div>
-      </article>
-
-      <!-- Premium -->
-      <article class="card is-premium">
-        <span class="badge badge-premium">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>
-          Boutique Premium
-        </span>
-        <div class="card-img">
-          <svg viewBox="0 0 240 180" xmlns="http://www.w3.org/2000/svg">
-            <defs><linearGradient id="g4" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#C4A8FF"/><stop offset="1" stop-color="#7C3AED"/></linearGradient></defs>
-            <rect width="240" height="180" fill="url(#g4)"/>
-            <path d="M70 70 L120 50 L170 70 L170 140 L70 140 Z" fill="#fff" opacity=".85"/>
-            <rect x="105" y="100" width="30" height="40" fill="#7C3AED" opacity=".4"/>
-          </svg>
-        </div>
-        <div class="card-body">
-          <div class="card-title">Sac à main cuir véritable</div>
-          <div class="card-price">85 000 FCFA</div>
-          <div class="card-meta">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-            <span>Boutique Élégance · 12 ventes</span>
-          </div>
-        </div>
-      </article>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- 2. FEATURED STRIP                                        -->
-<!-- ═══════════════════════════════════════════════════════ -->
-<section style="padding-top:0">
-  <div class="container">
-    <div class="section-head">
-      <div class="label">Page d'accueil & shop</div>
-      <h2>Section "Annonces vedette"</h2>
-      <p>Vos annonces boostées s'affichent en bandeau distinct, au-dessus des résultats classiques.</p>
-    </div>
-
-    <div class="featured">
-      <div class="featured-head">
-        <div class="title">
-          <div class="star">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6 4.5 2.3 7.1-6.3-4.6L5.7 21l2.3-7.1-6-4.5h7.6z"/></svg>
-          </div>
-          Annonces vedette
-        </div>
-        <a href="#">Voir tout
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-        </a>
-      </div>
-      <div class="grid">
-        <article class="card is-sponsor">
-          <span class="badge badge-sponsor"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6 4.5 2.3 7.1-6.3-4.6L5.7 21l2.3-7.1-6-4.5h7.6z"/></svg>Sponsorisé</span>
-          <div class="card-img"><svg viewBox="0 0 240 180"><defs><linearGradient id="g5"><stop offset="0" stop-color="#FFD3B5"/><stop offset="1" stop-color="#E8501A"/></linearGradient></defs><rect width="240" height="180" fill="url(#g5)"/><rect x="40" y="80" width="160" height="60" rx="20" fill="#fff" opacity=".8"/><circle cx="80" cy="140" r="20" fill="#2B313D"/><circle cx="180" cy="140" r="20" fill="#2B313D"/></svg></div>
-          <div class="card-body">
-            <div class="card-title">Toyota Corolla 2019</div>
-            <div class="card-price">7 200 000 FCFA</div>
-            <div class="card-meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Niamey</span></div>
-          </div>
-        </article>
-
-        <article class="card is-vip">
-          <span class="badge badge-vip"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M2 7l4.5 4L12 4l5.5 7L22 7l-2 12H4L2 7z"/></svg>VIP</span>
-          <div class="card-img"><svg viewBox="0 0 240 180"><defs><linearGradient id="g6"><stop offset="0" stop-color="#FFE5A3"/><stop offset="1" stop-color="#F5B100"/></linearGradient></defs><rect width="240" height="180" fill="url(#g6)"/><path d="M30 140 L30 80 L120 30 L210 80 L210 140 Z" fill="#fff" opacity=".85"/><rect x="100" y="100" width="40" height="40" fill="#F5B100" opacity=".4"/></svg></div>
-          <div class="card-body">
-            <div class="card-title">Villa 4 chambres à louer</div>
-            <div class="card-price">450 000 FCFA<span style="font-size:12px;color:var(--ink-500);font-weight:500">/mois</span></div>
-            <div class="card-meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Niamey · Yantala</span></div>
-          </div>
-        </article>
-
-        <article class="card is-sponsor">
-          <span class="badge badge-sponsor"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.4 7.4H22l-6 4.5 2.3 7.1-6.3-4.6L5.7 21l2.3-7.1-6-4.5h7.6z"/></svg>Sponsorisé</span>
-          <div class="card-img"><svg viewBox="0 0 240 180"><defs><linearGradient id="g7"><stop offset="0" stop-color="#FFD3B5"/><stop offset="1" stop-color="#E8501A"/></linearGradient></defs><rect width="240" height="180" fill="url(#g7)"/><circle cx="80" cy="120" r="25" fill="#2B313D"/><circle cx="170" cy="120" r="25" fill="#2B313D"/><rect x="80" y="60" width="90" height="50" fill="#fff" opacity=".8" rx="8"/></svg></div>
-          <div class="card-body">
-            <div class="card-title">Moto Yamaha Crypton</div>
-            <div class="card-price">580 000 FCFA</div>
-            <div class="card-meta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Zinder</span></div>
-          </div>
-        </article>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- 3. PRICING                                               -->
-<!-- ═══════════════════════════════════════════════════════ -->
+<!-- ═════ PRICING ═════ -->
 <section>
   <div class="container">
     <div class="section-head">
       <div class="label">Tarifs</div>
-      <h2>Choisissez votre formule</h2>
-      <p>Des prix pensés pour le marché nigérien. Sans engagement, sans renouvellement automatique.</p>
+      <h2>Choisis ta formule</h2>
+      <p>Aucun engagement, résiliation à tout moment. Paiement Mobile Money.</p>
     </div>
 
     <div class="pricing">
-      <!-- Sponsorisé -->
+
+      <!-- ── GRATUIT ── -->
       <div class="plan">
-        <div class="plan-icon s1">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        <div class="plan-header">
+          <div class="plan-icon s1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg>
+          </div>
+          <div>
+            <div class="plan-name">Gratuit</div>
+            <div class="plan-tagline">Pour démarrer</div>
+          </div>
         </div>
-        <div class="plan-name">Sponsorisé</div>
-        <div class="plan-tagline">Idéal pour vendre rapidement</div>
-        <div class="plan-price">
-          <span class="num">500</span>
-          <span class="currency">FCFA</span>
-        </div>
-        <div class="plan-period">pour 3 jours</div>
+        <div class="plan-price"><span class="num">0</span><span class="currency">FCFA</span></div>
+        <div class="plan-period">à vie · sans carte</div>
         <ul class="plan-features">
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Badge "Sponsorisé" sur l'annonce</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Position prioritaire dans les résultats</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Contour orange distinctif</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>~2× plus de visibilité</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Jusqu'à <strong>10 annonces</strong> actives</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Messagerie illimitée</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Partage WhatsApp + lien</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Design classique</li>
+          <li style="color:var(--ink-300)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Pas de boost</li>
         </ul>
-        <button class="plan-cta">Choisir Sponsorisé</button>
+        <button class="plan-cta">Continuer gratuitement</button>
+      </div>
+
+      <!-- ── VIP ── -->
+      <div class="plan is-featured">
+        <div class="plan-badge">Plus populaire</div>
+        <div class="plan-header">
+          <div class="plan-icon s2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7l4.5 4L12 4l5.5 7L22 7l-2 12H4L2 7z"/></svg>
+          </div>
+          <div>
+            <div class="plan-name">VIP</div>
+            <div class="plan-tagline">Pour vendre régulièrement</div>
+          </div>
+        </div>
+        <div class="plan-price"><span class="num">3 000</span><span class="currency">FCFA</span></div>
+        <div class="plan-period">par mois · sans engagement</div>
+        <ul class="plan-features">
+          <li class="bold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Jusqu'à <strong>50 annonces</strong> actives</li>
+          <li class="bold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><strong>5 boosts par jour</strong> <span class="pill">×5 visibilité</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Badge <strong>VIP doré</strong> sur profil & annonces</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Bandeau "Annonces vedette"</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Notification push aux acheteurs</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Statistiques de base (vues, contacts)</li>
+        </ul>
+        <button class="plan-cta">Devenir VIP</button>
+      </div>
+
+      <!-- ── PREMIUM ── -->
+      <div class="plan is-premium">
+        <div class="plan-header">
+          <div class="plan-icon s3">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18M3 9l2-5h14l2 5M3 9v11a1 1 0 001 1h16a1 1 0 001-1V9"/><path d="M8 14h8"/></svg>
+          </div>
+          <div>
+            <div class="plan-name">Premium</div>
+            <div class="plan-tagline">Pour les pros</div>
+          </div>
+        </div>
+        <div class="plan-price"><span class="num">5 000</span><span class="currency">FCFA</span></div>
+        <div class="plan-period">par mois · sans engagement</div>
+        <ul class="plan-features">
+          <li class="bold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Jusqu'à <strong>100 annonces</strong> actives</li>
+          <li class="bold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><strong>15 boosts par jour</strong> <span class="pill" style="background:#EDE9FE;color:var(--plat-700)">×10 visibilité</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Badge <strong>Premium</strong> exclusif (profil + annonces)</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Boutique dédiée sur ton profil</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Statistiques détaillées (graphiques, audience)</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Support WhatsApp prioritaire (réponse &lt; 2h)</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Vérifié officiellement <strong>Vendeur de confiance</strong></li>
+        </ul>
+        <button class="plan-cta">Devenir Premium</button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═════ COMPARAISON VISUELLE ═════ -->
+<section style="padding-top:0;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+  <div class="container" style="padding-top:64px;padding-bottom:0">
+    <div class="section-head">
+      <div class="label">Aperçu visuel</div>
+      <h2>Vois la différence</h2>
+      <p>À gauche le rendu actuel, à droite ce que tes acheteurs verront avec VIP ou Premium.</p>
+    </div>
+
+    <div class="compare-grid">
+      <!-- Gratuit -->
+      <div class="compare-col">
+        <div class="compare-col-title">Gratuit</div>
+        <div class="mock-card">
+          <div class="mock-img" style="background:linear-gradient(135deg,#F1F2F6,#DCDFE6)">📱</div>
+          <div class="mock-body"><div class="mock-title">iPhone 13 Pro</div><div class="mock-price">350 000 FCFA</div><div class="mock-meta">Niamey · il y a 2j</div></div>
+        </div>
+        <div class="mock-profile">
+          <div class="mock-profile-avatar">A</div>
+          <div><div class="mock-profile-name">Aboubacar</div><div class="mock-profile-sub">Vendeur · Niamey</div></div>
+        </div>
       </div>
 
       <!-- VIP -->
-      <div class="plan is-featured">
-        <div class="plan-badge">Plus populaire</div>
-        <div class="plan-icon s2">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7l4.5 4L12 4l5.5 7L22 7l-2 12H4L2 7z"/></svg>
+      <div class="compare-col vip">
+        <div class="compare-col-title">VIP</div>
+        <div class="mock-card vip">
+          <span class="badge-vip">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="11" height="11"><path d="M2 7l4.5 4L12 4l5.5 7L22 7l-2 12H4L2 7z"/></svg> VIP
+          </span>
+          <div class="mock-img" style="background:linear-gradient(135deg,#FFE5A3,var(--gold-500))">📱</div>
+          <div class="mock-body"><div class="mock-title">iPhone 13 Pro</div><div class="mock-price">350 000 FCFA</div><div class="mock-meta">Niamey · il y a 2j</div></div>
         </div>
-        <div class="plan-name">VIP</div>
-        <div class="plan-tagline">Maximum de visibilité</div>
-        <div class="plan-price">
-          <span class="num">1 500</span>
-          <span class="currency">FCFA</span>
+        <div class="mock-profile vip">
+          <div class="mock-profile-avatar">A</div>
+          <div>
+            <div class="mock-profile-name">Aboubacar <span class="mini-badge vip">VIP</span></div>
+            <div class="mock-profile-sub">Vendeur · Niamey</div>
+          </div>
         </div>
-        <div class="plan-period">pour 7 jours</div>
-        <ul class="plan-features">
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Badge VIP doré + animation</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Bandeau "Annonces vedette"</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Affichage sur la page d'accueil</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Notification push aux acheteurs</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>~5× plus de visibilité</li>
-        </ul>
-        <button class="plan-cta">Choisir VIP</button>
       </div>
 
       <!-- Premium -->
-      <div class="plan">
-        <div class="plan-icon s3">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18M3 9l2-5h14l2 5M3 9v11a1 1 0 001 1h16a1 1 0 001-1V9"/><path d="M8 14h8"/></svg>
+      <div class="compare-col premium">
+        <div class="compare-col-title">Premium</div>
+        <div class="mock-card premium">
+          <span class="badge-premium">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="11" height="11"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg> Premium
+          </span>
+          <div class="mock-img" style="background:linear-gradient(135deg,#C4A8FF,var(--plat-500))">📱</div>
+          <div class="mock-body"><div class="mock-title">iPhone 13 Pro</div><div class="mock-price">350 000 FCFA</div><div class="mock-meta">Niamey · il y a 2j</div></div>
         </div>
-        <div class="plan-name">Boutique Premium</div>
-        <div class="plan-tagline">Pour les vendeurs sérieux</div>
-        <div class="plan-price">
-          <span class="num">5 000</span>
-          <span class="currency">FCFA</span>
+        <div class="mock-profile premium">
+          <div class="mock-profile-avatar">A</div>
+          <div>
+            <div class="mock-profile-name">Aboubacar <span class="mini-badge premium">Premium ✓</span></div>
+            <div class="mock-profile-sub">Vendeur de confiance · Niamey</div>
+          </div>
         </div>
-        <div class="plan-period">pour 30 jours</div>
-        <ul class="plan-features">
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Toutes vos annonces deviennent Premium</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Badge "Boutique Premium" sur le profil</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Statistiques détaillées (vues, contacts)</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Support prioritaire WhatsApp</li>
-          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Annonces illimitées</li>
-        </ul>
-        <button class="plan-cta">Devenir Premium</button>
+      </div>
+    </div>
+  </div>
+  <div style="height:64px"></div>
+</section>
+
+<!-- ═════ MARKETING BENEFITS (leviers ajoutés) ═════ -->
+<section>
+  <div class="container">
+    <div class="section-head">
+      <div class="label">Pourquoi passer payant</div>
+      <h2>Les leviers qui font la différence</h2>
+      <p>Au-delà du badge, voilà ce qui transforme le résultat de tes ventes.</p>
+    </div>
+
+    <div class="benefits">
+      <div class="benefit">
+        <div class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+        <h3>Position prioritaire</h3>
+        <p>Tes annonces remontent <strong>en tête des résultats</strong> de la catégorie et de la ville. Plus tu boostes, plus tu domines.</p>
+      </div>
+      <div class="benefit">
+        <div class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div>
+        <h3>Notif push aux acheteurs</h3>
+        <p>Quand tu boostes, les acheteurs intéressés reçoivent une <strong>notification</strong>. Marche même hors-ligne.</p>
+      </div>
+      <div class="benefit">
+        <div class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <h3>Stats détaillées</h3>
+        <p>Vues, contacts, partages, taux de conversion. Sache <strong>quelle annonce performe</strong> et quand booster.</p>
+      </div>
+      <div class="benefit">
+        <div class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <h3>Badge "Vendeur de confiance"</h3>
+        <p>Premium : <strong>vérification d'identité</strong> + badge bleu. Les acheteurs te font 3× plus confiance.</p>
+      </div>
+      <div class="benefit">
+        <div class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+        <h3>Support WhatsApp prioritaire</h3>
+        <p>Premium : ligne directe avec l'équipe DjamikShop, réponse en moins de <strong>2 heures</strong>.</p>
+      </div>
+      <div class="benefit">
+        <div class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg></div>
+        <h3>Boutique dédiée</h3>
+        <p>Premium : page boutique avec ton logo, bannière, toutes tes annonces. Lien partageable <strong>djamikshop.com/boutique/ton-nom</strong>.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════ -->
-<!-- 4. BOOST CTA                                             -->
-<!-- ═══════════════════════════════════════════════════════ -->
+<!-- ═════ FAQ ═════ -->
 <section style="padding-top:0">
   <div class="container">
-    <div class="boost">
-      <div class="boost-icon-wrap">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 01-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/></svg>
-      </div>
-      <div class="boost-text">
-        <h4>Boostez cette annonce</h4>
-        <p>Touchez plus d'acheteurs et vendez en quelques jours. À partir de 500 FCFA.</p>
-      </div>
-      <button class="boost-btn">
-        Booster maintenant
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-      </button>
+    <div class="section-head">
+      <div class="label">Questions fréquentes</div>
+      <h2>On répond à tout</h2>
+    </div>
+    <div class="faq">
+      <details>
+        <summary>Comment je paie ?</summary>
+        <p>Mobile Money : Orange Money, Airtel Money, Moov Money, Mynita ou Amanata. Le paiement débloque ton abonnement instantanément.</p>
+      </details>
+      <details>
+        <summary>Que se passe-t-il si j'arrête de payer ?</summary>
+        <p>Ton compte repasse en Gratuit. Tes annonces restent en ligne (limite à 10 actives). Les anciens boosts terminent leur durée.</p>
+      </details>
+      <details>
+        <summary>Un boost dure combien de temps ?</summary>
+        <p>3 jours par boost. VIP : 5 boosts/jour = jusqu'à 15 annonces boostées simultanément. Premium : 15 boosts/jour = jusqu'à 45 annonces boostées.</p>
+      </details>
+      <details>
+        <summary>C'est quoi exactement "×5 visibilité" ?</summary>
+        <p>Tes annonces apparaissent en haut des résultats de la catégorie et de la ville, avec un bandeau "Annonces vedette" sur la home. Statistiquement : ~5× plus de vues qu'une annonce gratuite (×10 pour Premium).</p>
+      </details>
+      <details>
+        <summary>Le badge "Vendeur de confiance", c'est quoi ?</summary>
+        <p>Pour Premium uniquement : on vérifie ton identité (CNI ou pièce officielle) et tu reçois un badge bleu vérifié. Les acheteurs achètent 3× plus chez les vendeurs vérifiés.</p>
+      </details>
+      <details>
+        <summary>Est-ce que DjamikShop prend une commission sur mes ventes ?</summary>
+        <p>Non. <strong>Zéro commission</strong>, peu importe ta formule. L'abonnement est notre seul revenu.</p>
+      </details>
     </div>
   </div>
 </section>
