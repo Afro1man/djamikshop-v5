@@ -76,14 +76,16 @@ window.onDjamikReady(async function() {
 
   // Fetch stats
   var sb = window._supabase;
-  var [users, products, soldProducts, openReports, activeBans, openIncidents, conversations] = await Promise.all([
+  var [users, products, soldProducts, openReports, activeBans, openIncidents, conversations, pendingPay, activeSubs] = await Promise.all([
     sb.from('profiles').select('id', { count: 'exact', head: true }),
     sb.from('products').select('id', { count: 'exact', head: true }).eq('sold', false),
     sb.from('products').select('id', { count: 'exact', head: true }).eq('sold', true),
     sb.from('reports').select('id', { count: 'exact', head: true }).eq('status', 'open'),
     sb.from('banned_users').select('user_id', { count: 'exact', head: true }),
     sb.from('security_events').select('id', { count: 'exact', head: true }).eq('resolved', false).in('severity', ['medium','high','critical']),
-    sb.from('conversations').select('id', { count: 'exact', head: true })
+    sb.from('conversations').select('id', { count: 'exact', head: true }),
+    sb.from('payment_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+    sb.from('subscriptions').select('user_id', { count: 'exact', head: true }).neq('tier', 'free')
   ]);
 
   function _stat(icon, val, lbl, alert) {
@@ -104,11 +106,16 @@ window.onDjamikReady(async function() {
     chat:    { color:'purple', svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>' }
   };
 
+  var ICON_MONEY = { color:'green', svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>' };
+  var ICON_CROWN = { color:'orange', svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7l4.5 4L12 4l5.5 7L22 7l-2 12H4L2 7z"/></svg>' };
+
   var statsHtml = '<div class="stats-grid">' +
     _stat(ICONS.user,    users.count,        'Utilisateurs') +
     _stat(ICONS.product, products.count,     'Annonces actives') +
     _stat(ICONS.sold,    soldProducts.count, 'Annonces vendues') +
     _stat(ICONS.chat,    conversations.count,'Conversations') +
+    _stat(ICON_CROWN,    activeSubs.count,   'Abonnés VIP/Premium') +
+    _stat(ICON_MONEY,    pendingPay.count,   'Paiements en attente', pendingPay.count > 0) +
     _stat(ICONS.flag,    openReports.count,  'Signalements ouverts', openReports.count > 0) +
     _stat(ICONS.ban,     activeBans.count,   'Bans actifs') +
     _stat(ICONS.alert,   openIncidents.count,'Incidents sécurité', openIncidents.count > 0) +
@@ -125,6 +132,7 @@ window.onDjamikReady(async function() {
   }
 
   var linksHtml = '<div class="links-grid">' +
+    _link('admin-payments.html',ICON_MONEY.svg, 'Paiements', 'Vérifier et activer les abonnements', pendingPay.count > 0 ? pendingPay.count : '') +
     _link('admin-reports.html', ICONS.flag.svg, 'Signalements', 'Traiter les annonces signalées', openReports.count > 0 ? openReports.count : '') +
     _link('admin-users.html',   ICONS.user.svg, 'Utilisateurs', 'Voir et bannir les comptes') +
     _link('admin-bans.html',    ICONS.ban.svg,  'Bans actifs', 'Gérer les utilisateurs bannis') +

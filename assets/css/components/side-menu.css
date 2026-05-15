@@ -156,6 +156,18 @@
 }
 .side-menu-item.sm-highlight svg { color: var(--brand); }
 
+/* Booster mon compte — accent or */
+.side-menu-item.sm-tarifs {
+  background: linear-gradient(135deg, rgba(245,177,0,.10), rgba(232,80,26,.08));
+  border: 1px solid rgba(245,177,0,.3);
+  color: #8C6500;
+  font-weight: 700;
+}
+.side-menu-item.sm-tarifs:hover {
+  background: linear-gradient(135deg, rgba(245,177,0,.18), rgba(232,80,26,.14));
+}
+.side-menu-item.sm-tarifs svg { color: #C99100; }
+
 .side-menu-item svg {
   width: 20px;
   height: 20px;

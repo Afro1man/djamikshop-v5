@@ -126,6 +126,10 @@
         '<div class="sm-section-title">Marketplace</div>' +
         '<a href="' + getPath('comment-ca-marche.html') + '" class="side-menu-item sm-highlight">' + _icon('info') + ' Comment ça marche</a>' +
         '<a href="' + getPath('add-product.html') + '" class="side-menu-sell">' + _icon('plus') + ' Publier une annonce</a>' +
+        '<a href="' + getPath('tarifs.html') + '" class="side-menu-item sm-tarifs">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/></svg>' +
+          ' Booster mon compte' +
+        '</a>' +
         '<a href="' + getPath('index.html') + '" class="side-menu-item">' + _icon('home') + ' Accueil</a>' +
         '<a href="' + getPath('shop.html') + '" class="side-menu-item">' + _icon('search') + ' Rechercher</a>' +
         '<a href="' + getPath('messages.html') + '" class="side-menu-item">' + _icon('msg') + ' Messages <span class="sm-badge hidden" id="sm-msg-badge">0</span></a>' +
