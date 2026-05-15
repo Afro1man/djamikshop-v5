@@ -92,6 +92,12 @@ window.onDjamikReady(function() {
     var sold       = products.filter(function(p){ return p.sold; });
     var totalViews = active.reduce(function(s, p){ return s + (window.getViews ? window.getViews(p.id) : 0); }, 0);
 
+    // Tier du profil consulté
+    if (window.fetchUserTiers) {
+      var t = await window.fetchUserTiers([profile.id]);
+      profile._tier = t[profile.id] || 'free';
+    }
+
     root.innerHTML =
       _profileCardHtml(profile, { editable: false, viewerId: viewer && (viewer.id || viewer.sub) }) +
       _statsHtml(active.length, sold.length, totalViews) +
@@ -114,8 +120,12 @@ window.onDjamikReady(function() {
     var sold       = products.filter(function(p){ return p.sold; });
     var totalViews = active.reduce(function(s, p){ return s + (window.getViews ? window.getViews(p.id) : 0); }, 0);
 
+    // Mon tier
+    if (window.myTier) user._tier = await window.myTier();
+
     root.innerHTML =
       _profileCardHtml(user, { editable: true }) +
+      _subscriptionBlock(user._tier || 'free') +
       _statsHtml(active.length, sold.length, totalViews) +
       _tabsHtml(active.length, sold.length) +
       '<div id="profile-listings"></div>';
@@ -159,7 +169,9 @@ window.onDjamikReady(function() {
         (verified ? '<div class="profile-verified" title="Vendeur vérifié">' + _icon('check') + '</div>' : '') +
       '</div>' +
       '<div class="profile-body">' +
-        '<h2 class="profile-name">' + window.escHtml(name) + '</h2>' +
+        '<h2 class="profile-name">' + window.escHtml(name) +
+          (window.tierBadge && p._tier ? ' ' + window.tierBadge(p._tier) : '') +
+        '</h2>' +
         (bio ? '<div class="profile-bio">' + window.escHtml(bio) + '</div>' : '') +
         (opts.editable && email ? '<div class="profile-meta">' + _icon('mail') + ' ' + window.escHtml(email) + '</div>' : '') +
         (phone ? '<div class="profile-meta">' + _icon('phone') + ' ' + window.formatPhoneNE(phone) + '</div>' : '') +
@@ -167,6 +179,26 @@ window.onDjamikReady(function() {
         (memberSince ? '<div class="profile-meta">' + _icon('calendar') + ' Membre depuis ' + memberSince + '</div>' : '') +
         '<div class="profile-actions">' + actions + '</div>' +
       '</div>' +
+    '</div>';
+  }
+
+  function _subscriptionBlock(tier) {
+    var nfo = {
+      free:    { name: 'Gratuit',  bg:'#F1F2F6', accent:'#5A6273', limit:10, boosts:0,  cta:'Booster mon compte' },
+      vip:     { name: 'VIP',      bg:'linear-gradient(135deg,#FFFAEB,#FEF0C7)', accent:'#8C6500', limit:50, boosts:5,  cta:'Passer Premium' },
+      premium: { name: 'Premium',  bg:'linear-gradient(135deg,#F4F1FF,#EDE9FE)', accent:'#5B21B6', limit:100, boosts:15, cta:'Voir les tarifs' }
+    }[tier] || nfo.free;
+    return '<div class="my-sub" style="background:' + nfo.bg + '">' +
+      '<div class="my-sub-icon" style="color:' + nfo.accent + '">' +
+        (tier==='vip'   ? '<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M2 7l4.5 4L12 4l5.5 7L22 7l-2 12H4L2 7z"/></svg>'
+       : tier==='premium' ? '<svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>'
+       : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/></svg>') +
+      '</div>' +
+      '<div class="my-sub-body">' +
+        '<div class="my-sub-name" style="color:' + nfo.accent + '">Plan ' + nfo.name + '</div>' +
+        '<div class="my-sub-meta">' + nfo.limit + ' annonces · ' + (nfo.boosts > 0 ? nfo.boosts + ' boosts/jour' : 'pas de boost') + '</div>' +
+      '</div>' +
+      '<a href="tarifs.html" class="btn btn-outline btn-sm">' + nfo.cta + '</a>' +
     '</div>';
   }
 
@@ -288,8 +320,21 @@ window.onDjamikReady(function() {
       return;
     }
     if (act === 'boost') {
-      if (window.boostProduct) window.boostProduct(productId);
-      setTimeout(function() { window.location.reload(); }, 800);
+      if (!window.boostProduct) return;
+      try {
+        await window.boostProduct(productId);
+        window.toast && window.toast('Annonce boostée pendant 24h !', 'success', 4000);
+        setTimeout(function() { window.location.reload(); }, 800);
+      } catch(err) {
+        var msg = (err && err.message) || 'Erreur de boost';
+        if (msg.indexOf('Gratuit') !== -1 || msg.indexOf('VIP') !== -1) {
+          window.confirm2('Le boost est réservé aux comptes VIP & Premium. Voir les tarifs ?').then(function(ok) {
+            if (ok) window.location.href = 'tarifs.html';
+          });
+        } else {
+          window.toast && window.toast(msg, 'error', 5000);
+        }
+      }
     }
     else if (act === 'sold') {
       window.confirm2('Marquer cette annonce comme vendue ?').then(function(ok) {
@@ -552,7 +597,12 @@ window.onDjamikReady(function() {
       '.profile-verified{position:absolute;bottom:2px;right:2px;width:26px;height:26px;border-radius:50%;background:var(--success,#16a34a);color:#fff;display:flex;align-items:center;justify-content:center;border:2px solid var(--white)}',
       '.profile-verified svg{width:14px;height:14px}',
       '.profile-body{padding:14px 20px 22px;text-align:center}',
-      '.profile-name{font-family:Outfit,sans-serif;font-size:1.25rem;font-weight:800;margin:6px 0 4px;color:var(--ink)}',
+      '.profile-name{font-family:Outfit,sans-serif;font-size:1.25rem;font-weight:800;margin:6px 0 4px;color:var(--ink);display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center}',
+      '.my-sub{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:var(--r-lg);margin-bottom:var(--space-4);border:1px solid var(--surface-3);box-shadow:var(--shadow-sm)}',
+      '.my-sub-icon{width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.7);display:flex;align-items:center;justify-content:center;flex-shrink:0}',
+      '.my-sub-body{flex:1;min-width:0}',
+      '.my-sub-name{font-family:Outfit,sans-serif;font-weight:800;font-size:1rem;letter-spacing:-.01em}',
+      '.my-sub-meta{font-size:.78rem;color:var(--ink-2);margin-top:2px}',
       '.profile-bio{font-size:.88rem;color:var(--ink-2);margin:8px 0 10px;line-height:1.5;max-width:340px;margin-left:auto;margin-right:auto}',
       '.profile-meta{font-size:.82rem;color:var(--ink-3);margin:4px 0;display:flex;align-items:center;gap:6px;justify-content:center;flex-wrap:wrap}',
       '.profile-meta svg{width:14px;height:14px;flex-shrink:0}',

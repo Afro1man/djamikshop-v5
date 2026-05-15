@@ -76,6 +76,28 @@ async function _fetchProducts(f) {
   }
   else all.sort(function(a,b){ return new Date(b.created_at||0) - new Date(a.created_at||0); });
 
+  // 5. Enrichissement : tiers vendeurs + boosts actifs (cache 30s)
+  if (all.length && window.fetchUserTiers && window.fetchActiveBoosts) {
+    var sellerIds = Array.from(new Set(all.map(function(p){ return p.seller_id; }).filter(Boolean)));
+    var prodIds   = all.map(function(p){ return p.id; }).filter(Boolean);
+    try {
+      var [tiers, boostSet] = await Promise.all([
+        window.fetchUserTiers(sellerIds),
+        window.fetchActiveBoosts(prodIds)
+      ]);
+      all.forEach(function(p) {
+        p._sellerTier = tiers[p.seller_id] || 'free';
+        p._isBoosted  = boostSet.has(p.id);
+      });
+      // 6. Re-tri prioritaire : boostés en premier (peu importe le sort initial)
+      all.sort(function(a,b) {
+        if (a._isBoosted && !b._isBoosted) return -1;
+        if (!a._isBoosted && b._isBoosted) return 1;
+        return 0;
+      });
+    } catch(e) { console.warn('[products] tier/boost enrich failed', e); }
+  }
+
   return all;
 }
 
@@ -96,9 +118,11 @@ function _renderGrid(grid, products) {
     var cat = (window.APP.categories || []).find(function(c){ return c.id === p.category; });
     var disc = parseInt(p.discount) || 0;
     var oldPx = disc > 0 ? Math.round(p.price / (1 - disc/100)) : 0;
-    var boosted = window.isBoosted && window.isBoosted(p.id);
-    return '<div class="card product-card">' +
-      (boosted ? '<div class="card-badge badge-boost"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg> Boosté</div>' : '') +
+    var boosted = (p._isBoosted === true) || (window.isBoosted && window.isBoosted(p.id));
+    var sellerTier = p._sellerTier || 'free';
+    var tierClass = (sellerTier === 'vip' || sellerTier === 'premium') ? ' tier-' + sellerTier : '';
+    return '<div class="card product-card' + tierClass + '">' +
+      (boosted ? '<div class="boost-badge-active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Boosté</div>' : '') +
       (disc > 0 ? '<div class="card-badge badge-discount" style="' + (boosted ? 'top:36px' : '') + '">-' + disc + '%</div>' : '') +
       '<button class="card-like-btn ' + (liked ? 'liked' : '') + '" onclick="window.toggleLikeCard(\'' + p.id + '\',this);event.stopPropagation()">' + (liked ? '<svg class="dj-icon" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>' : '<svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>') + '</button>' +
       '<div class="card-img-wrap" onclick="window.location.href=\'product-details.html?id=' + p.id + '\'">' +
