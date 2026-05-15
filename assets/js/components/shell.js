@@ -167,6 +167,9 @@
     // Footer du menu
     var footerBlock =
       '<div class="sm-footer">' +
+        '<button class="sm-theme-toggle" onclick="window.showInstallPrompt && window.showInstallPrompt()">' +
+          _icon('download') + ' <span>Installer l\'app</span>' +
+        '</button>' +
         '<button class="sm-theme-toggle" onclick="window.toggleTheme && window.toggleTheme()">' +
           _icon('moon') + ' <span>Mode sombre / clair</span>' +
         '</button>' +
