@@ -89,11 +89,18 @@ async function _fetchProducts(f) {
         p._sellerTier = tiers[p.seller_id] || 'free';
         p._isBoosted  = boostSet.has(p.id);
       });
-      // 6. Re-tri prioritaire : boostés en premier (peu importe le sort initial)
-      all.sort(function(a,b) {
+      // 6. Tri prioritaire stable :
+      //    1) Boostés (toutes catégories) toujours en premier
+      //    2) Premium > VIP > Free
+      //    3) Sous-tri = celui choisi par l'user (déjà appliqué plus haut)
+      var TIER_RANK = { premium: 3, vip: 2, free: 1 };
+      all.sort(function(a, b) {
         if (a._isBoosted && !b._isBoosted) return -1;
         if (!a._isBoosted && b._isBoosted) return 1;
-        return 0;
+        var ra = TIER_RANK[a._sellerTier] || 1;
+        var rb = TIER_RANK[b._sellerTier] || 1;
+        if (ra !== rb) return rb - ra;
+        return 0;   // garde l'ordre du sort précédent (created_at, prix, distance...)
       });
     } catch(e) { console.warn('[products] tier/boost enrich failed', e); }
   }
