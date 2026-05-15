@@ -140,9 +140,9 @@
           '<a href="' + getPath('wishlist.html') + '" class="side-menu-item">' + _icon('heart') + ' Mes favoris <span class="sm-badge hidden" id="sm-fav-badge">0</span></a>' +
           '<a href="' + getPath('notifications.html') + '" class="side-menu-item">' + _icon('bell') + ' Notifications <span class="sm-badge hidden" id="sm-notif-badge">0</span></a>' +
           // Lien admin (caché par défaut, dévoilé par JS si user est admin)
-          '<a href="' + getPath('admin-reports.html') + '" class="side-menu-item sm-admin-link" id="sm-admin-link" style="display:none">' +
+          '<a href="' + getPath('admin.html') + '" class="side-menu-item sm-admin-link" id="sm-admin-link" style="display:none">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>' +
-            ' Modération <span class="sm-badge hidden" id="sm-admin-badge">0</span>' +
+            ' Administration <span class="sm-badge hidden" id="sm-admin-badge">0</span>' +
           '</a>' +
         '</div>'
       : '';
