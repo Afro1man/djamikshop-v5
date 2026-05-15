@@ -26,20 +26,16 @@
   };
 
   // ── Tier d'un autre user (batch) ──
+  // Utilise la RPC publique users_tiers (bypass RLS pour exposer uniquement le tier)
   window.fetchUserTiers = async function(uids) {
     if (!window._supabase || !uids || !uids.length) return {};
     var todo = uids.filter(function(u){ return u && _userTiersCache[u] === undefined; });
     if (todo.length) {
       try {
-        var r = await window._supabase
-          .from('subscriptions')
-          .select('user_id, tier, expires_at')
-          .in('user_id', todo);
+        var r = await window._supabase.rpc('users_tiers', { uids: todo });
         if (r && r.data) {
           r.data.forEach(function(s) {
-            // Vérifie validité
-            var valid = !s.expires_at || new Date(s.expires_at) > new Date();
-            _userTiersCache[s.user_id] = valid ? s.tier : 'free';
+            _userTiersCache[s.user_id] = s.tier || 'free';
           });
         }
         // Marque ceux non trouvés comme free
