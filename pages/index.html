@@ -728,6 +728,10 @@ window.onDjamikReady && window.onDjamikReady(async function() {
       window.fetchUserTiers    ? window.fetchUserTiers(sellerIds)    : Promise.resolve({})
     ]);
 
+    // ── La section "Annonces vedette" est RESERVEE aux vendeurs PREMIUM ──
+    prods = prods.filter(function(p){ return tiers[p.seller_id] === 'premium'; });
+    if (!prods.length) return;
+
     // Render
     scroll.innerHTML = prods.map(function(p) {
       var prof = profiles[p.seller_id] || {};
