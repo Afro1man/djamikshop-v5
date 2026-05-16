@@ -54,6 +54,32 @@
     return _userTiersCache[uid] || 'free';
   };
 
+  // ── Profils utilisateurs (batch + cache) — pour afficher avatar + nom sur les cartes ──
+  var _profilesCache = {};
+  window.fetchUserProfiles = async function(uids) {
+    if (!window._supabase || !uids || !uids.length) return {};
+    var todo = uids.filter(function(u){ return u && _profilesCache[u] === undefined; });
+    if (todo.length) {
+      try {
+        var r = await window._supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url')
+          .in('id', todo);
+        if (r && r.data) {
+          r.data.forEach(function(p){ _profilesCache[p.id] = p; });
+        }
+        todo.forEach(function(u){ if (_profilesCache[u] === undefined) _profilesCache[u] = null; });
+      } catch(e) { todo.forEach(function(u){ _profilesCache[u] = null; }); }
+    }
+    var out = {};
+    uids.forEach(function(u){ out[u] = _profilesCache[u] || null; });
+    return out;
+  };
+
+  window.cachedUserProfile = function(uid) {
+    return _profilesCache[uid] || null;
+  };
+
   // ── Active boosts : retourne un Set des product_ids actuellement boostés ──
   window.fetchActiveBoosts = async function(productIds, force) {
     if (!window._supabase || !productIds || !productIds.length) return new Set();
@@ -197,7 +223,13 @@
       // Badges tier animés
       '.tier-badge.tier-vip{animation:badgeShine 3s ease-in-out infinite;background-size:200% 200% !important}',
       '.tier-badge.tier-premium{animation:badgeShine 3.5s ease-in-out infinite;background-size:200% 200% !important}',
-      '@keyframes badgeShine{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}'
+      '@keyframes badgeShine{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}',
+
+      // ── Vendeur sur les cartes produit (avatar + nom) ──
+      '.card-seller{display:flex;align-items:center;gap:6px;margin-top:8px;padding:5px 8px;background:var(--surface-2);border-radius:100px;text-decoration:none;color:var(--ink-2);font-size:.78rem;font-weight:600;transition:background .15s;width:fit-content;max-width:100%;overflow:hidden}',
+      '.card-seller:hover{background:var(--surface-3)}',
+      '.card-seller img{width:18px;height:18px;border-radius:50%;flex-shrink:0;object-fit:cover}',
+      '.card-seller-name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:1;min-width:0}'
     ].join('');
     document.head.appendChild(s);
   }

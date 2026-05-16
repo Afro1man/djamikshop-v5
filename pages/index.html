@@ -236,6 +236,87 @@
     }
     @keyframes geoSlide { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
 
+    /* ═══ FEATURED SECTION ═══ */
+    .featured-section {
+      padding: var(--space-6) 0;
+      background: linear-gradient(135deg, #FFFAEB 0%, #FFF4E0 100%);
+      border-bottom: 1px solid var(--surface-3);
+    }
+    .featured-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 var(--page-px); margin-bottom: var(--space-4); gap: 12px;
+    }
+    .featured-title { display: flex; align-items: center; gap: 10px; font-family: 'Outfit', sans-serif; font-weight: 800; font-size: 1.05rem; color: var(--ink, #0F1115); }
+    .featured-star {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, #F5B100, #C99100);
+      color: #fff; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(245,177,0,.4);
+    }
+    .featured-more { display: flex; align-items: center; gap: 4px; font-size: .8rem; font-weight: 700; color: var(--brand,#E8501A); text-decoration: none; }
+    .featured-more:hover { color: #C03E0E; }
+
+    .featured-scroll {
+      display: flex; gap: 14px;
+      overflow-x: auto; overflow-y: visible;
+      padding: 4px var(--page-px) 14px;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+    }
+    .featured-scroll::-webkit-scrollbar { display: none; }
+    .featured-scroll { scrollbar-width: none; }
+
+    .featured-card {
+      flex: 0 0 240px;
+      background: #fff;
+      border-radius: var(--r-lg, 16px);
+      overflow: hidden;
+      scroll-snap-align: start;
+      cursor: pointer;
+      position: relative;
+      box-shadow: 0 4px 16px rgba(245,177,0,.18), 0 0 0 2px rgba(245,177,0,.4);
+      animation: featGlow 3s ease-in-out infinite;
+      text-decoration: none; color: inherit;
+      transition: transform .2s;
+    }
+    .featured-card:hover { transform: translateY(-3px); }
+    @keyframes featGlow {
+      0%,100% { box-shadow: 0 4px 16px rgba(245,177,0,.18), 0 0 0 2px rgba(245,177,0,.4); }
+      50% { box-shadow: 0 6px 24px rgba(245,177,0,.35), 0 0 0 2px rgba(245,177,0,.7); }
+    }
+    .featured-card.is-premium {
+      box-shadow: 0 4px 16px rgba(124,58,237,.18), 0 0 0 2px rgba(124,58,237,.4);
+      animation: featGlowPrem 3.5s ease-in-out infinite;
+    }
+    @keyframes featGlowPrem {
+      0%,100% { box-shadow: 0 4px 16px rgba(124,58,237,.18), 0 0 0 2px rgba(124,58,237,.4); }
+      50% { box-shadow: 0 6px 24px rgba(124,58,237,.35), 0 0 0 2px rgba(124,58,237,.7); }
+    }
+    .featured-card-img { aspect-ratio: 4/3; background: var(--surface-2); overflow: hidden; }
+    .featured-card-img img { width: 100%; height: 100%; object-fit: cover; }
+    .featured-boosted-pill {
+      position: absolute; top: 8px; left: 8px;
+      background: linear-gradient(135deg,#FF8A3D,#E8501A);
+      color: #fff; font-size: 10px; font-weight: 800;
+      padding: 4px 10px; border-radius: 100px; line-height: 1;
+      box-shadow: 0 2px 8px rgba(232,80,26,.4); z-index: 2;
+      display: inline-flex; align-items: center; gap: 4px;
+      text-transform: uppercase; letter-spacing: .04em;
+    }
+    .featured-body { padding: 12px; }
+    .featured-title-prod { font-size: .9rem; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .featured-price { color: var(--brand,#E8501A); font-weight: 800; font-size: 1rem; margin-top: 4px; }
+    .featured-vendor {
+      display: flex; align-items: center; gap: 8px;
+      margin-top: 10px; padding-top: 10px;
+      border-top: 1px solid var(--surface-2);
+    }
+    .featured-vendor img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+    .featured-vendor-info { flex: 1; min-width: 0; }
+    .featured-vendor-name { font-size: .78rem; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 4px; }
+    .featured-vendor-meta { font-size: .68rem; color: var(--ink-3); margin-top: 1px; }
+
     .cats-section { background: var(--surface); padding: var(--space-5) 0; border-bottom: 1px solid var(--surface-3); }
     .cats-head-compact {
       display: flex; align-items: baseline; gap: 8px;
@@ -494,6 +575,24 @@
   </div>
 </div>
 
+<!-- ═══ ANNONCES VEDETTE (boostées) ═══ -->
+<section id="featured-section" class="featured-section" style="display:none">
+  <div class="container">
+    <div class="featured-head">
+      <div class="featured-title">
+        <div class="featured-star">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg>
+        </div>
+        <span>Annonces vedette</span>
+      </div>
+      <a href="shop.html" class="featured-more">Voir tout
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </a>
+    </div>
+    <div class="featured-scroll" id="featured-scroll"></div>
+  </div>
+</section>
+
 <!-- ═══ CATÉGORIES ═══ -->
 <section class="cats-section">
   <div class="container">
@@ -545,6 +644,67 @@ function searchKw(kw) {
   window.loadProducts && window.loadProducts();
   document.getElementById('products-grid') && document.getElementById('products-grid').scrollIntoView({behavior:'smooth', block:'start'});
 }
+
+// ── Section "Annonces vedette" : charge les annonces boostées + leur vendeur ──
+window.onDjamikReady && window.onDjamikReady(async function() {
+  if (!window._supabase) return;
+  var section = document.getElementById('featured-section');
+  var scroll  = document.getElementById('featured-scroll');
+  if (!section || !scroll) return;
+  try {
+    // Récupère les boosts actifs
+    var bRes = await window._supabase.from('boosts')
+      .select('product_id, products(*)')
+      .gt('expires_at', new Date().toISOString())
+      .order('started_at', { ascending: false })
+      .limit(12);
+    var boosts = (bRes && bRes.data) || [];
+    if (!boosts.length) return;
+
+    // Filtre les products non null + non vendus + non inactifs
+    var prods = boosts
+      .map(function(b){ return b.products; })
+      .filter(function(p){ return p && !p.sold && !p.inactive_at; });
+    if (!prods.length) return;
+
+    // Fetch les profils des vendeurs + tiers
+    var sellerIds = Array.from(new Set(prods.map(function(p){ return p.seller_id; }).filter(Boolean)));
+    var [profiles, tiers] = await Promise.all([
+      window.fetchUserProfiles ? window.fetchUserProfiles(sellerIds) : Promise.resolve({}),
+      window.fetchUserTiers    ? window.fetchUserTiers(sellerIds)    : Promise.resolve({})
+    ]);
+
+    // Render
+    scroll.innerHTML = prods.map(function(p) {
+      var prof = profiles[p.seller_id] || {};
+      var tier = tiers[p.seller_id] || 'free';
+      var name = prof.full_name || 'Vendeur';
+      var avatar = prof.avatar_url || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=E8501A&color=fff&size=40');
+      var img = p.image_url || (p.images && p.images[0]) || '';
+      var tBadge = (window.tierBadge && (tier === 'vip' || tier === 'premium')) ? window.tierBadge(tier, { compact: true }) : '';
+      var classes = 'featured-card' + (tier === 'premium' ? ' is-premium' : '');
+      return '<a class="' + classes + '" href="pages/product-details.html?id=' + p.id + '">' +
+        '<span class="featured-boosted-pill">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="11" height="11"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Boosté' +
+        '</span>' +
+        '<div class="featured-card-img">' + (img ? '<img src="' + img + '" alt="">' : '') + '</div>' +
+        '<div class="featured-body">' +
+          '<div class="featured-title-prod">' + (p.title || '').replace(/[<>]/g,'') + '</div>' +
+          '<div class="featured-price">' + (window.formatPrice ? window.formatPrice(p.price) : p.price + ' FCFA') + '</div>' +
+          '<div class="featured-vendor">' +
+            '<img src="' + avatar + '" alt="">' +
+            '<div class="featured-vendor-info">' +
+              '<div class="featured-vendor-name">' + name.replace(/[<>]/g,'') + tBadge + '</div>' +
+              '<div class="featured-vendor-meta">' + (p.city || '—') + ' · sponsorisée</div>' +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+      '</a>';
+    }).join('');
+
+    section.style.display = 'block';
+  } catch(e) { /* silencieux */ }
+});
 
 // ── Géoloc prompt (1ère visite ou si dismissed expiré) ──
 window.onDjamikReady && window.onDjamikReady(function() {

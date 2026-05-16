@@ -75,9 +75,10 @@ window.onDjamikReady(async function() {
   var root = document.getElementById('pay-content');
   if (!root || !window._supabase) return;
 
-  // Récupère le tier depuis l'URL
+  // Récupère le tier + promo depuis l'URL
   var params = new URLSearchParams(window.location.search);
   var tier = params.get('tier');
+  var promoCode = params.get('promo');
   if (!['vip','premium'].includes(tier)) {
     root.innerHTML = '<div class="access-denied"><h1>Plan invalide</h1><p><a href="tarifs.html" style="color:var(--brand)">Retour aux tarifs</a></p></div>';
     return;
@@ -114,16 +115,33 @@ window.onDjamikReady(async function() {
     amanata: '#16A34A'
   };
 
-  var amount = tier === 'vip' ? 3000 : 5000;
+  var baseAmount = tier === 'vip' ? 3000 : 5000;
+  var amount = baseAmount;
   var tierLabel = tier === 'vip' ? 'VIP' : 'Premium';
+  var promoApplied = null;
+
+  // Vérifie l'éligibilité promo
+  if (promoCode && tier === 'vip') {
+    try {
+      var pr = await window._supabase.rpc('is_promo_eligible', { p_user_id: uid, p_code: promoCode });
+      if (pr.data === true && promoCode.toUpperCase() === 'WELCOME50') {
+        amount = baseAmount / 2;
+        promoApplied = promoCode.toUpperCase();
+      }
+    } catch(e) {}
+  }
 
   function _renderForm(selectedMethod) {
     selectedMethod = selectedMethod || 'orange';
     root.innerHTML =
       '<div class="pay-head">' +
-        '<span class="eyebrow">' + tierLabel + ' · 30 jours</span>' +
-        '<h1>Paie ' + amount.toLocaleString('fr-FR').replace(',', ' ') + ' FCFA</h1>' +
-        '<p>2 minutes, en Mobile Money. Activation après vérification.</p>' +
+        '<span class="eyebrow">' + tierLabel + ' · 30 jours' + (promoApplied ? ' · PROMO ' + promoApplied : '') + '</span>' +
+        '<h1>Paie ' + amount.toLocaleString('fr-FR').replace(',', ' ') + ' FCFA' +
+          (promoApplied ? ' <span style="font-size:1rem;text-decoration:line-through;color:var(--ink-3);font-weight:500">' + baseAmount.toLocaleString('fr-FR').replace(',', ' ') + '</span>' : '') +
+        '</h1>' +
+        '<p>2 minutes, en Mobile Money. Activation après vérification.' +
+        (promoApplied ? '<br><span style="color:#92400E;font-weight:600">🎁 Tu profites de la promo découverte (-50%)</span>' : '') +
+        '</p>' +
       '</div>' +
 
       // Étape 1 : choisir méthode
@@ -183,7 +201,7 @@ window.onDjamikReady(async function() {
     btn.disabled = true; btn.textContent = 'Envoi…';
     try {
       var r = await window._supabase.rpc('create_payment_request', {
-        p_tier: tier, p_method: method, p_user_note: note || null
+        p_tier: tier, p_method: method, p_user_note: note || null, p_promo_code: promoApplied
       });
       if (r.error) throw r.error;
       var req = r.data;

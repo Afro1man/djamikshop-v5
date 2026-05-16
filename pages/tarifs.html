@@ -279,6 +279,15 @@
 </style>
 </head>
 <body>
+<script>if(typeof window.supabase==='undefined')window.supabase=null;</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" onerror=""></script>
+<script src="../assets/js/app.js"></script>
+
+<!-- ═════ PROMO BANNER ═════ -->
+<div id="promo-banner" style="display:none;background:linear-gradient(135deg,#FFE08A,#F5B100);color:#3D2700;padding:14px 16px;text-align:center;font-weight:700;font-size:15px;box-shadow:0 4px 16px rgba(245,177,0,.3);position:relative;z-index:2">
+  <span style="font-size:18px;margin-right:6px">🎁</span>
+  <span>Offre découverte : ton 1er mois VIP à <s style="opacity:.6">3 000</s> <strong>1 500 FCFA</strong> · code <strong>WELCOME50</strong></span>
+</div>
 
 <!-- ═════ HERO ═════ -->
 <header class="hero">
@@ -532,6 +541,31 @@
     </div>
   </div>
 </section>
+
+<script>
+// Détecte si l'utilisateur a une promo active et adapte l'UI
+window.onDjamikReady && window.onDjamikReady(async function() {
+  if (!window._supabase) return;
+  try {
+    var u = await window._supabase.auth.getUser();
+    if (!u.data || !u.data.user) return;
+    var r = await window._supabase.rpc('my_active_promo');
+    var promo = r && r.data;
+    if (!promo) return;
+
+    // Affiche le banner
+    var banner = document.getElementById('promo-banner');
+    if (banner) banner.style.display = 'block';
+
+    // Adapte le bouton VIP
+    var vipBtn = document.querySelector('a[href="payment.html?tier=vip"]');
+    if (vipBtn) {
+      vipBtn.href = 'payment.html?tier=vip&promo=' + promo.code;
+      vipBtn.innerHTML = 'Devenir VIP — <span style="text-decoration:line-through;opacity:.6;font-weight:500">3000</span> 1500 FCFA';
+    }
+  } catch(e) {}
+});
+</script>
 
 </body>
 </html>

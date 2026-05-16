@@ -76,18 +76,20 @@ async function _fetchProducts(f) {
   }
   else all.sort(function(a,b){ return new Date(b.created_at||0) - new Date(a.created_at||0); });
 
-  // 5. Enrichissement : tiers vendeurs + boosts actifs (cache 30s)
+  // 5. Enrichissement : tiers vendeurs + profils + boosts actifs (cache 30s)
   if (all.length && window.fetchUserTiers && window.fetchActiveBoosts) {
     var sellerIds = Array.from(new Set(all.map(function(p){ return p.seller_id; }).filter(Boolean)));
     var prodIds   = all.map(function(p){ return p.id; }).filter(Boolean);
     try {
-      var [tiers, boostSet] = await Promise.all([
+      var [tiers, boostSet, profiles] = await Promise.all([
         window.fetchUserTiers(sellerIds),
-        window.fetchActiveBoosts(prodIds)
+        window.fetchActiveBoosts(prodIds),
+        window.fetchUserProfiles ? window.fetchUserProfiles(sellerIds) : Promise.resolve({})
       ]);
       all.forEach(function(p) {
         p._sellerTier = tiers[p.seller_id] || 'free';
         p._isBoosted  = boostSet.has(p.id);
+        p._sellerProfile = profiles[p.seller_id] || null;
       });
       // 6. Tri prioritaire stable :
       //    1) Boostés (toutes catégories) toujours en premier
@@ -138,6 +140,19 @@ function _renderGrid(grid, products) {
       '<div class="card-body" onclick="window.location.href=\'product-details.html?id=' + p.id + '\'">' +
         '<div class="card-title">' + window.escHtml(p.title || '') + '</div>' +
         '<div class="card-price">' + window.formatPrice(p.price) + (oldPx > 0 ? '<span class="old">' + window.formatPrice(oldPx) + '</span>' : '') + '</div>' +
+        // Vendeur (avatar + nom)
+        (function(){
+          var prof = p._sellerProfile;
+          if (!prof) return '';
+          var name = prof.full_name || 'Vendeur';
+          var avatar = prof.avatar_url || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(name) + '&background=E8501A&color=fff&size=24');
+          var tBadge = (window.tierBadge && (sellerTier === 'vip' || sellerTier === 'premium')) ? window.tierBadge(sellerTier, { compact: true }) : '';
+          return '<a class="card-seller" href="my-profile.html?id=' + p.seller_id + '" onclick="event.stopPropagation()">' +
+            '<img src="' + avatar + '" alt="">' +
+            '<span class="card-seller-name">' + window.escHtml(name) + '</span>' +
+            tBadge +
+          '</a>';
+        })() +
         '<div class="card-meta"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> ' + (p.city || '—') +
           (function(){
             var d = window.distanceToProduct ? window.distanceToProduct(p) : null;
