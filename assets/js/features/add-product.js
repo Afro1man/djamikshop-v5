@@ -361,17 +361,26 @@ window.onDjamikReady(function() {
         }
       }
 
-      // ── Limite anti-spam : max 30 annonces actives par user (uniquement à la création) ──
+      // ── Limite par tier (uniquement à la création) ──
+      // Source de vérité = trigger SQL (bypass impossible). On check ici pour
+      // afficher un message clair avant l'aller-retour serveur.
       if (!existing && window._supabase) {
         try {
+          var userTier = window.myTier ? await window.myTier() : 'free';
+          var tierLimit = (window.tierListingLimit ? window.tierListingLimit(userTier) : (userTier === 'premium' ? 100 : userTier === 'vip' ? 50 : 10));
           var countRes = await window._supabase
             .from('products')
             .select('id', { count: 'exact', head: true })
             .eq('seller_id', sessionUser.id)
             .eq('sold', false);
-          if (countRes && countRes.count >= 30) {
-            window.toast && window.toast('Limite atteinte : 30 annonces actives max. Marquez certaines comme vendues.', 'error', 6000);
-            window.reportIncident && window.reportIncident('spam_limit', 'medium', { current: countRes.count });
+          if (countRes && countRes.count >= tierLimit) {
+            var msg = 'Limite atteinte : ' + tierLimit + ' annonces max sur le plan ' + (userTier === 'free' ? 'Gratuit' : userTier.toUpperCase()) + '.';
+            if (userTier === 'free')      msg += ' Passe en VIP (50) ou Premium (100) pour publier plus.';
+            else if (userTier === 'vip')  msg += ' Passe en Premium (100) pour publier plus.';
+            window.confirm2 ? window.confirm2(msg + '\n\nVoir les tarifs ?').then(function(ok) {
+              if (ok) window.location.href = 'tarifs.html';
+            }) : alert(msg);
+            window.reportIncident && window.reportIncident('spam_limit', 'low', { current: countRes.count, tier: userTier, limit: tierLimit });
             return;
           }
         } catch(e) {}
