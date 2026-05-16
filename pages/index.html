@@ -722,7 +722,7 @@ window.onDjamikReady && window.onDjamikReady(async function() {
       var img = p.image_url || (p.images && p.images[0]) || '';
       var tBadge = (window.tierBadge && (tier === 'vip' || tier === 'premium')) ? window.tierBadge(tier, { compact: true }) : '';
       var classes = 'featured-card' + (tier === 'premium' ? ' is-premium' : '');
-      return '<a class="' + classes + '" href="pages/product-details.html?id=' + p.id + '">' +
+      return '<a class="' + classes + '" href="product-details.html?id=' + p.id + '">' +
         '<span class="featured-boosted-pill">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="11" height="11"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg> Boosté' +
         '</span>' +
