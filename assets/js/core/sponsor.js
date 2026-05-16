@@ -203,6 +203,13 @@
       '.product-card.tier-vip::before{content:"";position:absolute;inset:-3px;border-radius:calc(var(--r-md,12px) + 3px);padding:3px;background:linear-gradient(135deg,#FFF3C4 0%,#FFE08A 15%,#F5B100 30%,#B8830C 45%,#FFE08A 60%,#F5B100 75%,#FFF3C4 90%,#FFE08A 100%);background-size:300% 300%;-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:tierBorderFlow 3s linear infinite;pointer-events:none;z-index:2}',
       // Double brillance qui balaye
       '.product-card.tier-vip::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 25%,rgba(255,234,170,.55) 45%,rgba(255,255,255,.7) 50%,rgba(255,234,170,.55) 55%,transparent 75%);background-size:250% 100%;background-position:200% 0;animation:tierShine 2.8s ease-in-out infinite;pointer-events:none;border-radius:inherit;z-index:1;mix-blend-mode:screen}',
+      // Ruban "VIP" en haut-gauche du body
+      '.product-card.tier-vip .card-body::before{content:"VIP";position:absolute;top:-1px;left:-1px;background:linear-gradient(135deg,#FFE08A,#F5B100,#B8830C);color:#3D2700;font-family:Outfit,sans-serif;font-size:9px;font-weight:900;letter-spacing:.12em;padding:3px 10px 4px 8px;border-radius:0 0 8px 0;text-shadow:0 1px 0 rgba(255,255,255,.4);box-shadow:0 2px 6px rgba(245,177,0,.45);z-index:6;background-size:200% 200%;animation:premRibbonShine 3s ease-in-out infinite}',
+      '.product-card.tier-vip .card-body{position:relative}',
+
+      // Décale le contenu du body pour que le titre ne soit pas couvert par le ruban
+      '.product-card.tier-vip .card-body,.product-card.tier-premium .card-body{padding-top:24px !important}',
+
       // ★ Étoile dorée scintillante au centre-haut de l'image (signature VIP, sobre)
       '.product-card.tier-vip .card-img-wrap{position:relative}',
       '.product-card.tier-vip .card-img-wrap::after{content:"";position:absolute;top:-7px;left:50%;transform:translateX(-50%);width:24px;height:24px;background:linear-gradient(135deg,#FFF3C4 0%,#FFE08A 30%,#F5B100 60%,#B8830C 100%);clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);filter:drop-shadow(0 3px 6px rgba(245,177,0,.65));z-index:5;animation:vipStarTwinkle 2.8s ease-in-out infinite}',
