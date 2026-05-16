@@ -31,6 +31,7 @@ window.onDjamikReady = function(cb) {
 
   // Modules NON-critiques : chargés en arrière-plan après ready (ne bloquent rien)
   var lazyModules = [
+    base + 'core/beta-banner.js', // bandeau 'Mode test' (peut être masqué)
     base + 'core/pwa.js',         // service worker register, install prompt
     base + 'core/share.js',       // utilisé seulement au clic "partager"
     base + 'core/payment.js',     // ancien helper (conservé pour compat)
