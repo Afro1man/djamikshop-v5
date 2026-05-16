@@ -97,7 +97,7 @@
   top: var(--space-2) !important;
   right: var(--space-2) !important;
   left: auto !important;
-  z-index: 4;
+  z-index: 10 !important;
   width: 36px;
   height: 36px;
   border-radius: var(--r-full);
