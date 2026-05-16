@@ -93,10 +93,11 @@
 
 /* ── LIKE BUTTON ── */
 .card-like-btn {
-  position: absolute;
-  top: var(--space-2);
-  right: var(--space-2);
-  z-index: 2;
+  position: absolute !important;
+  top: var(--space-2) !important;
+  right: var(--space-2) !important;
+  left: auto !important;
+  z-index: 4;
   width: 36px;
   height: 36px;
   border-radius: var(--r-full);
