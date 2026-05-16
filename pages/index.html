@@ -257,15 +257,45 @@
     .featured-more { display: flex; align-items: center; gap: 4px; font-size: .8rem; font-weight: 700; color: var(--brand,#E8501A); text-decoration: none; }
     .featured-more:hover { color: #C03E0E; }
 
+    .featured-wrap { position: relative; }
     .featured-scroll {
       display: flex; gap: 14px;
       overflow-x: auto; overflow-y: visible;
       padding: 4px var(--page-px) 14px;
       scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
       -webkit-overflow-scrolling: touch;
     }
     .featured-scroll::-webkit-scrollbar { display: none; }
     .featured-scroll { scrollbar-width: none; }
+
+    .featured-nav {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(255,255,255,.95); border: 1px solid var(--surface-3);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; z-index: 5;
+      box-shadow: 0 4px 12px rgba(0,0,0,.15);
+      transition: transform .15s, box-shadow .15s;
+    }
+    .featured-nav:hover { transform: translateY(-50%) scale(1.05); box-shadow: 0 6px 18px rgba(0,0,0,.2); }
+    .featured-nav.prev { left: 4px; }
+    .featured-nav.next { right: 4px; }
+    .featured-nav svg { width: 18px; height: 18px; color: var(--ink); }
+    @media (max-width: 600px) {
+      .featured-nav { display: none; }    /* sur mobile, juste swipe */
+    }
+
+    .featured-dots {
+      display: flex; justify-content: center; gap: 6px;
+      padding: 0 var(--page-px) 4px;
+    }
+    .featured-dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: rgba(245,177,0,.3); cursor: pointer;
+      transition: background .2s, width .2s;
+    }
+    .featured-dot.active { background: var(--brand,#E8501A); width: 22px; border-radius: 4px; }
 
     .featured-card {
       flex: 0 0 240px;
@@ -589,7 +619,16 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
       </a>
     </div>
-    <div class="featured-scroll" id="featured-scroll"></div>
+    <div class="featured-wrap">
+      <button class="featured-nav prev" id="featured-prev" aria-label="Précédent">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <div class="featured-scroll" id="featured-scroll"></div>
+      <button class="featured-nav next" id="featured-next" aria-label="Suivant">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+    <div class="featured-dots" id="featured-dots"></div>
   </div>
 </section>
 
@@ -703,8 +742,79 @@ window.onDjamikReady && window.onDjamikReady(async function() {
     }).join('');
 
     section.style.display = 'block';
+
+    // ── Auto-slider ──
+    _initFeaturedSlider(scroll, prods.length);
   } catch(e) { /* silencieux */ }
 });
+
+function _initFeaturedSlider(scroll, count) {
+  if (!scroll || count <= 1) return;
+  var prev = document.getElementById('featured-prev');
+  var next = document.getElementById('featured-next');
+  var dotsWrap = document.getElementById('featured-dots');
+
+  // Génère les dots (1 par card)
+  if (dotsWrap) {
+    dotsWrap.innerHTML = '';
+    for (var i = 0; i < count; i++) {
+      var d = document.createElement('div');
+      d.className = 'featured-dot' + (i === 0 ? ' active' : '');
+      d.dataset.i = i;
+      d.addEventListener('click', function() { _goTo(parseInt(this.dataset.i)); });
+      dotsWrap.appendChild(d);
+    }
+  }
+
+  function _cardWidth() {
+    var first = scroll.querySelector('.featured-card');
+    if (!first) return 254;
+    return first.offsetWidth + 14; // gap
+  }
+
+  function _currentIndex() {
+    return Math.round(scroll.scrollLeft / _cardWidth());
+  }
+
+  function _goTo(i) {
+    scroll.scrollTo({ left: i * _cardWidth(), behavior: 'smooth' });
+    _updateDots(i);
+  }
+
+  function _updateDots(i) {
+    if (!dotsWrap) return;
+    Array.from(dotsWrap.children).forEach(function(d, idx) {
+      d.classList.toggle('active', idx === i);
+    });
+  }
+
+  function _step(dir) {
+    var i = _currentIndex();
+    var next = i + dir;
+    if (next >= count) next = 0;
+    if (next < 0) next = count - 1;
+    _goTo(next);
+  }
+
+  if (prev) prev.addEventListener('click', function(){ _step(-1); _resetTimer(); });
+  if (next) next.addEventListener('click', function(){ _step(1);  _resetTimer(); });
+
+  // Update dots on manual scroll
+  scroll.addEventListener('scroll', function() { _updateDots(_currentIndex()); });
+
+  // Auto-slide toutes les 4s
+  var timer = null;
+  function _start() { if (!timer) timer = setInterval(function(){ _step(1); }, 4000); }
+  function _stop()  { if (timer) { clearInterval(timer); timer = null; } }
+  function _resetTimer() { _stop(); _start(); }
+
+  scroll.addEventListener('mouseenter', _stop);
+  scroll.addEventListener('mouseleave', _start);
+  scroll.addEventListener('touchstart', _stop, { passive: true });
+  scroll.addEventListener('touchend',   _start);
+
+  _start();
+}
 
 // ── Géoloc prompt (1ère visite ou si dismissed expiré) ──
 window.onDjamikReady && window.onDjamikReady(function() {

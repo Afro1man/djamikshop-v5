@@ -94,15 +94,32 @@ async function _fetchProducts(f) {
       // 6. Tri prioritaire stable :
       //    1) Boostés (toutes catégories) toujours en premier
       //    2) Premium > VIP > Free
-      //    3) Sous-tri = celui choisi par l'user (déjà appliqué plus haut)
+      //    3) Si beaucoup de résultats ET géoloc dispo : annonces proches en premier
+      //    4) Sinon, garde l'ordre du sort précédent (created_at, prix, etc.)
       var TIER_RANK = { premium: 3, vip: 2, free: 1 };
+      var userLoc = window.getStoredLocation && window.getStoredLocation();
+      var useGeoBoost = !!userLoc && all.length >= 10 && f.sort !== 'distance' && f.sort !== 'price_asc' && f.sort !== 'price_desc';
+
+      // Pré-calcul des distances (une seule fois)
+      if (useGeoBoost && window.distanceToProduct) {
+        all.forEach(function(p){
+          p._distance = window.distanceToProduct(p);
+          if (p._distance == null) p._distance = 99999;
+        });
+      }
+
       all.sort(function(a, b) {
         if (a._isBoosted && !b._isBoosted) return -1;
         if (!a._isBoosted && b._isBoosted) return 1;
         var ra = TIER_RANK[a._sellerTier] || 1;
         var rb = TIER_RANK[b._sellerTier] || 1;
         if (ra !== rb) return rb - ra;
-        return 0;   // garde l'ordre du sort précédent (created_at, prix, distance...)
+        // Tiebreaker géo : annonces proches d'abord (dans le même groupe tier)
+        if (useGeoBoost) {
+          var da = a._distance, db = b._distance;
+          if (da !== db) return da - db;
+        }
+        return 0;
       });
     } catch(e) { console.warn('[products] tier/boost enrich failed', e); }
   }
