@@ -2,7 +2,8 @@
    RESET & BASE
    ═══════════════════════════════════════════════════════════════════ */
 
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap');
+/* Les fonts (Inter + Outfit) sont chargees via <link> direct dans le
+   <head> de chaque page HTML pour eviter le blocage @import en cascade. */
 
 *, *::before, *::after {
   box-sizing: border-box;
