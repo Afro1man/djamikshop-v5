@@ -77,6 +77,15 @@ async function _fetchProducts(f) {
   else all.sort(function(a,b){ return new Date(b.created_at||0) - new Date(a.created_at||0); });
 
   // 5. Enrichissement : tiers vendeurs + profils + boosts actifs (cache 30s)
+  // Si les helpers ne sont pas encore chargés, on attend brièvement.
+  if (all.length && !window.fetchUserTiers) {
+    await new Promise(function(resolve) {
+      var tries = 0;
+      var iv = setInterval(function() {
+        if (window.fetchUserTiers || ++tries > 20) { clearInterval(iv); resolve(); }
+      }, 100);
+    });
+  }
   if (all.length && window.fetchUserTiers && window.fetchActiveBoosts) {
     var sellerIds = Array.from(new Set(all.map(function(p){ return p.seller_id; }).filter(Boolean)));
     var prodIds   = all.map(function(p){ return p.id; }).filter(Boolean);

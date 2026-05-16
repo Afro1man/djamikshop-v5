@@ -726,18 +726,45 @@ window.onDjamikReady(async function () {
   }
 
   // ── SIMILAR ──────────────────────────────────────────────────────
-  // Priorise : 1) même catégorie + même ville  2) même catégorie autres villes
-  //            3) (fallback) autres catégories. Tri par récence (created_at desc).
-  function renderSimilar(p) {
+  // Priorise : 1) meme cat + meme ville  2) meme cat autres villes
+  //            3) (fallback) autres categories
+  // Dans chaque groupe : shuffle pour de la variete (pas que les recentes)
+  function _shuffle(arr) {
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+    return arr;
+  }
+
+  async function renderSimilar(p) {
     var section = document.getElementById('similar-section');
     var grid = document.getElementById('similar-grid');
     if (!section || !grid) return;
-    var all = window.getAllProducts ? window.getAllProducts() : [];
-    var pool = all.filter(function(q) { return q.id !== p.id && !q.sold; });
+
+    // Source large : Supabase direct (50 dernières), pas seulement le cache local
+    var pool = [];
+    if (window._supabase) {
+      try {
+        var r = await window._supabase.from('products')
+          .select('id, title, category, city, price, image_url, seller_id')
+          .eq('sold', false)
+          .is('inactive_at', null)
+          .neq('id', p.id)
+          .limit(50);
+        pool = (r && r.data) || [];
+      } catch(e) {}
+    }
+    if (!pool.length && window.getAllProducts) {
+      pool = window.getAllProducts().filter(function(q){ return q.id !== p.id && !q.sold; });
+    }
 
     var sameCatSameCity = pool.filter(function(q){ return q.category === p.category && q.city && p.city && q.city === p.city; });
     var sameCatOther    = pool.filter(function(q){ return q.category === p.category && (!q.city || !p.city || q.city !== p.city); });
     var fallback        = pool.filter(function(q){ return q.category !== p.category; });
+
+    // Shuffle dans chaque groupe pour de la variete
+    _shuffle(sameCatSameCity); _shuffle(sameCatOther); _shuffle(fallback);
 
     var similar = sameCatSameCity.concat(sameCatOther).concat(fallback).slice(0, 6);
     if (!similar.length) return;

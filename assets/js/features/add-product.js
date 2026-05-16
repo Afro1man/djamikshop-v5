@@ -137,6 +137,16 @@ window.onDjamikReady(function() {
         '</div>' +
       '</div>' +
 
+      // ── Genre (facultatif, multi-select) ──
+      '<div class="form-group">' +
+        '<label class="form-label">Pour qui ? <span style="color:var(--ink-3);font-weight:400">(facultatif)</span></label>' +
+        '<div class="ap-genre-grid">' +
+          '<label class="ap-genre-item"><input type="checkbox" name="ap-genre" value="homme"><span>👨 Homme</span></label>' +
+          '<label class="ap-genre-item"><input type="checkbox" name="ap-genre" value="femme"><span>👩 Femme</span></label>' +
+          '<label class="ap-genre-item"><input type="checkbox" name="ap-genre" value="enfant"><span>🧒 Enfant</span></label>' +
+        '</div>' +
+      '</div>' +
+
       // ── Négociable ──
       '<div class="form-group" style="display:flex;align-items:center;gap:10px">' +
         '<input type="checkbox" id="ap-negotiable" style="width:18px;height:18px;accent-color:var(--primary);flex-shrink:0">' +
@@ -177,6 +187,10 @@ window.onDjamikReady(function() {
     var pms = existing.payment_methods || [];
     document.querySelectorAll('input[name=ap-payment]').forEach(function(cb){
       cb.checked = pms.indexOf(cb.value) !== -1;
+    });
+    var genres = existing.genre || [];
+    document.querySelectorAll('input[name=ap-genre]').forEach(function(cb){
+      cb.checked = genres.indexOf(cb.value) !== -1;
     });
   }
 
@@ -318,6 +332,7 @@ window.onDjamikReady(function() {
       var desc       = (document.getElementById('ap-desc')       || {}).value.trim();
       var negotiable = (document.getElementById('ap-negotiable') || {}).checked;
       var payChecks  = Array.from(document.querySelectorAll('input[name=ap-payment]:checked')).map(function(c){ return c.value; });
+      var genreChecks = Array.from(document.querySelectorAll('input[name=ap-genre]:checked')).map(function(c){ return c.value; });
       var dropEl     = document.getElementById('ap-photo-drop') || {};
       var imageFiles    = dropEl._files        || [];
       var imagePreviews = dropEl._previewsArr  || [];
@@ -445,7 +460,8 @@ window.onDjamikReady(function() {
         image_url:       product.image,
         images:          product.images,
         payment_methods: product.payment_methods,
-        negotiable:      product.negotiable
+        negotiable:      product.negotiable,
+        genre:           genreChecks
       };
 
       var supabaseOK = false;
@@ -546,6 +562,11 @@ window.onDjamikReady(function() {
       '.ap-payment-item{display:flex;align-items:center;gap:6px;padding:7px 14px;border:1px solid var(--surface-3);border-radius:var(--r-md);cursor:pointer;font-size:.85rem;transition:border-color .15s}',
       '.ap-payment-item:hover{border-color:var(--primary)}',
       '.ap-payment-item input{accent-color:var(--primary);cursor:pointer}',
+      '.ap-genre-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}',
+      '.ap-genre-item{display:flex;align-items:center;justify-content:center;gap:6px;padding:12px 8px;border:1px solid var(--surface-3);border-radius:var(--r-md);cursor:pointer;font-size:.9rem;font-weight:600;color:var(--ink-2);transition:all .15s;background:var(--white)}',
+      '.ap-genre-item input{display:none}',
+      '.ap-genre-item:hover{border-color:var(--primary)}',
+      '.ap-genre-item:has(input:checked){border-color:var(--primary);background:rgba(232,80,26,.06);color:var(--primary)}',
     ].join('');
     document.head.appendChild(s);
   }
