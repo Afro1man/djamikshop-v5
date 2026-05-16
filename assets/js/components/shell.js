@@ -189,7 +189,7 @@
           ? '<button class="sm-logout" onclick="window.logout && window.logout()">' + _icon('logout') + ' Déconnexion</button>'
           : '') +
         '<div class="sm-copyright">© 2025 DjamikShop · Fait au Niger 🇳🇪</div>' +
-        '<div class="sm-version">v' + ((window.APP && window.APP.version) || '5.0') + '</div>' +
+        '<div class="sm-version">v' + ((window.APP && window.APP.version) || '1.1') + '</div>' +
       '</div>';
 
     return '<div class="side-menu" id="side-menu">' +

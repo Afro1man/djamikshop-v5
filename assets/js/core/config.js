@@ -11,7 +11,7 @@ window._supabase = (typeof supabase !== 'undefined')
 
 window.APP = {
   name:     'DjamikShop',
-  version:  '5.0',
+  version:  '1.1',
   currency: 'FCFA',
   demoMode: false,
 
