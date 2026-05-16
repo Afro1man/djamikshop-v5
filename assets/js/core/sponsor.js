@@ -6,12 +6,12 @@
 
   var _myTierCache = null;
   var _myTierTime  = 0;
-  var TIER_CACHE_MS = 60 * 1000;   // 1 min
+  var TIER_CACHE_MS = 5 * 60 * 1000;   // 5 min (au lieu de 1)
 
-  var _userTiersCache = {};        // uid -> tier
+  var _userTiersCache = {};        // uid -> tier (perma jusqu'au reload)
   var _activeBoostSet = null;      // Set des product_ids boostés
   var _activeBoostTime = 0;
-  var BOOST_CACHE_MS = 30 * 1000;  // 30s
+  var BOOST_CACHE_MS = 60 * 1000;  // 60s (au lieu de 30)
 
   // ── Tier de l'user courant ──
   window.myTier = async function(force) {

@@ -13,50 +13,61 @@ window.onDjamikReady = function(cb) {
 (function() {
   var base = window.location.pathname.includes('/pages/') ? '../assets/js/' : 'assets/js/';
 
+  // Modules CRITIQUES : doivent etre chargés avant le ready event
+  // (utilisés par le rendu initial des pages : icons, config, utils, state,
+  // auth pour requireAuth, sponsor pour les badges/tiers, etc.)
   var modules = [
-    // Core
     base + 'core/icons.js',
     base + 'core/config.js',
     base + 'core/utils.js',
     base + 'core/state.js',
     base + 'core/theme.js',
-    base + 'core/pwa.js',
-    base + 'core/share.js',
-    base + 'core/payment.js',
-    base + 'core/push.js',
-    base + 'core/security.js',
-    base + 'core/geo.js',
-    base + 'core/email-verify.js',
-    base + 'core/sponsor.js',
-    // Auth chargé en core pour exposer window.logout/requireAuth partout
-    base + 'features/auth.js',
-    // Components
+    base + 'core/sponsor.js',     // utilisé par products + my-profile au boot
+    base + 'features/auth.js',    // requireAuth utilisé partout
     base + 'components/ui.js',
     base + 'components/shell.js',
     base + 'components/bottom-nav.js'
   ];
 
-  // ── Parallel download, ordered execution.
-  // script.async = false sur des <script> injectés en JS = téléchargement parallèle
-  // mais exécution garantie dans l'ordre d'insertion. Gain ~100ms vs cascade.
-  function loadAll() {
-    var remaining = modules.length;
-    var done = function() {
-      if (--remaining === 0) {
-        window._djamikReady = true;
-        document.dispatchEvent(new CustomEvent('djamik:ready'));
-      }
-    };
+  // Modules NON-critiques : chargés en arrière-plan après ready (ne bloquent rien)
+  var lazyModules = [
+    base + 'core/pwa.js',         // service worker register, install prompt
+    base + 'core/share.js',       // utilisé seulement au clic "partager"
+    base + 'core/payment.js',     // ancien helper (conservé pour compat)
+    base + 'core/push.js',        // notifications push, opt-in
+    base + 'core/security.js',    // anti-spam helpers en background
+    base + 'core/geo.js',         // géoloc (chargé avant l'utilisateur clique sur "Activer")
+    base + 'core/email-verify.js' // bandeau email verif
+  ];
+
+  // Helper : injecte une liste de scripts en parallèle, exécution ordonnée
+  function _inject(list, onAllDone) {
+    if (!list.length) { onAllDone && onAllDone(); return; }
+    var remaining = list.length;
+    var done = function() { if (--remaining === 0) onAllDone && onAllDone(); };
     var frag = document.createDocumentFragment();
-    modules.forEach(function(src) {
+    list.forEach(function(src) {
       var s = document.createElement('script');
       s.src = src;
-      s.async = false; // préserve l'ordre d'exécution
+      s.async = false;
       s.onload = done;
-      s.onerror = function() { console.warn('[DjamikShop] Failed to load', src); done(); };
+      s.onerror = function() { console.warn('[DjamikShop] Failed', src); done(); };
       frag.appendChild(s);
     });
     document.head.appendChild(frag);
+  }
+
+  function loadAll() {
+    // Phase 1 : critiques (bloque le ready event)
+    _inject(modules, function() {
+      window._djamikReady = true;
+      document.dispatchEvent(new CustomEvent('djamik:ready'));
+
+      // Phase 2 : non-critiques (en arrière-plan, n'attend pas)
+      // requestIdleCallback si dispo, sinon setTimeout
+      var defer = window.requestIdleCallback || function(cb){ setTimeout(cb, 50); };
+      defer(function() { _inject(lazyModules); });
+    });
   }
 
   if (document.readyState === 'loading') {
