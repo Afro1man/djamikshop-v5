@@ -203,12 +203,7 @@
       '.product-card.tier-vip::before{content:"";position:absolute;inset:-3px;border-radius:calc(var(--r-md,12px) + 3px);padding:3px;background:linear-gradient(135deg,#FFF3C4 0%,#FFE08A 15%,#F5B100 30%,#B8830C 45%,#FFE08A 60%,#F5B100 75%,#FFF3C4 90%,#FFE08A 100%);background-size:300% 300%;-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:tierBorderFlow 3s linear infinite;pointer-events:none;z-index:2}',
       // Double brillance qui balaye
       '.product-card.tier-vip::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 25%,rgba(255,234,170,.55) 45%,rgba(255,255,255,.7) 50%,rgba(255,234,170,.55) 55%,transparent 75%);background-size:250% 100%;background-position:200% 0;animation:tierShine 2.8s ease-in-out infinite;pointer-events:none;border-radius:inherit;z-index:1;mix-blend-mode:screen}',
-      // Couronne en haut-CENTRE de l'image (sortie du bord) - ne gêne plus le heart
-      '.product-card.tier-vip .card-img-wrap{position:relative}',
-      '.product-card.tier-vip .card-img-wrap::after{content:"";position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:26px;height:22px;background:linear-gradient(135deg,#FFF3C4 0%,#FFE08A 30%,#F5B100 60%,#B8830C 100%);clip-path:polygon(0 100%,15% 30%,30% 65%,50% 0,70% 65%,85% 30%,100% 100%);filter:drop-shadow(0 3px 6px rgba(245,177,0,.6));z-index:5;animation:crownBounce 2.5s ease-in-out infinite}',
-      // Ruban d'angle "VIP" en haut-gauche-bas (sous le badge boost)
-      '.product-card.tier-vip .card-body::before{content:"VIP";position:absolute;top:-1px;left:-1px;background:linear-gradient(135deg,#FFE08A,#F5B100,#B8830C);color:#3D2700;font-family:Outfit,sans-serif;font-size:9px;font-weight:900;letter-spacing:.1em;padding:3px 10px 4px 8px;border-radius:0 0 8px 0;text-shadow:0 1px 0 rgba(255,255,255,.4);box-shadow:0 2px 6px rgba(245,177,0,.4);z-index:6}',
-      '.product-card.tier-vip .card-body{position:relative}',
+      // VIP : on garde juste la bordure dorée + glow (pas de couronne ni ruban)
       // Halo radial autour du badge VIP au coin haut-gauche
       '.product-card.tier-vip .card-img-wrap::before{content:"";position:absolute;top:-10px;left:-10px;width:80px;height:80px;background:radial-gradient(circle,rgba(255,224,138,.6) 0%,transparent 70%);pointer-events:none;z-index:1;animation:vipHalo 2.5s ease-in-out infinite}',
       '.product-card.tier-vip:hover{box-shadow:0 20px 44px rgba(245,177,0,.5),0 0 0 3px rgba(245,177,0,.7),inset 0 1px 0 rgba(255,224,138,.8) !important;transform:translateY(-3px)}',
@@ -225,13 +220,31 @@
       '@keyframes vipTextShine{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}',
 
 
-      // ── CARDS PREMIUM : bordure violette flow + halo radial pulsé ──
-      '.product-card.tier-premium{border:none !important;position:relative;background:#fff !important;box-shadow:0 4px 16px rgba(124,58,237,.18),0 0 0 2px rgba(124,58,237,.4) !important;animation:tierPremGlow 3.5s ease-in-out infinite}',
-      '.product-card.tier-premium::before{content:"";position:absolute;inset:-2px;border-radius:inherit;padding:2px;background:linear-gradient(135deg,#C4B5FD,#7C3AED,#4C1D95,#C4B5FD,#7C3AED,#4C1D95);background-size:300% 300%;-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:tierBorderFlow 4.5s linear infinite;pointer-events:none;z-index:2}',
-      '.product-card.tier-premium::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 80% 20%,rgba(196,181,253,.35) 0,transparent 50%),radial-gradient(circle at 20% 80%,rgba(124,58,237,.25) 0,transparent 50%);pointer-events:none;border-radius:inherit;z-index:1;animation:tierPremPulse 4s ease-in-out infinite}',
-      '.product-card.tier-premium:hover{box-shadow:0 16px 36px rgba(124,58,237,.45),0 0 0 2px rgba(124,58,237,.6) !important}',
-      '@keyframes tierPremGlow{0%,100%{box-shadow:0 4px 16px rgba(124,58,237,.18),0 0 0 2px rgba(124,58,237,.4)}50%{box-shadow:0 6px 24px rgba(124,58,237,.35),0 0 0 2px rgba(124,58,237,.6)}}',
+      // ═════════════════════════════════════════════════════
+      // CARDS PREMIUM : design ultra-prestigieux
+      // ═════════════════════════════════════════════════════
+      '.product-card.tier-premium{border:none !important;position:relative;background:linear-gradient(180deg,#FAF7FF 0%,#fff 30%) !important;box-shadow:0 4px 20px rgba(124,58,237,.22),0 0 0 3px rgba(124,58,237,.5),inset 0 1px 0 rgba(196,181,253,.6) !important;animation:tierPremGlow 2.8s ease-in-out infinite}',
+      // Bordure violet 3px multi-stops
+      '.product-card.tier-premium::before{content:"";position:absolute;inset:-3px;border-radius:calc(var(--r-md,12px) + 3px);padding:3px;background:linear-gradient(135deg,#E9D5FF 0%,#C4B5FD 15%,#7C3AED 30%,#4C1D95 45%,#C4B5FD 60%,#7C3AED 75%,#E9D5FF 90%,#7C3AED 100%);background-size:300% 300%;-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:tierBorderFlow 3.5s linear infinite;pointer-events:none;z-index:2}',
+      // Halo radial pulsé
+      '.product-card.tier-premium::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 80% 20%,rgba(196,181,253,.5) 0,transparent 50%),radial-gradient(circle at 20% 80%,rgba(124,58,237,.35) 0,transparent 50%);pointer-events:none;border-radius:inherit;z-index:1;animation:tierPremPulse 3.5s ease-in-out infinite}',
+      // Diamant qui scintille au centre-haut de l'image
+      '.product-card.tier-premium .card-img-wrap{position:relative}',
+      '.product-card.tier-premium .card-img-wrap::after{content:"";position:absolute;top:-8px;left:50%;transform:translateX(-50%);width:26px;height:24px;background:linear-gradient(135deg,#F4F1FF 0%,#C4B5FD 30%,#7C3AED 60%,#4C1D95 100%);clip-path:polygon(50% 0%,80% 25%,100% 50%,80% 75%,50% 100%,20% 75%,0% 50%,20% 25%);filter:drop-shadow(0 3px 8px rgba(124,58,237,.7));z-index:5;animation:diamondSpin 4s ease-in-out infinite}',
+      // Ruban "PREMIUM" doré-violet en haut-gauche du body
+      '.product-card.tier-premium .card-body::before{content:"PREMIUM";position:absolute;top:-1px;left:-1px;background:linear-gradient(135deg,#C4B5FD,#7C3AED,#4C1D95);color:#fff;font-family:Outfit,sans-serif;font-size:9px;font-weight:900;letter-spacing:.12em;padding:3px 10px 4px 8px;border-radius:0 0 8px 0;text-shadow:0 1px 0 rgba(0,0,0,.15);box-shadow:0 2px 6px rgba(124,58,237,.5);z-index:6;animation:premRibbonShine 3s ease-in-out infinite;background-size:200% 200%}',
+      '.product-card.tier-premium .card-body{position:relative}',
+      '.product-card.tier-premium:hover{box-shadow:0 20px 44px rgba(124,58,237,.5),0 0 0 3px rgba(124,58,237,.7),inset 0 1px 0 rgba(196,181,253,.8) !important;transform:translateY(-3px)}',
+      '.product-card.tier-premium{transition:transform .25s,box-shadow .25s !important}',
+
+      '@keyframes tierPremGlow{0%,100%{box-shadow:0 4px 20px rgba(124,58,237,.22),0 0 0 3px rgba(124,58,237,.5),inset 0 1px 0 rgba(196,181,253,.6)}50%{box-shadow:0 8px 32px rgba(124,58,237,.45),0 0 0 3px rgba(124,58,237,.8),inset 0 1px 0 rgba(196,181,253,.9),0 0 60px rgba(124,58,237,.25)}}',
       '@keyframes tierPremPulse{0%,100%{opacity:.7}50%{opacity:1}}',
+      '@keyframes diamondSpin{0%,100%{transform:translateX(-50%) rotate(0) scale(1)}25%{transform:translateX(-50%) rotate(90deg) scale(1.1)}50%{transform:translateX(-50%) rotate(180deg) scale(1)}75%{transform:translateX(-50%) rotate(270deg) scale(1.1)}}',
+      '@keyframes premRibbonShine{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}',
+
+      // Titre du produit en gradient violet animé sur les cartes Premium
+      '.product-card.tier-premium .card-title{background:linear-gradient(135deg,#4C1D95,#7C3AED,#4C1D95);background-size:200% 200%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:premTextShine 4s ease-in-out infinite;font-weight:800 !important}',
+      '@keyframes premTextShine{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}',
 
       // Le contenu doit etre au-dessus des effets
       '.product-card.tier-vip > *,.product-card.tier-premium > *{position:relative;z-index:3}',
