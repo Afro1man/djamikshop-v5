@@ -147,12 +147,6 @@ window.onDjamikReady(function() {
         '</div>' +
       '</div>' +
 
-      // ── Négociable ──
-      '<div class="form-group" style="display:flex;align-items:center;gap:10px">' +
-        '<input type="checkbox" id="ap-negotiable" style="width:18px;height:18px;accent-color:var(--primary);flex-shrink:0">' +
-        '<label for="ap-negotiable" style="cursor:pointer;font-weight:500;margin:0">Prix négociable</label>' +
-      '</div>' +
-
       // ── Submit ──
       '<div style="display:flex;gap:12px;margin-top:var(--space-6)">' +
         '<a href="' + (existing ? 'my-profile.html' : 'index.html') + '" class="btn btn-outline" style="flex:1;text-align:center">Annuler</a>' +
@@ -183,7 +177,6 @@ window.onDjamikReady(function() {
     if (byId('ap-price'))      byId('ap-price').value      = existing.price       || '';
     if (byId('ap-city'))       byId('ap-city').value       = existing.city        || '';
     if (byId('ap-desc'))       { byId('ap-desc').value     = existing.description || ''; var c = byId('ap-desc-count'); if (c) c.textContent = (existing.description || '').length; }
-    if (byId('ap-negotiable')) byId('ap-negotiable').checked = !!existing.negotiable;
     var pms = existing.payment_methods || [];
     document.querySelectorAll('input[name=ap-payment]').forEach(function(cb){
       cb.checked = pms.indexOf(cb.value) !== -1;
@@ -330,7 +323,6 @@ window.onDjamikReady(function() {
       var priceRaw   = (document.getElementById('ap-price')      || {}).value;
       var city       = (document.getElementById('ap-city')       || {}).value;
       var desc       = (document.getElementById('ap-desc')       || {}).value.trim();
-      var negotiable = (document.getElementById('ap-negotiable') || {}).checked;
       var payChecks  = Array.from(document.querySelectorAll('input[name=ap-payment]:checked')).map(function(c){ return c.value; });
       var genreChecks = Array.from(document.querySelectorAll('input[name=ap-genre]:checked')).map(function(c){ return c.value; });
       var dropEl     = document.getElementById('ap-photo-drop') || {};
@@ -435,7 +427,6 @@ window.onDjamikReady(function() {
         price:           price,
         city:            city,
         description:     desc,
-        negotiable:      negotiable,
         payment_methods: payChecks,
         images:          images,
         image:           images[0] || null,
@@ -460,7 +451,6 @@ window.onDjamikReady(function() {
         image_url:       product.image,
         images:          product.images,
         payment_methods: product.payment_methods,
-        negotiable:      product.negotiable,
         genre:           genreChecks
       };
 

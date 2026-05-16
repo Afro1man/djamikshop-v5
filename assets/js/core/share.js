@@ -34,7 +34,7 @@
     var price = (window.formatPrice ? window.formatPrice(product.price) : (product.price + ' FCFA'));
     var lines = [
       product.title,
-      price + (product.negotiable ? ' (négociable)' : ''),
+      price,
       product.city ? ('📍 ' + product.city) : '',
       '',
       'Voir l\'annonce sur DjamikShop :'
