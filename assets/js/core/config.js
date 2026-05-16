@@ -52,9 +52,6 @@ window.APP = {
   ],
 
   paymentMethods: [
-    { id: 'orange_money', label: 'Orange Money',  icon: window.ICONS.orange_dot, color: '#FF6200', desc: 'Paiement instantané', mobile: true },
-    { id: 'airtel_money', label: 'Airtel Money',  icon: window.ICONS.red_dot,    color: '#E20000', desc: 'Simple et rapide',    mobile: true },
-    { id: 'moov_money',   label: 'Moov Money',    icon: window.ICONS.blue_dot,   color: '#1A4AAB', desc: 'Sécurisé',            mobile: true },
     { id: 'mynita',       label: 'Mynita',        icon: window.ICONS.purple_dot, color: '#7C3AED', desc: 'Portefeuille digital',mobile: true },
     { id: 'amanata',      label: 'Amanata',       icon: window.ICONS.green_dot,  color: '#16A34A', desc: 'Transfert mobile',    mobile: true },
     { id: 'cod',          label: 'À la livraison',icon: window.ICONS.banknote,   color: '#059669', desc: 'Payer à réception',   mobile: false },

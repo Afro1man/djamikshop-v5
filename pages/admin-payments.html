@@ -117,7 +117,7 @@ window.onDjamikReady(async function() {
       return;
     }
 
-    var METHOD_LABELS = { orange:'Orange Money', airtel:'Airtel Money', moov:'Moov Money', mynita:'Mynita', amanata:'Amanata' };
+    var METHOD_LABELS = { mynita:'Mynita', amanata:'Amanata' };
 
     container.innerHTML = list.map(function(r) {
       var p = profiles[r.user_id] || {};

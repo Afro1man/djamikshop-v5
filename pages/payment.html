@@ -92,25 +92,16 @@ window.onDjamikReady(async function() {
     return;
   }
 
-  // Numéros Mobile Money DjamikShop (à personnaliser)
+  // Numéros Mobile Money DjamikShop
   var DJAMIK_NUMBERS = {
-    orange:  '+227 89 77 00 02',
-    airtel:  '+227 89 77 00 02',
-    moov:    '+227 89 77 00 02',
     mynita:  '+227 89 77 00 02',
     amanata: '+227 89 77 00 02'
   };
   var METHOD_LABELS = {
-    orange:  'Orange Money',
-    airtel:  'Airtel Money',
-    moov:    'Moov Money',
     mynita:  'Mynita',
     amanata: 'Amanata'
   };
   var METHOD_COLORS = {
-    orange:  '#FF6600',
-    airtel:  '#E40010',
-    moov:    '#0066CC',
     mynita:  '#7C3AED',
     amanata: '#16A34A'
   };
@@ -132,7 +123,7 @@ window.onDjamikReady(async function() {
   }
 
   function _renderForm(selectedMethod) {
-    selectedMethod = selectedMethod || 'orange';
+    selectedMethod = selectedMethod || 'mynita';
     root.innerHTML =
       '<div class="pay-head">' +
         '<span class="eyebrow">' + tierLabel + ' · 30 jours' + (promoApplied ? ' · PROMO ' + promoApplied : '') + '</span>' +

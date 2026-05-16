@@ -46,52 +46,6 @@
   //   processPayment(amount, phone, orderId) → Promise<{ok, ref, message}>
   window.paymentGateways = {
 
-    orange_money: {
-      label:        'Orange Money',
-      color:        '#FF6200',
-      ussd:         '#144#',
-      instructions: function(phone, amount) {
-        return 'Composez *144# sur ' + window.formatPhoneNE(phone) +
-               ', choisissez "Paiement marchand", puis confirmez le montant de ' +
-               window.formatPrice(amount) + '.';
-      },
-      processPayment: function(amount, phone, orderId) {
-        // TODO : remplacer par appel à l'API Orange Money Niger (OMpay)
-        // POST https://api.orange.com/oms/.../merchant-payment
-        // Body: { merchant_id, amount, msisdn: phone, reference: orderId }
-        return _demoProcess('orange', amount, phone, orderId);
-      }
-    },
-
-    airtel_money: {
-      label:        'Airtel Money',
-      color:        '#E20000',
-      ussd:         '#432#',
-      instructions: function(phone, amount) {
-        return 'Composez *432# sur ' + window.formatPhoneNE(phone) +
-               ', sélectionnez "Payer marchand", puis validez ' +
-               window.formatPrice(amount) + '.';
-      },
-      processPayment: function(amount, phone, orderId) {
-        // TODO : Airtel Money Niger merchant API
-        return _demoProcess('airtel', amount, phone, orderId);
-      }
-    },
-
-    moov_money: {
-      label:        'Moov Money',
-      color:        '#1A4AAB',
-      ussd:         '#555#',
-      instructions: function(phone, amount) {
-        return 'Composez *555# sur ' + window.formatPhoneNE(phone) +
-               ', puis confirmez le paiement de ' + window.formatPrice(amount) + '.';
-      },
-      processPayment: function(amount, phone, orderId) {
-        // TODO : Moov Money Niger merchant API
-        return _demoProcess('moov', amount, phone, orderId);
-      }
-    },
-
     mynita: {
       label:        'Mynita',
       color:        '#7C3AED',
