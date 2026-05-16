@@ -329,9 +329,14 @@
     });
 
     // Écoute aussi les changements d'auth Supabase (login/logout)
+    // Ignore TOKEN_REFRESHED (auto toutes les heures) et INITIAL_SESSION
+    // sinon le menu se reconstruit en plein milieu de l'utilisation.
     if (window._supabase && window._supabase.auth) {
-      window._supabase.auth.onAuthStateChange(function() {
-        // Petit délai pour laisser auth.js mettre à jour dj_user_id
+      window._supabase.auth.onAuthStateChange(function(event, session) {
+        if (event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') return;
+        // Évite aussi si le menu est ouvert au moment du refresh
+        var menu = document.getElementById('side-menu');
+        if (menu && menu.classList.contains('open')) return;
         setTimeout(function() {
           _refreshMenu();
           _hydrateSession();
@@ -429,10 +434,15 @@
     var sideMenu = document.getElementById('side-menu');
     if (!sideMenu) return;
 
-    function open()  { sideMenu.classList.add('open');  if (menuBtn) menuBtn.classList.add('open');  document.body.style.overflow = 'hidden'; }
-    function close() { sideMenu.classList.remove('open'); if (menuBtn) menuBtn.classList.remove('open'); document.body.style.overflow = ''; }
+    function open()  { var sm = document.getElementById('side-menu'); if (!sm) return; sm.classList.add('open'); if (menuBtn) menuBtn.classList.add('open'); document.body.style.overflow = 'hidden'; }
+    function close() { var sm = document.getElementById('side-menu'); if (!sm) return; sm.classList.remove('open'); if (menuBtn) menuBtn.classList.remove('open'); document.body.style.overflow = ''; }
 
-    if (menuBtn) menuBtn.addEventListener('click', open);
+    // Évite les doublons : on retire l'ancien listener si on en a déjà ajouté un
+    if (menuBtn) {
+      if (menuBtn._smOpenHandler) menuBtn.removeEventListener('click', menuBtn._smOpenHandler);
+      menuBtn._smOpenHandler = open;
+      menuBtn.addEventListener('click', open);
+    }
     sideMenu.querySelectorAll('[data-close]').forEach(function(el) {
       el.addEventListener('click', close);
     });
