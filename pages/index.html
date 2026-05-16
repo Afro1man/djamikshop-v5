@@ -776,6 +776,10 @@ function _initFeaturedSlider(scroll, count) {
     return Math.round(scroll.scrollLeft / _cardWidth());
   }
 
+  function _maxScroll() {
+    return Math.max(0, scroll.scrollWidth - scroll.clientWidth);
+  }
+
   function _goTo(i) {
     scroll.scrollTo({ left: i * _cardWidth(), behavior: 'smooth' });
     _updateDots(i);
@@ -788,12 +792,33 @@ function _initFeaturedSlider(scroll, count) {
     });
   }
 
+  // Avance/recule d'1 carte. Si on est au bout en avant, boucle au début.
   function _step(dir) {
-    var i = _currentIndex();
-    var next = i + dir;
-    if (next >= count) next = 0;
-    if (next < 0) next = count - 1;
-    _goTo(next);
+    var pos = scroll.scrollLeft;
+    var max = _maxScroll();
+    var w   = _cardWidth();
+
+    if (dir === 1) {
+      if (pos >= max - 10) {
+        // Fin atteinte → retour au début
+        scroll.scrollTo({ left: 0, behavior: 'smooth' });
+        _updateDots(0);
+      } else {
+        var nextPos = Math.min(pos + w, max);
+        scroll.scrollTo({ left: nextPos, behavior: 'smooth' });
+        setTimeout(function(){ _updateDots(_currentIndex()); }, 350);
+      }
+    } else {
+      if (pos <= 5) {
+        // Début atteint → saute à la fin
+        scroll.scrollTo({ left: max, behavior: 'smooth' });
+        _updateDots(count - 1);
+      } else {
+        var prevPos = Math.max(pos - w, 0);
+        scroll.scrollTo({ left: prevPos, behavior: 'smooth' });
+        setTimeout(function(){ _updateDots(_currentIndex()); }, 350);
+      }
+    }
   }
 
   if (prev) prev.addEventListener('click', function(){ _step(-1); _resetTimer(); });

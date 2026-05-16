@@ -195,14 +195,31 @@
       '.tier-badge.tier-vip{background:linear-gradient(135deg,#FFE08A,#F5B100,#B8830C);color:#3D2700;box-shadow:0 1px 3px rgba(245,177,0,.4),inset 0 1px 0 rgba(255,255,255,.4);text-shadow:0 1px 0 rgba(255,255,255,.3)}',
       '.tier-badge.tier-premium{background:linear-gradient(135deg,#C4B5FD,#7C3AED,#4C1D95);color:#fff;box-shadow:0 1px 3px rgba(124,58,237,.4),inset 0 1px 0 rgba(255,255,255,.2)}',
 
-      // ── CARDS VIP : bordure flow + double brillance + glow pulsé ──
-      '.product-card.tier-vip{border:none !important;position:relative;background:#fff !important;box-shadow:0 4px 16px rgba(245,177,0,.18),0 0 0 2px rgba(245,177,0,.4) !important;animation:tierVipGlow 3s ease-in-out infinite}',
-      '.product-card.tier-vip::before{content:"";position:absolute;inset:-2px;border-radius:inherit;padding:2px;background:linear-gradient(135deg,#FFE08A,#F5B100,#B8830C,#FFE08A,#F5B100,#B8830C);background-size:300% 300%;-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:tierBorderFlow 4s linear infinite;pointer-events:none;z-index:2}',
-      '.product-card.tier-vip::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,220,130,.45) 50%,transparent 70%);background-size:250% 100%;background-position:200% 0;animation:tierShine 3s ease-in-out infinite;pointer-events:none;border-radius:inherit;z-index:1;mix-blend-mode:screen}',
-      '.product-card.tier-vip:hover{box-shadow:0 16px 36px rgba(245,177,0,.45),0 0 0 2px rgba(245,177,0,.6) !important}',
-      '@keyframes tierVipGlow{0%,100%{box-shadow:0 4px 16px rgba(245,177,0,.18),0 0 0 2px rgba(245,177,0,.4)}50%{box-shadow:0 6px 24px rgba(245,177,0,.35),0 0 0 2px rgba(245,177,0,.6)}}',
+      // ═════════════════════════════════════════════════════
+      // CARDS VIP : design enrichi - couronne + double glow + or vif
+      // ═════════════════════════════════════════════════════
+      '.product-card.tier-vip{border:none !important;position:relative;background:linear-gradient(180deg,#FFFAEB 0%,#fff 30%) !important;box-shadow:0 4px 20px rgba(245,177,0,.22),0 0 0 3px rgba(245,177,0,.5),inset 0 1px 0 rgba(255,224,138,.6) !important;animation:tierVipGlow 2.5s ease-in-out infinite}',
+      // Bordure or 3 couches qui flow
+      '.product-card.tier-vip::before{content:"";position:absolute;inset:-3px;border-radius:calc(var(--r-md,12px) + 3px);padding:3px;background:linear-gradient(135deg,#FFF3C4 0%,#FFE08A 15%,#F5B100 30%,#B8830C 45%,#FFE08A 60%,#F5B100 75%,#FFF3C4 90%,#FFE08A 100%);background-size:300% 300%;-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:tierBorderFlow 3s linear infinite;pointer-events:none;z-index:2}',
+      // Double brillance qui balaye
+      '.product-card.tier-vip::after{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 25%,rgba(255,234,170,.55) 45%,rgba(255,255,255,.7) 50%,rgba(255,234,170,.55) 55%,transparent 75%);background-size:250% 100%;background-position:200% 0;animation:tierShine 2.8s ease-in-out infinite;pointer-events:none;border-radius:inherit;z-index:1;mix-blend-mode:screen}',
+      // Couronne dans le coin haut-droit (au-dessus du bouton like)
+      '.product-card.tier-vip .card-img-wrap::after{content:"";position:absolute;top:-6px;right:46px;width:22px;height:18px;background:linear-gradient(135deg,#FFF3C4,#FFE08A,#F5B100);clip-path:polygon(0 100%,15% 30%,30% 65%,50% 0,70% 65%,85% 30%,100% 100%);filter:drop-shadow(0 2px 4px rgba(245,177,0,.5));z-index:5;animation:crownBounce 2s ease-in-out infinite}',
+      // Halo radial autour du badge VIP au coin haut-gauche
+      '.product-card.tier-vip .card-img-wrap::before{content:"";position:absolute;top:-10px;left:-10px;width:80px;height:80px;background:radial-gradient(circle,rgba(255,224,138,.6) 0%,transparent 70%);pointer-events:none;z-index:1;animation:vipHalo 2.5s ease-in-out infinite}',
+      '.product-card.tier-vip:hover{box-shadow:0 20px 44px rgba(245,177,0,.5),0 0 0 3px rgba(245,177,0,.7),inset 0 1px 0 rgba(255,224,138,.8) !important;transform:translateY(-3px)}',
+      '.product-card.tier-vip{transition:transform .25s,box-shadow .25s !important}',
+
+      '@keyframes tierVipGlow{0%,100%{box-shadow:0 4px 20px rgba(245,177,0,.22),0 0 0 3px rgba(245,177,0,.5),inset 0 1px 0 rgba(255,224,138,.6)}50%{box-shadow:0 8px 32px rgba(245,177,0,.45),0 0 0 3px rgba(245,177,0,.8),inset 0 1px 0 rgba(255,224,138,.9),0 0 60px rgba(245,177,0,.2)}}',
       '@keyframes tierBorderFlow{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}',
       '@keyframes tierShine{0%{background-position:200% 0}100%{background-position:-200% 0}}',
+      '@keyframes crownBounce{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.05)}}',
+      '@keyframes vipHalo{0%,100%{opacity:.6;transform:scale(1)}50%{opacity:.9;transform:scale(1.15)}}',
+
+      // Titre du produit en doré sur les cartes VIP
+      '.product-card.tier-vip .card-title{background:linear-gradient(135deg,#3D2700,#8C6500,#3D2700);background-size:200% 200%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:vipTextShine 4s ease-in-out infinite;font-weight:800 !important}',
+      '@keyframes vipTextShine{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}',
+
 
       // ── CARDS PREMIUM : bordure violette flow + halo radial pulsé ──
       '.product-card.tier-premium{border:none !important;position:relative;background:#fff !important;box-shadow:0 4px 16px rgba(124,58,237,.18),0 0 0 2px rgba(124,58,237,.4) !important;animation:tierPremGlow 3.5s ease-in-out infinite}',
