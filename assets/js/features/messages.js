@@ -9,8 +9,72 @@
 //  - Liste des convs mise à jour live
 // ═══════════════════════════════════════════════════════════════════
 
+  // ── Bandeau "Activer les notifications" ──
+  // Affiché sur la page Messages si :
+  //  - Le navigateur supporte les push
+  //  - L'utilisateur n'a PAS encore donné l'autorisation
+  //  - Pas dismissed récemment (cache 3 jours)
+  async function _maybeShowPushBanner() {
+    if (document.getElementById('push-banner')) return;
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
+    if (Notification.permission === 'granted') return;     // déjà OK
+    var dismissed = parseInt(localStorage.getItem('dj_push_dismissed') || '0', 10);
+    if (dismissed && Date.now() < dismissed) return;
+
+    var bar = document.createElement('div');
+    bar.id = 'push-banner';
+    bar.innerHTML =
+      '<div class="pb-inner">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>' +
+        '<div class="pb-text"><strong>Active les notifications</strong> pour recevoir tes messages même quand l\'app est fermée.</div>' +
+        '<button class="pb-yes" id="pb-yes">Activer</button>' +
+        '<button class="pb-close" id="pb-close" aria-label="Fermer">×</button>' +
+      '</div>';
+    if (!document.getElementById('pb-styles')) {
+      var s = document.createElement('style');
+      s.id = 'pb-styles';
+      s.textContent =
+        '#push-banner{background:linear-gradient(135deg,#FFE3D1,#FFD0B5);border-bottom:1px solid rgba(232,80,26,.25);padding:10px 0;animation:pbSlide .3s ease}' +
+        '.pb-inner{display:flex;align-items:center;gap:12px;padding:0 16px;max-width:1280px;margin:0 auto}' +
+        '#push-banner svg{color:var(--brand,#E8501A);flex-shrink:0}' +
+        '.pb-text{flex:1;min-width:0;font-size:.85rem;color:var(--ink,#0F1115);line-height:1.4}' +
+        '.pb-yes{flex-shrink:0;background:var(--brand,#E8501A);color:#fff;border:none;padding:8px 16px;border-radius:8px;font-weight:700;font-size:.82rem;cursor:pointer;font-family:inherit}' +
+        '.pb-yes:hover{background:#C03E0E}' +
+        '.pb-close{flex-shrink:0;background:transparent;border:none;color:var(--ink-3,#5A6273);font-size:22px;cursor:pointer;padding:2px 8px;line-height:1;font-family:inherit}' +
+        '@keyframes pbSlide{from{transform:translateY(-100%)}to{transform:translateY(0)}}' +
+        '@media(max-width:600px){.pb-text{font-size:.78rem}}';
+      document.head.appendChild(s);
+    }
+    document.body.insertBefore(bar, document.body.firstChild);
+
+    document.getElementById('pb-yes').addEventListener('click', async function() {
+      var btn = this;
+      btn.disabled = true; btn.textContent = '...';
+      try {
+        if (window.subscribePush) {
+          var ok = await window.subscribePush();
+          if (ok) {
+            bar.remove();
+            window.toast && window.toast('Notifications activées ! Tu seras prévenu quand on t\'écrit.', 'success', 5000);
+            return;
+          }
+        }
+        window.toast && window.toast('Tu as refusé les notifications.', 'error');
+      } catch(e) {}
+      btn.disabled = false; btn.textContent = 'Activer';
+    });
+
+    document.getElementById('pb-close').addEventListener('click', function() {
+      bar.remove();
+      localStorage.setItem('dj_push_dismissed', String(Date.now() + 3 * 24 * 3600 * 1000));
+    });
+  }
+
 window.onDjamikReady(async function() {
   if (!document.getElementById('conv-list-body')) return;
+
+  // ── Banner "Activer les notifications" si non activées ──
+  setTimeout(_maybeShowPushBanner, 800);
 
   var sb = window._supabase;
   if (!sb) {
