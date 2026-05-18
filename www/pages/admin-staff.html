@@ -90,16 +90,10 @@ window.onDjamikReady(async function() {
       '<p class="admin-sub">Gère les <strong>administrateurs</strong> (tout pouvoir) et les <strong>modérateurs</strong> (modération seulement).</p>' +
 
       '<div class="add-form">' +
-        '<h3>➕ Nommer un membre du staff</h3>' +
-        '<div class="row">' +
-          '<input type="text" id="add-uid" placeholder="UUID utilisateur (depuis sa page Détail)" required>' +
-          '<select id="add-role">' +
-            '<option value="moderator">Modérateur</option>' +
-            '<option value="admin">Administrateur</option>' +
-          '</select>' +
-          '<button class="btn btn-primary" id="add-btn">Ajouter</button>' +
-        '</div>' +
-        '<p style="font-size:.75rem;color:var(--ink-3);margin:8px 0 0">💡 Copie l\'UUID depuis la page <a href="admin-users.html" style="color:var(--primary)">Utilisateurs</a> → clic Détail → coller l\'URL sans <code>?id=</code></p>' +
+        '<h3>➕ Pour nommer un nouveau membre du staff</h3>' +
+        '<p style="font-size:.85rem;color:var(--ink-2);margin:0">' +
+          'Va sur <a href="admin-users.html" style="color:var(--primary);font-weight:600">Utilisateurs</a> → clic <strong>"Détail"</strong> sur la personne → bouton <strong>👮 Nommer Modérateur</strong> ou <strong>👑 Nommer Admin</strong>.' +
+        '</p>' +
       '</div>' +
 
       '<div id="staff-list">' +
@@ -131,16 +125,6 @@ window.onDjamikReady(async function() {
       '</div>';
 
     root.innerHTML = html;
-
-    document.getElementById('add-btn').addEventListener('click', async function() {
-      var newUid = document.getElementById('add-uid').value.trim();
-      var newRole = document.getElementById('add-role').value;
-      if (!newUid || newUid.length !== 36) { window.toast('UUID invalide (doit faire 36 caractères)', 'error'); return; }
-      var r = await sb.rpc('admin_promote_to_staff', { p_user_id: newUid, p_role: newRole });
-      if (r.error) { window.toast('Échec : ' + r.error.message, 'error', 5000); return; }
-      window.toast('Membre ajouté au staff comme ' + newRole, 'success');
-      setTimeout(function(){ location.reload(); }, 600);
-    });
 
     document.querySelectorAll('[data-act]').forEach(function(btn) {
       btn.addEventListener('click', async function() {

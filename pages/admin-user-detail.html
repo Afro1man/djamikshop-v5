@@ -76,6 +76,10 @@ window.onDjamikReady(async function() {
   var targetId = new URLSearchParams(location.search).get('id');
   if (!targetId) { root.innerHTML = '<div class="access-denied"><h1>ID manquant</h1></div>'; return; }
 
+  // Vérifie si ce user est déjà staff
+  var staffRes = await sb.from('admins').select('role').eq('user_id', targetId).maybeSingle();
+  var targetStaffRole = (staffRes && staffRes.data && staffRes.data.role) || null;
+
   // Fetch toutes les données en parallèle
   var [profileRes, productsRes, messagesRes, offersRes, reportsRes, paymentsRes, banRes, subRes, tierRes] = await Promise.all([
     sb.from('profiles').select('*').eq('id', targetId).maybeSingle(),
@@ -164,8 +168,23 @@ window.onDjamikReady(async function() {
       '<a class="btn btn-outline" href="my-profile.html?id=' + profile.id + '" target="_blank">Voir profil public</a>' +
       (!ban ? '<button class="btn btn-outline" id="ban-btn" style="color:var(--danger);border-color:rgba(239,68,68,.3)">🚫 Bannir</button>' :
         '<button class="btn btn-primary" id="unban-btn">Débannir</button>') +
-      (iAmAdmin ? '<button class="btn btn-outline" id="delete-btn" style="color:#fff;background:var(--danger,#ef4444);border-color:var(--danger,#ef4444)">🗑 Supprimer définitivement</button>' : '') +
+      (iAmAdmin ? (
+        // Boutons staff : seulement pour admin, et pas sur soi-même
+        (targetId !== uid ? (
+          (targetStaffRole === 'admin'
+            ? '<button class="btn btn-outline" id="demote-mod-btn" style="color:#1E40AF;border-color:#BFDBFE">↓ Rétrograder en Modérateur</button>' +
+              '<button class="btn btn-outline" id="remove-staff-btn" style="color:var(--ink-3)">Retirer du staff</button>'
+            : targetStaffRole === 'moderator'
+              ? '<button class="btn btn-outline" id="promote-admin-btn" style="color:var(--brand);border-color:rgba(232,80,26,.3)">↑ Promouvoir Admin</button>' +
+                '<button class="btn btn-outline" id="remove-staff-btn" style="color:var(--ink-3)">Retirer du staff</button>'
+              : '<button class="btn btn-outline" id="make-mod-btn" style="color:#1E40AF;border-color:#BFDBFE">👮 Nommer Modérateur</button>' +
+                '<button class="btn btn-outline" id="make-admin-btn" style="color:var(--brand);border-color:rgba(232,80,26,.3)">👑 Nommer Admin</button>'
+          )
+        ) : '') +
+        '<button class="btn btn-outline" id="delete-btn" style="color:#fff;background:var(--danger,#ef4444);border-color:var(--danger,#ef4444)">🗑 Supprimer définitivement</button>'
+      ) : '') +
     '</div>' +
+    (targetStaffRole ? '<div style="background:linear-gradient(135deg,#FFFAEB,#FEF0C7);border:1px solid #FCD34D;padding:10px 14px;border-radius:10px;margin-bottom:var(--space-3);font-size:.88rem;color:#78350F"><strong>⚠ Cet utilisateur est ' + (targetStaffRole === 'admin' ? 'ADMIN' : 'MODÉRATEUR') + '</strong> du staff. Il est protégé des actions standards (ban, suppression).</div>' : '') +
 
     '<div class="section"><h2>📦 Annonces actives (' + activeProducts.length + ')</h2>' + _prodList(activeProducts.slice(0,10), 'Aucune annonce active.') + '</div>' +
     '<div class="section"><h2>✓ Vendues (' + soldProducts.length + ')</h2>' + _prodList(soldProducts.slice(0,5), 'Aucune vente.') + '</div>' +
@@ -225,6 +244,53 @@ window.onDjamikReady(async function() {
     window.toast('Utilisateur supprimé.', 'success');
     setTimeout(function(){ location.href = 'admin-users.html'; }, 800);
   });
+
+  // ── Boutons staff (admin only) ──
+  async function _promote(role, confirmMsg, successMsg) {
+    if (!confirm(confirmMsg)) return;
+    var r = await sb.rpc('admin_promote_to_staff', { p_user_id: targetId, p_role: role });
+    if (r.error) { window.toast('Échec : ' + r.error.message, 'error', 5000); return; }
+    window.toast(successMsg, 'success');
+    setTimeout(function(){ location.reload(); }, 600);
+  }
+  async function _demoteFromStaff() {
+    if (!confirm('Retirer "' + (profile.full_name || 'cet utilisateur') + '" du staff ?\n\nIl redevient un user normal.')) return;
+    var r = await sb.rpc('admin_demote_staff', { p_user_id: targetId });
+    if (r.error) { window.toast('Échec : ' + r.error.message, 'error'); return; }
+    window.toast('Retiré du staff.', 'success');
+    setTimeout(function(){ location.reload(); }, 600);
+  }
+
+  var mm = document.getElementById('make-mod-btn');
+  if (mm) mm.addEventListener('click', function(){
+    _promote('moderator',
+      'Nommer "' + (profile.full_name || 'cet utilisateur') + '" Modérateur ?\n\nIl pourra modérer le contenu mais pas toucher au staff.',
+      'Nommé Modérateur ✓');
+  });
+
+  var ma = document.getElementById('make-admin-btn');
+  if (ma) ma.addEventListener('click', function(){
+    _promote('admin',
+      '⚠ Nommer "' + (profile.full_name || 'cet utilisateur') + '" ADMINISTRATEUR ?\n\nIl aura les MÊMES POUVOIRS que toi (peut te retirer du staff, te bannir, etc.).',
+      'Nommé Administrateur ✓');
+  });
+
+  var pa = document.getElementById('promote-admin-btn');
+  if (pa) pa.addEventListener('click', function(){
+    _promote('admin',
+      '⚠ Promouvoir ce Modérateur en ADMINISTRATEUR ?\n\nIl aura tous les pouvoirs (peut te retirer du staff).',
+      'Promu Administrateur ✓');
+  });
+
+  var dm = document.getElementById('demote-mod-btn');
+  if (dm) dm.addEventListener('click', function(){
+    _promote('moderator',
+      'Rétrograder cet Admin en Modérateur ?\n\nIl perdra ses pouvoirs de gestion du staff.',
+      'Rétrogradé Modérateur ✓');
+  });
+
+  var rs = document.getElementById('remove-staff-btn');
+  if (rs) rs.addEventListener('click', _demoteFromStaff);
 });
 </script>
 </body>
