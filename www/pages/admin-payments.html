@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Paiements — DjamikShop Admin</title>
+  <meta name="theme-color" content="#E8501A">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/icon.svg">
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    .admin-h1 { font-family: Outfit,sans-serif; font-size: 1.4rem; margin: 0 0 4px; }
+    .admin-sub { color: var(--ink-3); margin-bottom: var(--space-4); font-size: .9rem; }
+    .admin-tabs { display: inline-flex; gap: 4px; background: var(--surface-2); padding: 4px; border-radius: var(--r-md); margin-bottom: var(--space-4); }
+    .admin-tab { padding: 6px 14px; background: transparent; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: .85rem; color: var(--ink-3); font-family: inherit; }
+    .admin-tab.active { background: var(--white); color: var(--ink); box-shadow: var(--shadow-sm); }
+    .admin-tab-count { display: inline-block; min-width: 18px; padding: 0 5px; background: var(--brand,#E8501A); color: #fff; border-radius: 10px; font-size: .7rem; margin-left: 4px; }
+
+    .pay-card { display: flex; gap: 14px; background: var(--white); border: 1px solid var(--surface-3); border-radius: var(--r-lg); padding: 14px; margin-bottom: 10px; box-shadow: var(--shadow-sm); }
+    .pay-card.urgent { border-left: 4px solid #F59E0B; background: #FFFBEB; }
+    .pay-card-tier { width: 60px; flex-shrink: 0; text-align: center; padding: 8px; border-radius: var(--r-md); font-family: Outfit,sans-serif; font-weight: 800; font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; }
+    .pay-card-tier.vip { background: linear-gradient(135deg,#FFE08A,#F5B100); color: #5C3D00; }
+    .pay-card-tier.premium { background: linear-gradient(135deg,#A78BFA,#7C3AED); color: #fff; }
+    .pay-card-body { flex: 1; min-width: 0; }
+    .pay-card-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
+    .pay-card-amount { font-family: Outfit,sans-serif; font-weight: 800; color: var(--brand,#E8501A); font-size: 1rem; }
+    .pay-card-ref { font-family: monospace; font-weight: 700; background: var(--surface-2); padding: 2px 8px; border-radius: 4px; font-size: .8rem; letter-spacing: .08em; }
+    .pay-card-method { font-size: .75rem; color: var(--ink-3); padding: 2px 8px; border-radius: 4px; background: var(--surface-2); }
+    .pay-card-user { font-size: .85rem; color: var(--ink); margin-top: 2px; }
+    .pay-card-meta { font-size: .72rem; color: var(--ink-3); margin-top: 2px; }
+    .pay-card-note { font-size: .82rem; color: var(--ink-2); background: var(--surface-2); padding: 6px 10px; border-radius: 8px; margin-top: 6px; border-left: 3px solid var(--surface-3); }
+    .pay-card-actions { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+    .pay-card-actions .btn { padding: 6px 12px; font-size: .78rem; }
+
+    .pay-status-badge { display: inline-block; padding: 2px 8px; border-radius: 100px; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+    .pay-status-badge.pending { background: #FEF3C7; color: #92400E; }
+    .pay-status-badge.confirmed { background: #DCFCE7; color: #166534; }
+    .pay-status-badge.rejected { background: #FEE2E2; color: #991B1B; }
+
+    .access-denied { text-align: center; padding: 80px 20px; }
+    .empty-state { text-align: center; padding: 60px 20px; color: var(--ink-3); }
+  </style>
+</head>
+<body>
+<script>if(typeof window.supabase==='undefined')window.supabase=null;</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" onerror=""></script>
+<script src="../assets/js/app.js"></script>
+
+<div class="page-body">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="admin.html">Admin</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <span>Paiements</span>
+    </div>
+    <div id="admin-content"><div style="text-align:center;padding:40px;color:var(--ink-3)">Chargement…</div></div>
+  </div>
+</div>
+
+<script>
+window.onDjamikReady(async function() {
+  var root = document.getElementById('admin-content');
+  if (!root || !window._supabase) return;
+
+  var u = await window._supabase.auth.getUser();
+  var uid = u && u.data && u.data.user && u.data.user.id;
+  if (!uid) { root.innerHTML = '<div class="access-denied"><h1>Connexion requise</h1></div>'; return; }
+  var ad = await window._supabase.from('admins').select('user_id').eq('user_id', uid).maybeSingle();
+  if (!ad || !ad.data) { root.innerHTML = '<div class="access-denied"><h1>Accès refusé</h1></div>'; return; }
+
+  var sb = window._supabase;
+  var all = [];
+  var profiles = {};
+  var currentTab = 'pending';
+
+  async function _load() {
+    var r = await sb.from('payment_requests').select('*').order('created_at', { ascending: false }).limit(200);
+    all = r.data || [];
+    var ids = Array.from(new Set(all.map(function(x){ return x.user_id; })));
+    if (ids.length) {
+      var p = await sb.from('profiles').select('id, full_name, avatar_url').in('id', ids);
+      (p.data || []).forEach(function(x){ profiles[x.id] = x; });
+    }
+  }
+
+  function _render() {
+    var counts = { pending: 0, confirmed: 0, rejected: 0 };
+    all.forEach(function(r){ counts[r.status] = (counts[r.status] || 0) + 1; });
+
+    var tabs = ['pending','confirmed','rejected'].map(function(s) {
+      var label = s === 'pending' ? 'En attente' : (s === 'confirmed' ? 'Confirmés' : 'Rejetés');
+      var c = counts[s] || 0;
+      return '<button class="admin-tab' + (currentTab===s?' active':'') + '" data-tab="' + s + '">' + label +
+        (c > 0 ? ' <span class="admin-tab-count">' + c + '</span>' : '') +
+      '</button>';
+    }).join('');
+
+    root.innerHTML =
+      '<h1 class="admin-h1">Paiements</h1>' +
+      '<p class="admin-sub">Vérifie les paiements Mobile Money reçus et active les abonnements.</p>' +
+      '<div class="admin-tabs">' + tabs + '</div>' +
+      '<div id="pay-list"></div>';
+
+    root.querySelectorAll('.admin-tab').forEach(function(t) {
+      t.addEventListener('click', function() { currentTab = t.dataset.tab; _render(); });
+    });
+
+    _renderList();
+  }
+
+  function _renderList() {
+    var list = all.filter(function(r){ return r.status === currentTab; });
+    var container = document.getElementById('pay-list');
+    if (!list.length) {
+      container.innerHTML = '<div class="empty-state"><p>Aucun paiement ' + currentTab + '.</p></div>';
+      return;
+    }
+
+    var METHOD_LABELS = { mynita:'Mynita', amanata:'Amanata' };
+
+    container.innerHTML = list.map(function(r) {
+      var p = profiles[r.user_id] || {};
+      var name = p.full_name || ('User ' + r.user_id.slice(0,6));
+      return '<div class="pay-card' + (r.status==='pending'?' urgent':'') + '">' +
+        '<div class="pay-card-tier ' + r.tier + '">' + r.tier + '</div>' +
+        '<div class="pay-card-body">' +
+          '<div class="pay-card-head">' +
+            '<span class="pay-card-amount">' + r.amount.toLocaleString('fr-FR').replace(',', ' ') + ' FCFA</span>' +
+            '<span class="pay-card-ref">' + r.reference + '</span>' +
+            '<span class="pay-card-method">' + (METHOD_LABELS[r.payment_method] || r.payment_method) + '</span>' +
+            '<span class="pay-status-badge ' + r.status + '">' + r.status + '</span>' +
+          '</div>' +
+          '<div class="pay-card-user"><strong>' + window.escHtml(name) + '</strong></div>' +
+          '<div class="pay-card-meta">Demandé ' + window.relativeDate(r.created_at) +
+            (r.confirmed_at ? ' · ' + (r.status==='confirmed'?'Confirmé':'Rejeté') + ' ' + window.relativeDate(r.confirmed_at) : '') +
+          '</div>' +
+          (r.user_note ? '<div class="pay-card-note">📝 ' + window.escHtml(r.user_note) + '</div>' : '') +
+          (r.admin_note ? '<div class="pay-card-note" style="border-left-color:#ef4444">⚠ ' + window.escHtml(r.admin_note) + '</div>' : '') +
+          (r.status === 'pending' ? '<div class="pay-card-actions">' +
+            '<button class="btn btn-primary" data-act="confirm" data-id="' + r.id + '">✓ Confirmer & activer</button>' +
+            '<button class="btn btn-outline" data-act="reject" data-id="' + r.id + '" style="color:var(--danger);border-color:rgba(239,68,68,.3)">✗ Rejeter</button>' +
+          '</div>' : '') +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    container.querySelectorAll('[data-act]').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        var act = btn.dataset.act, id = btn.dataset.id;
+        if (act === 'confirm') {
+          if (!confirm('Confirmer ce paiement et activer l\'abonnement (30 jours) ?')) return;
+          btn.disabled = true; btn.textContent = '...';
+          var r = await sb.rpc('admin_confirm_payment', { p_request_id: id });
+          if (r.error) { window.toast('Erreur : ' + r.error.message, 'error'); btn.disabled = false; btn.textContent = '✓ Confirmer & activer'; return; }
+          window.toast('Abonnement activé jusqu\'au ' + new Date(r.data.expires_at).toLocaleDateString('fr-FR'), 'success', 6000);
+          await _load(); _render();
+        }
+        else if (act === 'reject') {
+          var reason = prompt('Raison du rejet (visible par l\'utilisateur) :');
+          if (reason === null) return;
+          var r = await sb.rpc('admin_reject_payment', { p_request_id: id, p_reason: reason || 'Paiement non vérifié' });
+          if (r.error) { window.toast('Erreur : ' + r.error.message, 'error'); return; }
+          window.toast('Paiement rejeté', 'success');
+          await _load(); _render();
+        }
+      });
+    });
+  }
+
+  // Realtime : nouveau paiement
+  sb.channel('admin-pay').on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'payment_requests' },
+    async function() { await _load(); _render(); window.toast && window.toast('Nouveau paiement reçu', 'info', 4000); }
+  ).subscribe();
+
+  await _load();
+  _render();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Confirmation — DjamikShop</title>
+  <meta name="theme-color" content="#E8501A">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/icon.svg">
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    .cb-wrap { min-height: 70vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .cb-card {
+      background: var(--white);
+      border: 1px solid var(--surface-3);
+      border-radius: 22px;
+      padding: 40px 28px;
+      max-width: 420px; width: 100%;
+      text-align: center;
+      box-shadow: 0 12px 32px rgba(15,23,42,.08);
+    }
+    .cb-icon {
+      width: 76px; height: 76px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 18px;
+    }
+    .cb-icon.ok    { background: #DCFCE7; color: #166534; }
+    .cb-icon.err   { background: #FEE2E2; color: #991B1B; }
+    .cb-icon.load  { background: #FFE3D1; color: #C03E0E; }
+    .cb-icon svg { width: 40px; height: 40px; }
+    .cb-title { font-family: Outfit,sans-serif; font-size: 1.4rem; font-weight: 800; margin-bottom: 8px; }
+    .cb-msg { color: var(--ink-3); font-size: .95rem; line-height: 1.55; margin-bottom: 22px; }
+    .cb-actions { display: flex; flex-direction: column; gap: 10px; }
+    .cb-actions .btn { width: 100%; padding: 12px; }
+    .cb-spin { width: 40px; height: 40px; border: 3px solid #FFE3D1; border-top-color: #E8501A; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<script>if(typeof window.supabase==='undefined')window.supabase=null;</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" onerror=""></script>
+<script src="../assets/js/app.js"></script>
+
+<div class="page-body">
+  <div class="cb-wrap">
+    <div class="cb-card" id="cb-card">
+      <div class="cb-icon load"><div class="cb-spin"></div></div>
+      <h1 class="cb-title">Confirmation en cours…</h1>
+      <p class="cb-msg">Validation de ton email, ça prend 2 secondes.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+window.onDjamikReady(async function() {
+  var card = document.getElementById('cb-card');
+
+  // Supabase v2 lit automatiquement le hash # ou les query params au chargement.
+  // On laisse 1.5s puis on check la session.
+  setTimeout(async function() {
+    if (!window._supabase) { _showError('Service indisponible.'); return; }
+
+    var ok = false, errMsg = null;
+
+    // Vérifie l'erreur dans l'URL (si Supabase a renvoyé error_description)
+    var hash = window.location.hash || '';
+    var search = window.location.search || '';
+    if (hash.indexOf('error') !== -1 || search.indexOf('error') !== -1) {
+      var params = new URLSearchParams(hash.replace('#','') + '&' + search.replace('?',''));
+      errMsg = params.get('error_description') || params.get('error') || 'Lien invalide ou expiré.';
+    }
+
+    // Check session
+    var s = await window._supabase.auth.getSession();
+    var sess = s && s.data && s.data.session;
+    var user = sess && sess.user;
+
+    if (user && user.email_confirmed_at) {
+      ok = true;
+    } else if (sess) {
+      // Connecté mais pas encore confirmé : on attend un poil de plus
+      await new Promise(function(r){ setTimeout(r, 1500); });
+      var u2 = await window._supabase.auth.getUser();
+      if (u2 && u2.data && u2.data.user && u2.data.user.email_confirmed_at) ok = true;
+    }
+
+    if (ok) {
+      _showSuccess(user || (await window._supabase.auth.getUser()).data.user);
+    } else {
+      _showError(errMsg || 'Le lien a expiré ou a déjà été utilisé.');
+    }
+  }, 1500);
+
+  function _showSuccess(user) {
+    card.innerHTML =
+      '<div class="cb-icon ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>' +
+      '<h1 class="cb-title">Email vérifié !</h1>' +
+      '<p class="cb-msg">Bienvenue sur DjamikShop' + (user && user.email ? ',<br><strong>' + window.escHtml(user.email) + '</strong>' : '') + '. Tu peux maintenant publier des annonces et contacter des vendeurs.</p>' +
+      '<div class="cb-actions">' +
+        '<a class="btn btn-primary" href="add-product.html">Publier ma première annonce</a>' +
+        '<a class="btn btn-outline" href="index.html">Voir les annonces</a>' +
+      '</div>';
+  }
+
+  function _showError(msg) {
+    card.innerHTML =
+      '<div class="cb-icon err"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>' +
+      '<h1 class="cb-title">Confirmation impossible</h1>' +
+      '<p class="cb-msg">' + (window.escHtml ? window.escHtml(msg) : msg) + '</p>' +
+      '<div class="cb-actions">' +
+        '<a class="btn btn-primary" href="login.html">Se connecter</a>' +
+        '<a class="btn btn-outline" href="signup.html">Créer un compte</a>' +
+      '</div>';
+  }
+});
+</script>
+</body>
+</html>

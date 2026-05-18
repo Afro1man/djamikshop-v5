@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Fiche produit — DjamikShop</title>
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#E8501A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="DjamikShop">
+  <link rel="apple-touch-icon" href="/assets/icons/icon.svg">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/icon.svg">
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="DjamikShop">
+  <meta property="og:title" content="DjamikShop — La marketplace du Niger">
+  <meta property="og:description" content="Achetez et vendez partout au Niger : Niamey, Zinder, Maradi, Tahoua, Agadez et plus.">
+  <meta property="og:image" content="https://djamikshop-v5.vercel.app/assets/icons/og-image.svg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="fr_FR">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="DjamikShop — La marketplace du Niger">
+  <meta name="twitter:description" content="Achetez et vendez partout au Niger.">
+  <meta name="twitter:image" content="https://djamikshop-v5.vercel.app/assets/icons/og-image.svg">
+  <link rel="preconnect" href="https://iiswzieybgcqrywvopsf.supabase.co" crossorigin>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Inter:wght@400;500;600;700&display=swap" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    /* ── LAYOUT ── */
+    .details-layout {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: var(--space-8);
+      align-items: start;
+      padding-bottom: var(--space-12);
+    }
+
+    html, body { overflow-x: hidden; }
+
+    /* ── GALLERY ── */
+    .gallery-main {
+      border-radius: var(--r-xl); overflow: hidden;
+      aspect-ratio: 4/3; background: var(--surface-2);
+      border: 1px solid var(--surface-3); position: relative; cursor: zoom-in;
+      touch-action: pan-y;
+    }
+    .gallery-main img { width: 100%; height: 100%; object-fit: cover; transition: transform .4s cubic-bezier(.4,0,.2,1); user-select: none; -webkit-user-drag: none; }
+    .gallery-main:hover img { transform: scale(1.03); }
+    .gallery-placeholder { display: flex; align-items: center; justify-content: center; height: 100%; font-size: 5rem; }
+    .gallery-counter {
+      position: absolute; bottom: 12px; right: 12px;
+      background: rgba(0,0,0,.65); color: #fff;
+      padding: 4px 10px; border-radius: 100px;
+      font-size: .78rem; font-weight: 600; letter-spacing: .02em;
+      backdrop-filter: blur(4px);
+      pointer-events: none;
+    }
+    .gallery-nav {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(255,255,255,.9); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,.15);
+      z-index: 2; opacity: 0; transition: opacity .15s;
+    }
+    .gallery-main:hover .gallery-nav { opacity: 1; }
+    .gallery-nav.prev { left: 12px; }
+    .gallery-nav.next { right: 12px; }
+    .gallery-nav svg { width: 18px; height: 18px; color: #0F1115; }
+
+    .gallery-thumbs {
+      display: flex; gap: var(--space-2); margin-top: var(--space-2);
+      overflow-x: auto; padding-bottom: 4px;
+      -webkit-overflow-scrolling: touch;
+      max-width: 100%;
+    }
+    .gallery-thumb {
+      flex-shrink: 0; width: 72px; height: 62px;
+      border-radius: var(--r-sm); overflow: hidden;
+      border: 2px solid transparent; cursor: pointer;
+      transition: border-color var(--transition-fast);
+    }
+    .gallery-thumb.active, .gallery-thumb:hover { border-color: var(--brand); }
+    .gallery-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .gallery-badge-overlay { position: absolute; top: var(--space-3); left: var(--space-3); display: flex; flex-direction: column; gap: var(--space-1); z-index: 2; }
+
+    /* Mobile : image remplit (pas de bandes noires) + fleches conservees + swipe */
+    @media (max-width: 768px) {
+      .gallery-main {
+        aspect-ratio: 1/1;
+        max-height: 50vh;
+        background: var(--surface-2);
+      }
+      .gallery-main img { object-fit: cover; }
+      .gallery-nav { opacity: .85; width: 40px; height: 40px; background: rgba(255,255,255,.95); }
+      .gallery-thumb { width: 64px; height: 64px; }
+      .gallery-counter { bottom: 10px; right: 10px; font-size: .75rem; padding: 3px 9px; }
+    }
+
+    /* ── PANEL ── */
+    .panel { background: var(--white); border-radius: var(--r-xl); padding: var(--space-6); border: 1px solid var(--surface-3); box-shadow: var(--shadow-md); }
+    .price-box { font-family: 'Outfit', sans-serif; font-size: 2rem; font-weight: 800; color: var(--brand); margin: var(--space-3) 0; display: flex; align-items: baseline; gap: var(--space-3); }
+    .price-old { font-size: 1rem; color: var(--ink-4); text-decoration: line-through; font-weight: 500; }
+
+    /* ── STATS ── */
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-2); margin: var(--space-4) 0; }
+    .stat-cell { background: var(--surface-2); padding: var(--space-3); border-radius: var(--r-md); text-align: center; border: 1px solid var(--surface-3); }
+    .stat-cell-label { font-size: .72rem; color: var(--ink-4); margin-bottom: 2px; }
+    .stat-cell-value { font-weight: 700; font-size: .95rem; color: var(--ink); }
+
+    /* ── SELLER ── */
+    .seller-card { display: flex; align-items: center; gap: var(--space-3); background: var(--surface-2); border-radius: var(--r-lg); padding: var(--space-4); margin: var(--space-4) 0; border: 1px solid var(--surface-3); cursor: pointer; transition: background var(--transition-fast); }
+    .seller-card:hover { background: var(--surface-3); }
+    .seller-avatar { width: 48px; height: 48px; border-radius: 50%; background: var(--brand-soft); border: 2px solid var(--brand-light); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; flex-shrink: 0; }
+    .seller-avatar-img { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; flex-shrink: 0; border: 2px solid var(--surface-3); background: var(--surface-2); }
+    .seller-name { font-weight: 700; font-size: .95rem; color: var(--ink); }
+    .seller-sub { font-size: .8rem; color: var(--ink-4); margin-top: 2px; }
+
+    /* ── ACTIONS ── */
+    .action-row { display: flex; gap: var(--space-2); margin-top: var(--space-4); }
+    .btn-like { flex-shrink: 0; width: 52px; height: 52px; border-radius: var(--r-md); border: 1px solid var(--surface-3); background: var(--white); font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all var(--transition-fast); }
+    .btn-like:hover, .btn-like.liked { border-color: var(--danger); background: var(--danger-soft); }
+
+    /* ── DESCRIPTION ── */
+    .description-text { color: var(--ink-3); font-size: .92rem; line-height: 1.7; white-space: pre-wrap; word-break: break-word; }
+
+    /* ── SECTION HEADING ── */
+    .section-heading { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.1rem; color: var(--ink); margin: var(--space-6) 0 var(--space-3); display: flex; align-items: center; gap: var(--space-2); }
+
+    /* ── REVIEWS ── */
+    .stars-input { display: flex; gap: 4px; margin: var(--space-2) 0; }
+    .star-btn { font-size: 1.5rem; background: none; border: none; cursor: pointer; opacity: .3; transition: opacity .15s; padding: 0; }
+    .star-btn.on { opacity: 1; }
+    .reviews-list { display: flex; flex-direction: column; gap: var(--space-3); }
+    .review-item { background: var(--surface-2); border-radius: var(--r-md); padding: var(--space-4); border: 1px solid var(--surface-3); }
+    .review-header { display: flex; align-items: center; gap: var(--space-2); margin-bottom: var(--space-2); flex-wrap: wrap; }
+    .review-author { font-weight: 600; font-size: .88rem; }
+    .review-date { font-size: .78rem; color: var(--ink-4); margin-left: auto; }
+    .review-text { font-size: .88rem; color: var(--ink-3); line-height: 1.5; }
+    .stars-display { color: var(--gold); font-size: .9rem; }
+    .rating-avg { font-family: 'Outfit', sans-serif; font-size: 2.5rem; font-weight: 800; color: var(--ink); line-height: 1; }
+    .rating-bar { display: flex; align-items: center; gap: var(--space-2); margin: 3px 0; }
+    .rating-bar-track { flex: 1; height: 6px; background: var(--surface-3); border-radius: var(--r-full); overflow: hidden; }
+    .rating-bar-fill { height: 100%; background: var(--gold); border-radius: var(--r-full); transition: width .6s ease; }
+
+    /* ── SIMILAR ── */
+    .similar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: var(--space-3); }
+    .mini-card { border-radius: var(--r-lg); overflow: hidden; cursor: pointer; border: 1px solid var(--surface-3); background: var(--white); box-shadow: var(--shadow-sm); transition: transform .2s, box-shadow .2s; }
+    .mini-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-md); }
+    .mini-card-img { aspect-ratio: 1; background: var(--surface-2); display: flex; align-items: center; justify-content: center; font-size: 2rem; overflow: hidden; }
+    .mini-card-img img { width: 100%; height: 100%; object-fit: cover; }
+    .mini-card-body { padding: var(--space-2) var(--space-3) var(--space-3); }
+    .mini-card-title { font-size: .82rem; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mini-card-price { font-size: .78rem; color: var(--brand); font-weight: 700; margin-top: 2px; }
+
+    /* ── OFFER MODAL ── */
+    .payment-methods { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); margin: var(--space-3) 0; }
+    .pm-btn { padding: var(--space-3); border-radius: var(--r-md); border: 2px solid var(--surface-3); background: var(--white); cursor: pointer; text-align: center; transition: all var(--transition-fast); }
+    .pm-btn:hover, .pm-btn.selected { border-color: var(--brand); background: var(--brand-soft); }
+    .pm-btn-icon { font-size: 1.4rem; margin-bottom: 2px; }
+    .pm-btn-label { font-size: .78rem; font-weight: 600; color: var(--ink); }
+
+    /* ── SHARE ── */
+    .share-row { display: flex; gap: var(--space-2); align-items: center; margin-top: var(--space-4); padding-top: var(--space-4); border-top: 1px solid var(--surface-3); }
+    .share-btn { flex: 1; padding: var(--space-2) var(--space-3); border-radius: var(--r-md); border: 1px solid var(--surface-3); background: var(--surface-2); font-size: .82rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all var(--transition-fast); color: var(--ink); }
+    .share-btn:hover { background: var(--surface-3); }
+
+    @media (max-width: 900px) { .details-layout { grid-template-columns: 1fr; } }
+    @media (max-width: 480px) { .price-box { font-size: 1.6rem; } }
+  </style>
+</head>
+<body>
+<script>if(typeof window.supabase==='undefined')window.supabase=null;</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" onerror=""></script>
+<script src="../assets/js/app.js"></script>
+
+<div class="page-body">
+  <div class="container">
+
+    <!-- Breadcrumb -->
+    <div class="breadcrumb">
+      <a href="index.html">Accueil</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg>
+      <a href="index.html" id="bc-cat">Produits</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="9 18 15 12 9 6"/></svg>
+      <span id="bc-title">Chargement…</span>
+    </div>
+
+    <!-- Skeleton -->
+    <div id="details-skeleton" class="details-layout">
+      <div>
+        <div class="skeleton" style="border-radius:var(--r-xl);aspect-ratio:4/3;width:100%"></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <div class="skeleton" style="width:72px;height:62px;border-radius:var(--r-sm);flex-shrink:0"></div>
+          <div class="skeleton" style="width:72px;height:62px;border-radius:var(--r-sm);flex-shrink:0"></div>
+        </div>
+      </div>
+      <div>
+        <div class="panel">
+          <div class="skeleton skeleton-line" style="width:60%;height:14px;margin-bottom:8px"></div>
+          <div class="skeleton skeleton-line" style="width:90%;height:22px;margin-bottom:8px"></div>
+          <div class="skeleton skeleton-line" style="width:40%;height:28px;margin-bottom:16px"></div>
+          <div class="skeleton skeleton-line" style="height:14px;margin-bottom:6px"></div>
+          <div class="skeleton skeleton-line short" style="margin-bottom:6px"></div>
+          <div class="skeleton skeleton-line xshort"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Layout réel -->
+    <div id="details-layout" style="display:none" class="details-layout"></div>
+
+    <!-- Avis -->
+    <div id="reviews-section" style="display:none">
+      <div class="section-heading"><svg class="dj-icon" viewBox="0 0 24 24" fill="#FBBF24" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg> Avis clients</div>
+      <div style="display:grid;grid-template-columns:120px 1fr;gap:var(--space-6);align-items:center;margin-bottom:var(--space-4)">
+        <div style="text-align:center">
+          <div class="rating-avg" id="avg-rating">—</div>
+          <div class="stars-display" id="avg-stars"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
+          <div style="font-size:.78rem;color:var(--ink-4);margin-top:4px" id="review-count">0 avis</div>
+        </div>
+        <div id="rating-bars"></div>
+      </div>
+      <div class="panel" style="margin-bottom:var(--space-4)">
+        <div style="font-weight:700;margin-bottom:var(--space-2);font-family:Outfit,sans-serif">Laisser un avis</div>
+        <div class="stars-input" id="stars-input">
+          <button class="star-btn" data-v="1"><svg class="dj-icon" viewBox="0 0 24 24" fill="#FBBF24" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+          <button class="star-btn" data-v="2"><svg class="dj-icon" viewBox="0 0 24 24" fill="#FBBF24" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+          <button class="star-btn" data-v="3"><svg class="dj-icon" viewBox="0 0 24 24" fill="#FBBF24" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+          <button class="star-btn" data-v="4"><svg class="dj-icon" viewBox="0 0 24 24" fill="#FBBF24" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+          <button class="star-btn" data-v="5"><svg class="dj-icon" viewBox="0 0 24 24" fill="#FBBF24" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+        </div>
+        <textarea id="review-text" class="form-input" rows="2" placeholder="Votre commentaire (optionnel)…" style="resize:none;margin-bottom:var(--space-2)"></textarea>
+        <button class="btn btn-primary" id="review-submit" style="width:100%">Publier l'avis</button>
+      </div>
+      <div class="reviews-list" id="reviews-list"></div>
+    </div>
+
+    <!-- Similaires -->
+    <div id="similar-section" style="display:none;margin-top:var(--space-8)">
+      <div class="section-heading"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> Annonces similaires</div>
+      <div class="similar-grid" id="similar-grid"></div>
+    </div>
+
+  </div>
+</div>
+<script src="../assets/js/features/details.js"></script>
+<script>
+window.onDjamikReady(async function () {
+
+  var params   = new URLSearchParams(location.search);
+  var id       = params.get('id');
+  var layout   = document.getElementById('details-layout');
+  var skeleton = document.getElementById('details-skeleton');
+  var bc       = document.getElementById('bc-title');
+  var bcCat    = document.getElementById('bc-cat');
+
+  var SAD_ICON = '<svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 16s-1.5-2-4-2-4 2-4 2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>';
+
+  if (!id) { showMsg(SAD_ICON, 'Aucun produit sélectionné'); return; }
+
+  // 1. Tente le cache local d'abord
+  var p = window.getProductById ? window.getProductById(id) : null;
+
+  // 2. Sinon fetch Supabase (avec try/catch — Supabase v2 ne supporte pas .catch chained)
+  if (!p && window._supabase) {
+    try {
+      var res = await window._supabase.from('products').select('*').eq('id', id).single();
+      if (res && res.data) p = res.data;
+    } catch(e) { console.warn('[details] Supabase fetch failed', e); }
+  }
+
+  if (p) renderProduct(p);
+  else   showMsg(SAD_ICON, 'Produit introuvable');
+
+  function showMsg(icon, msg) {
+    skeleton.style.display = 'none';
+    layout.style.display = 'grid';
+    layout.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">' + icon + '</div><h3>' + msg + '</h3><a href="index.html" class="btn btn-primary mt-4">Voir les annonces</a></div>';
+  }
+
+  // ── Met à jour <title> + balises OG/Twitter selon le produit chargé.
+  // ── Utile pour les browsers et bots qui exécutent JS (Googlebot, Twitter Card validator).
+  // ── Limitation : les crawlers WhatsApp/Facebook ne lisent que le HTML statique
+  //    → preview enrichie par produit nécessite SSR ou Edge Function (Supabase).
+  function updateSocialMeta(p) {
+    var price  = window.formatPrice ? window.formatPrice(p.price) : (p.price + ' FCFA');
+    var title  = p.title + ' — ' + price + ' · DjamikShop';
+    var desc   = (p.description || (p.title + ' à ' + (p.city || 'Niger') + ' pour ' + price)).slice(0, 200);
+    var image  = (p.images && p.images[0]) || p.image || p.image_url || '/assets/icons/og-image.svg';
+    if (image && image.indexOf('http') !== 0 && image.indexOf('data:') !== 0 && image.indexOf('/') !== 0) {
+      image = window.location.origin + '/' + image;
+    } else if (image && image.indexOf('/') === 0) {
+      image = window.location.origin + image;
+    }
+
+    document.title = title;
+
+    function _setMeta(selector, value) {
+      var el = document.head.querySelector(selector);
+      if (el) el.setAttribute('content', value);
+    }
+    _setMeta('meta[property="og:title"]',       title);
+    _setMeta('meta[property="og:description"]', desc);
+    _setMeta('meta[property="og:image"]',       image);
+    _setMeta('meta[property="og:type"]',        'product');
+    _setMeta('meta[property="og:url"]',         window.location.href);
+    _setMeta('meta[name="twitter:title"]',      title);
+    _setMeta('meta[name="twitter:description"]', desc);
+    _setMeta('meta[name="twitter:image"]',      image);
+  }
+
+  function renderProduct(p) {
+    window.addToHistory && window.addToHistory(p.id);
+    window.incrementViews && window.incrementViews(p.id);
+    updateSocialMeta(p);
+
+    var cat   = window.getCatById ? window.getCatById(p.category) : null;
+    var disc  = parseInt(p.discount) || 0;
+    var oldPx = disc > 0 ? Math.round(p.price / (1 - disc / 100)) : 0;
+    var liked = window.isLiked ? window.isLiked(p.id) : false;
+    var views = window.getViews ? window.getViews(p.id) : 0;
+
+    if (bc) bc.textContent = window.escHtml(p.title || 'Produit');
+    if (bcCat && cat) { bcCat.innerHTML = cat.icon + ' ' + window.escHtml(cat.label); bcCat.href = 'index.html?cat=' + cat.id; }
+
+    var images  = p.images || (p.image_url ? [p.image_url] : []);
+    var activeI = 0;
+
+    var multi = images.length > 1;
+    var galleryHtml =
+      '<div class="gallery-main" id="gallery-main">' +
+        '<div class="gallery-badge-overlay">' +
+          (disc > 0 ? '<span class="badge badge-danger">-' + disc + '%</span>' : '') +
+          (p.condition && window.conditionBadge ? window.conditionBadge(p.condition) : '') +
+          (window.isBoosted && window.isBoosted(p.id) ? '<span class="badge badge-warning"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg> Boosté</span>' : '') +
+        '</div>' +
+        (images.length
+          ? '<img id="gal-img" src="' + images[0] + '" alt="' + window.escHtml(p.title) + '">'
+          : '<div class="gallery-placeholder">' + (cat ? cat.icon : '<svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>') + '</div>') +
+        (multi
+          ? '<button class="gallery-nav prev" id="gal-prev" aria-label="Précédent"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>' +
+            '<button class="gallery-nav next" id="gal-next" aria-label="Suivant"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>' +
+            '<div class="gallery-counter" id="gal-counter">1 / ' + images.length + '</div>'
+          : '') +
+      '</div>' +
+      (images.length
+        ? '<div class="gallery-thumbs">' + images.map(function(src, i) {
+            return '<div class="gallery-thumb' + (i===0?' active':'') + '" data-i="' + i + '"><img src="' + src + '" alt=""></div>';
+          }).join('') + '</div>'
+        : '');
+
+    var tags = (disc > 0 ? '<span class="badge badge-danger">-' + disc + '%</span>' : '') +
+               (p.condition && window.conditionBadge ? window.conditionBadge(p.condition) : '') +
+               (window.isBoosted && window.isBoosted(p.id) ? '<span class="badge badge-warning"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg> Boosté</span>' : '');
+
+    var panelHtml =
+      '<div class="panel">' +
+        (tags ? '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:var(--space-2)">' + tags + '</div>' : '') +
+        '<h1 style="font-size:1.4rem;font-family:Outfit,sans-serif;margin-bottom:4px">' + window.escHtml(p.title || '') + '</h1>' +
+        '<div class="price-box">' + window.formatPrice(p.price) + (oldPx > 0 ? '<span class="price-old">' + window.formatPrice(oldPx) + '</span>' : '') + '</div>' +
+        '<div class="stats-grid">' +
+          '<div class="stat-cell"><div class="stat-cell-label"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg> Ville</div><div class="stat-cell-value">' + (p.city || '—') + '</div></div>' +
+          '<div class="stat-cell"><div class="stat-cell-label"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg> Vues</div><div class="stat-cell-value" id="views-val">' + views + '</div></div>' +
+          '<div class="stat-cell"><div class="stat-cell-label"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg> Publié</div><div class="stat-cell-value">' + window.relativeDate(p.created_at) + '</div></div>' +
+        '</div>' +
+        '<div class="seller-card" id="seller-card" onclick="if(this.dataset.id) window.location.href=\'my-profile.html?id=\'+this.dataset.id" data-id="' + (p.seller_id || '') + '">' +
+          '<img class="seller-avatar-img" id="seller-avatar-img" src="https://ui-avatars.com/api/?name=' + encodeURIComponent(p.seller_name || 'V') + '&background=E8501A&color=fff&size=96" alt="">' +
+          '<div style="flex:1"><div class="seller-name" id="seller-name">' + window.escHtml(p.seller_name || 'Vendeur') + '</div><div class="seller-sub" id="seller-sub">Voir le profil →</div></div>' +
+          '<svg style="margin-left:auto;color:var(--ink-4);flex-shrink:0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"><polyline points="9 18 15 12 9 6"/></svg>' +
+        '</div>' +
+        '<div style="font-weight:700;font-size:.9rem;margin-bottom:var(--space-2)"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> Description</div>' +
+        '<div class="description-text">' + window.escHtml(p.description || 'Aucune description fournie.') + '</div>' +
+        '<div class="action-row">' +
+          '<button class="btn btn-primary btn-lg" style="flex:1" id="btn-contact"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Contacter le vendeur</button>' +
+          '<button class="btn-like' + (liked ? ' liked' : '') + '" id="btn-like">' + (liked ? '<svg class="dj-icon" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>' : '<svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>') + '</button>' +
+        '</div>' +
+        '<button class="btn btn-outline btn-lg" style="width:100%;margin-top:var(--space-2)" id="btn-offer"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.5V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Faire une offre de prix</button>' +
+        '<button class="btn btn-outline" style="width:100%;margin-top:var(--space-2);font-size:.78rem;color:var(--danger,#ef4444);border-color:rgba(239,68,68,.3)" id="btn-report">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:middle"><path d="M4 22V4M4 4h13l-2 5 2 5H4"/></svg> ' +
+          'Signaler cette annonce' +
+        '</button>' +
+        '<div class="share-row">' +
+          '<span style="font-size:.8rem;color:var(--ink-4);font-weight:600">Partager :</span>' +
+          '<button class="share-btn" id="share-wa"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="16.92" x2="22" y2="19.92"/><path d="M22 16.92l-2-1"/><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg> WhatsApp</button>' +
+          '<button class="share-btn" id="share-copy"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Copier le lien</button>' +
+        '</div>' +
+      '</div>';
+
+    skeleton.style.display = 'none';
+    layout.style.display = 'grid';
+    layout.innerHTML = '<div>' + galleryHtml + '</div><div>' + panelHtml + '</div>';
+
+    // Helper : change l'image affichée (index circulaire)
+    function _setIndex(i) {
+      if (!images.length) return;
+      activeI = ((i % images.length) + images.length) % images.length;
+      var img = document.getElementById('gal-img');
+      if (img && images[activeI]) img.src = images[activeI];
+      var thumbsRow = layout.querySelector('.gallery-thumbs');
+      layout.querySelectorAll('.gallery-thumb').forEach(function(x) {
+        var active = parseInt(x.dataset.i) === activeI;
+        x.classList.toggle('active', active);
+        // Scroll uniquement la barre de miniatures, pas la page entière
+        if (active && thumbsRow) {
+          var trRect = thumbsRow.getBoundingClientRect();
+          var xRect  = x.getBoundingClientRect();
+          var offset = (xRect.left + xRect.width/2) - (trRect.left + trRect.width/2);
+          thumbsRow.scrollBy({ left: offset, behavior: 'smooth' });
+        }
+      });
+      var counter = document.getElementById('gal-counter');
+      if (counter) counter.textContent = (activeI + 1) + ' / ' + images.length;
+    }
+
+    // Thumbs
+    layout.querySelectorAll('.gallery-thumb').forEach(function(t) {
+      t.addEventListener('click', function() { _setIndex(parseInt(t.dataset.i)); });
+    });
+
+    // Boutons prev / next
+    var btnPrev = document.getElementById('gal-prev');
+    var btnNext = document.getElementById('gal-next');
+    if (btnPrev) btnPrev.addEventListener('click', function(e){ e.stopPropagation(); _setIndex(activeI - 1); });
+    if (btnNext) btnNext.addEventListener('click', function(e){ e.stopPropagation(); _setIndex(activeI + 1); });
+
+    // Swipe tactile sur l'image principale
+    var galMain = document.getElementById('gallery-main');
+    if (galMain && images.length > 1) {
+      var startX = 0, startY = 0, isSwipe = false;
+      galMain.addEventListener('touchstart', function(e) {
+        if (e.touches.length !== 1) return;
+        startX = e.touches[0].clientX; startY = e.touches[0].clientY; isSwipe = false;
+      }, { passive: true });
+      galMain.addEventListener('touchmove', function(e) {
+        if (e.touches.length !== 1) return;
+        var dx = e.touches[0].clientX - startX;
+        var dy = e.touches[0].clientY - startY;
+        if (Math.abs(dx) > 10 && Math.abs(dx) > Math.abs(dy)) isSwipe = true;
+      }, { passive: true });
+      galMain.addEventListener('touchend', function(e) {
+        if (!isSwipe) return;
+        var dx = (e.changedTouches[0].clientX) - startX;
+        if (Math.abs(dx) < 40) return;
+        _setIndex(activeI + (dx < 0 ? 1 : -1));
+      });
+    }
+
+    // Lightbox (clic sur image principale, pas sur les nav)
+    if (galMain && images.length) {
+      galMain.addEventListener('click', function(e) {
+        if (e.target.closest('.gallery-nav')) return;
+        var ov = document.createElement('div');
+        ov.style.cssText = 'position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center;cursor:zoom-out';
+        ov.innerHTML = '<img src="' + images[activeI] + '" style="max-width:95vw;max-height:90vh;border-radius:var(--r-md)">';
+        ov.onclick = function() { ov.remove(); };
+        document.body.appendChild(ov);
+      });
+    }
+
+    // Cart
+    var btnContact = document.getElementById('btn-contact');
+    if (btnContact) btnContact.addEventListener('click', function() {
+      if (!p.seller_id) { window.toast && window.toast('Vendeur introuvable.', 'error'); return; }
+      var url = 'messages.html?seller=' + encodeURIComponent(p.seller_id) +
+                '&product=' + encodeURIComponent(p.id) +
+                '&seller_name=' + encodeURIComponent(p.seller_name || 'Vendeur') +
+                '&product_title=' + encodeURIComponent(p.title || '');
+      window.location.href = url;
+    });
+
+    // Like
+    var btnLike = document.getElementById('btn-like');
+    if (btnLike) btnLike.addEventListener('click', function() {
+      var added = window.toggleLike ? window.toggleLike(p.id) : false;
+      btnLike.innerHTML = added ? '<svg class="dj-icon" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>' : '<svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+      btnLike.classList.toggle('liked', added);
+      window.updateWishlistBadge && window.updateWishlistBadge();
+      window.toast && window.toast(added ? 'Ajouté aux favoris <svg class="dj-icon" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>' : 'Retiré des favoris', added ? 'success' : 'default');
+    });
+
+    // Offer modal
+    var btnOffer = document.getElementById('btn-offer');
+    if (btnOffer) btnOffer.addEventListener('click', function() {
+      var selPm = 'main_propre';
+      var pms = window.APP.paymentMethods || [];
+      var m = window.showModal(
+        '<h3 style="font-family:Outfit,sans-serif;margin-bottom:4px"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Faire une offre</h3>' +
+        '<p style="color:var(--ink-4);font-size:.88rem;margin-bottom:var(--space-4)">Prix affiché : <strong style="color:var(--brand)">' + window.formatPrice(p.price) + '</strong></p>' +
+        '<label class="form-label">Votre offre (FCFA)</label>' +
+        '<input type="number" id="offer-amount" class="form-input" placeholder="' + Math.round(p.price * 0.9) + '" style="margin-bottom:var(--space-4)">' +
+        '<label class="form-label">Mode de paiement</label>' +
+        '<div class="payment-methods">' + pms.map(function(pm) {
+          return '<button class="pm-btn' + (pm.id==='main_propre'?' selected':'') + '" data-pm="' + pm.id + '"><div class="pm-btn-icon">' + pm.icon + '</div><div class="pm-btn-label">' + pm.label + '</div></button>';
+        }).join('') + '</div>' +
+        '<label class="form-label">Message (optionnel)</label>' +
+        '<textarea id="offer-note" class="form-input" rows="2" placeholder="Bonjour, je suis intéressé…" style="resize:none;margin-bottom:var(--space-4)"></textarea>' +
+        '<div style="display:flex;gap:var(--space-2)">' +
+          '<button class="btn btn-outline" id="offer-cancel" style="flex:1">Annuler</button>' +
+          '<button class="btn btn-primary" id="offer-send" style="flex:2">Envoyer l\'offre</button>' +
+        '</div>'
+      );
+      m.el.querySelectorAll('.pm-btn').forEach(function(b) {
+        b.addEventListener('click', function() {
+          selPm = b.dataset.pm;
+          m.el.querySelectorAll('.pm-btn').forEach(function(x) { x.classList.remove('selected'); });
+          b.classList.add('selected');
+        });
+      });
+      m.el.querySelector('#offer-cancel').onclick = function() { m.close(); };
+      m.el.querySelector('#offer-send').onclick = function() {
+        var amount = parseInt(m.el.querySelector('#offer-amount').value);
+        var note = m.el.querySelector('#offer-note').value;
+        if (!amount || amount <= 0) { window.toast && window.toast('Entrez un montant valide', 'error'); return; }
+        window.sendOffer && window.sendOffer(p.id, amount, note);
+        m.close();
+        window.toast && window.toast('Offre envoyée ! Le vendeur sera notifié <svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 13V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v12c0 1.1.9 2 2 2h8"/><polyline points="22 7 12 13 2 7"/><line x1="16" y1="19" x2="22" y2="19"/><polyline points="19 16 22 19 19 22"/></svg>', 'success');
+      };
+    });
+
+    // Share
+    var shareWa = document.getElementById('share-wa');
+    var shareCopy = document.getElementById('share-copy');
+    if (shareWa) shareWa.addEventListener('click', function() {
+      if (window.shareProduct) window.shareProduct(p);
+      else if (window.shareToWhatsApp) window.shareToWhatsApp(p);
+    });
+    if (shareCopy) shareCopy.addEventListener('click', function() {
+      if (window.copyProductLink) window.copyProductLink(p);
+    });
+
+    // Reviews & similar
+    renderReviews(p.id);
+    renderSimilar(p);
+
+    // Hydrate la seller card avec le vrai profil (avatar + nom)
+    if (p.seller_id) hydrateSellerCard(p.seller_id);
+
+    // Bouton Signaler — modal avec choix de raison + insert en DB
+    var btnReport = document.getElementById('btn-report');
+    if (btnReport) btnReport.addEventListener('click', function() { _openReportModal(p); });
+  }
+
+  // ── Charge le profil vendeur depuis Supabase et met à jour la card
+  async function hydrateSellerCard(sellerId) {
+    if (!window._supabase) return;
+    try {
+      var res = await window._supabase.from('profiles').select('full_name, avatar_url').eq('id', sellerId).single();
+      if (!res || !res.data) return;
+      var prof = res.data;
+      var nameEl = document.getElementById('seller-name');
+      var avEl   = document.getElementById('seller-avatar-img');
+      if (nameEl && prof.full_name) nameEl.textContent = prof.full_name;
+      if (avEl && prof.avatar_url)  avEl.src = prof.avatar_url;
+    } catch(e) { /* profil indispo, on garde les valeurs du produit */ }
+  }
+
+  // ── REVIEWS ──────────────────────────────────────────────────────
+  function renderReviews(productId) {
+    var section = document.getElementById('reviews-section');
+    if (section) section.style.display = 'block';
+    var selRating = 0;
+    var starBtns = document.querySelectorAll('#stars-input .star-btn');
+    starBtns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        selRating = parseInt(btn.dataset.v);
+        starBtns.forEach(function(b) { b.classList.toggle('on', parseInt(b.dataset.v) <= selRating); });
+      });
+    });
+    var submitBtn = document.getElementById('review-submit');
+    if (submitBtn) submitBtn.addEventListener('click', function() {
+      if (!selRating) { window.toast && window.toast('Choisissez une note <svg class="dj-icon" viewBox="0 0 24 24" fill="#FBBF24" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>', 'error'); return; }
+      var text = document.getElementById('review-text').value.trim();
+      var session = null; try { session = JSON.parse(localStorage.getItem('dj_demo_session')); } catch(e) {}
+      window.addReview && window.addReview(productId, {
+        rating: selRating, text: text,
+        author: session ? (session.full_name || session.email || 'Anonyme') : 'Visiteur'
+      });
+      document.getElementById('review-text').value = '';
+      selRating = 0;
+      starBtns.forEach(function(b) { b.classList.remove('on'); });
+      window.toast && window.toast('Avis publié <svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>', 'success');
+      refreshReviews(productId);
+    });
+    refreshReviews(productId);
+  }
+
+  function refreshReviews(productId) {
+    var reviews = window.getReviews ? window.getReviews(productId) : [];
+    var avg = window.avgRating ? window.avgRating(productId) : 0;
+    var avgEl = document.getElementById('avg-rating');
+    var avgStEl = document.getElementById('avg-stars');
+    var cntEl = document.getElementById('review-count');
+    var list = document.getElementById('reviews-list');
+    var barsEl = document.getElementById('rating-bars');
+    if (avgEl) avgEl.textContent = avg ? avg.toFixed(1) : '—';
+    if (avgStEl) avgStEl.innerHTML = starsStr(avg);
+    if (cntEl) cntEl.textContent = reviews.length + ' avis';
+    if (barsEl) {
+      var counts = [0,0,0,0,0];
+      reviews.forEach(function(r) { if (r.rating >= 1 && r.rating <= 5) counts[r.rating-1]++; });
+      barsEl.innerHTML = [5,4,3,2,1].map(function(n) {
+        var pct = reviews.length ? Math.round(counts[n-1] / reviews.length * 100) : 0;
+        return '<div class="rating-bar"><span style="font-size:.75rem;color:var(--ink-4);width:12px">' + n + '</span><div class="rating-bar-track"><div class="rating-bar-fill" style="width:' + pct + '%"></div></div><span style="font-size:.72rem;color:var(--ink-4);width:24px">' + counts[n-1] + '</span></div>';
+      }).join('');
+    }
+    if (!list) return;
+    if (!reviews.length) {
+      list.innerHTML = '<div style="text-align:center;padding:var(--space-6);color:var(--ink-4)">Soyez le premier à laisser un avis <svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3L9.5 9.5 3 12l6.5 2.5L12 21l2.5-6.5L21 12l-6.5-2.5z"/><path d="M5 3v4M19 17v4M3 5h4M17 19h4"/></svg></div>';
+      return;
+    }
+    list.innerHTML = reviews.slice(0, 10).map(function(r) {
+      return '<div class="review-item"><div class="review-header"><span class="review-author"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> ' + window.escHtml(r.author || 'Anonyme') + '</span><span class="stars-display">' + starsStr(r.rating) + '</span><span class="review-date">' + (r.date ? window.relativeDate(r.date) : '') + '</span></div>' + (r.text ? '<div class="review-text">' + window.escHtml(r.text) + '</div>' : '') + '</div>';
+    }).join('');
+  }
+
+  function starsStr(n) {
+    n = Math.round(n || 0);
+    return '<svg class="dj-icon" viewBox="0 0 24 24" fill="#FBBF24" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'.repeat(n) + '<svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>'.repeat(Math.max(0, 5 - n));
+  }
+
+  // ── REPORT MODAL ──────────────────────────────────────────────────
+  function _openReportModal(p) {
+    if (document.getElementById('report-modal')) return;
+
+    var REASONS = [
+      { id: 'scam',         label: 'Suspicion d\'arnaque' },
+      { id: 'forbidden',    label: 'Contenu interdit (drogue, arme, etc.)' },
+      { id: 'false_price',  label: 'Prix manifestement faux' },
+      { id: 'duplicate',    label: 'Annonce en double' },
+      { id: 'offensive',    label: 'Contenu offensant ou inapproprié' },
+      { id: 'other',        label: 'Autre' }
+    ];
+
+    var optionsHtml = REASONS.map(function(r, i){
+      return '<label class="rep-radio"><input type="radio" name="rep-reason" value="' + r.id + '"' + (i===0?' checked':'') + '><span>' + r.label + '</span></label>';
+    }).join('');
+
+    var modal = document.createElement('div');
+    modal.id = 'report-modal';
+    modal.className = 'rep-backdrop';
+    modal.innerHTML =
+      '<div class="rep-modal">' +
+        '<button class="rep-close" aria-label="Fermer">×</button>' +
+        '<h3>Signaler cette annonce</h3>' +
+        '<p class="rep-sub">Aide-nous à garder DjamikShop sûr. Ton signalement reste anonyme pour le vendeur.</p>' +
+        '<div class="rep-product"><strong>' + window.escHtml(p.title || '') + '</strong></div>' +
+        '<div class="rep-options">' + optionsHtml + '</div>' +
+        '<textarea class="rep-message" id="rep-msg" placeholder="Détails (optionnel) — décris ce qui te semble suspect" maxlength="500" rows="3"></textarea>' +
+        '<div class="rep-actions">' +
+          '<button class="btn btn-outline" id="rep-cancel">Annuler</button>' +
+          '<button class="btn btn-primary" id="rep-send">Envoyer le signalement</button>' +
+        '</div>' +
+      '</div>';
+
+    document.body.appendChild(modal);
+    _injectReportStyles();
+
+    var close = function(){ modal.remove(); };
+    modal.querySelector('.rep-close').addEventListener('click', close);
+    modal.querySelector('#rep-cancel').addEventListener('click', close);
+    modal.addEventListener('click', function(e){ if (e.target === modal) close(); });
+
+    modal.querySelector('#rep-send').addEventListener('click', async function() {
+      var btn = this;
+      var reason = (modal.querySelector('input[name=rep-reason]:checked') || {}).value;
+      var msg = modal.querySelector('#rep-msg').value.trim();
+      if (!reason) return;
+
+      if (!window._supabase) {
+        window.toast && window.toast('Connexion requise.', 'error'); return;
+      }
+      var u = await window._supabase.auth.getUser();
+      var uid = u && u.data && u.data.user && u.data.user.id;
+      if (!uid) {
+        window.toast && window.toast('Connecte-toi pour signaler.', 'error');
+        setTimeout(function(){ window.location.href = 'login.html?next=' + encodeURIComponent(window.location.pathname + window.location.search); }, 1200);
+        return;
+      }
+
+      btn.disabled = true; btn.textContent = 'Envoi…';
+      try {
+        var r = await window._supabase.from('reports').insert([{
+          product_id:  p.id,
+          reporter_id: uid,
+          reason:      reason,
+          message:     msg || null
+        }]);
+        if (r && r.error) throw r.error;
+        window.toast && window.toast('Merci. Notre équipe va examiner le signalement.', 'success', 5000);
+        close();
+      } catch(err) {
+        console.warn('[report] insert failed', err);
+        window.toast && window.toast('Échec de l\'envoi : ' + (err.message || 'erreur inconnue'), 'error');
+        btn.disabled = false; btn.textContent = 'Envoyer le signalement';
+      }
+    });
+  }
+
+  function _injectReportStyles() {
+    if (document.getElementById('rep-styles')) return;
+    var s = document.createElement('style');
+    s.id = 'rep-styles';
+    s.textContent = [
+      '.rep-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:5000;display:flex;align-items:center;justify-content:center;padding:16px;animation:repFade .2s}',
+      '.rep-modal{background:var(--white,#fff);border-radius:18px;padding:26px 22px 20px;max-width:460px;width:100%;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.3);font-family:inherit;animation:repPop .25s ease;max-height:90vh;overflow-y:auto}',
+      '.rep-modal h3{font-family:Outfit,sans-serif;font-size:1.15rem;font-weight:700;margin-bottom:6px;padding-right:30px}',
+      '.rep-sub{font-size:.84rem;color:var(--ink-3);margin-bottom:14px;line-height:1.5}',
+      '.rep-product{background:var(--surface-2);padding:10px 12px;border-radius:10px;font-size:.85rem;margin-bottom:14px;border-left:3px solid var(--brand,#E8501A)}',
+      '.rep-close{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:50%;border:none;background:var(--surface-2);color:var(--ink-3);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;font-family:inherit}',
+      '.rep-close:hover{background:var(--surface-3);color:var(--ink)}',
+      '.rep-options{display:flex;flex-direction:column;gap:6px;margin-bottom:12px}',
+      '.rep-radio{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--surface-3);border-radius:10px;cursor:pointer;font-size:.88rem;color:var(--ink-2);transition:all .15s}',
+      '.rep-radio:hover{border-color:var(--brand,#E8501A);background:rgba(232,80,26,.04)}',
+      '.rep-radio input{accent-color:var(--brand,#E8501A);margin:0;flex-shrink:0;width:18px;height:18px}',
+      '.rep-radio:has(input:checked){border-color:var(--brand,#E8501A);background:rgba(232,80,26,.06);color:var(--ink)}',
+      '.rep-message{width:100%;padding:10px 12px;border:1px solid var(--surface-3);border-radius:10px;font-family:inherit;font-size:.88rem;resize:vertical;min-height:60px;margin-bottom:14px;outline:none;color:var(--ink)}',
+      '.rep-message:focus{border-color:var(--brand,#E8501A)}',
+      '.rep-actions{display:flex;gap:10px}',
+      '.rep-actions .btn{flex:1}',
+      '@keyframes repFade{from{opacity:0}to{opacity:1}}',
+      '@keyframes repPop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}'
+    ].join('');
+    document.head.appendChild(s);
+  }
+
+  // ── SIMILAR ──────────────────────────────────────────────────────
+  // Priorise : 1) meme cat + meme ville  2) meme cat autres villes
+  //            3) (fallback) autres categories
+  // Dans chaque groupe : shuffle pour de la variete (pas que les recentes)
+  function _shuffle(arr) {
+    for (var i = arr.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+    return arr;
+  }
+
+  async function renderSimilar(p) {
+    var section = document.getElementById('similar-section');
+    var grid = document.getElementById('similar-grid');
+    if (!section || !grid) return;
+
+    // Source large : Supabase direct (50 dernières), pas seulement le cache local
+    var pool = [];
+    if (window._supabase) {
+      try {
+        var r = await window._supabase.from('products')
+          .select('id, title, category, city, price, image_url, seller_id')
+          .eq('sold', false)
+          .is('inactive_at', null)
+          .neq('id', p.id)
+          .limit(50);
+        pool = (r && r.data) || [];
+      } catch(e) {}
+    }
+    if (!pool.length && window.getAllProducts) {
+      pool = window.getAllProducts().filter(function(q){ return q.id !== p.id && !q.sold; });
+    }
+
+    var sameCatSameCity = pool.filter(function(q){ return q.category === p.category && q.city && p.city && q.city === p.city; });
+    var sameCatOther    = pool.filter(function(q){ return q.category === p.category && (!q.city || !p.city || q.city !== p.city); });
+    var fallback        = pool.filter(function(q){ return q.category !== p.category; });
+
+    // Shuffle dans chaque groupe pour de la variete
+    _shuffle(sameCatSameCity); _shuffle(sameCatOther); _shuffle(fallback);
+
+    var similar = sameCatSameCity.concat(sameCatOther).concat(fallback).slice(0, 6);
+    if (!similar.length) return;
+    section.style.display = 'block';
+    grid.innerHTML = similar.map(function(q) {
+      var qCat = window.getCatById ? window.getCatById(q.category) : null;
+      return '<div class="mini-card" onclick="window.location.href=\'product-details.html?id=' + q.id + '\'"><div class="mini-card-img">' + (q.image_url ? '<img src="' + q.image_url + '" alt="">' : (qCat ? qCat.icon : '<svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>')) + '</div><div class="mini-card-body"><div class="mini-card-title">' + window.escHtml(q.title || '') + '</div><div class="mini-card-price">' + window.formatPrice(q.price) + '</div></div></div>';
+    }).join('');
+  }
+
+});
+</script>
+</body>
+</html>

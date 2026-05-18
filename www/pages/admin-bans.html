@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Bans — DjamikShop Admin</title>
+  <meta name="theme-color" content="#E8501A">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/icon.svg">
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    .admin-h1 { font-family: Outfit,sans-serif; font-size: 1.4rem; margin: 0 0 4px; }
+    .admin-sub { color: var(--ink-3); margin-bottom: var(--space-4); font-size: .9rem; }
+    .ban-card { display: flex; align-items: center; gap: 12px; padding: 14px; background: #FEF2F2; border: 1px solid #FECACA; border-radius: var(--r-lg); margin-bottom: 8px; box-shadow: var(--shadow-sm); }
+    .ban-avatar { width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0; background: var(--surface-2); object-fit: cover; }
+    .ban-info { flex: 1; min-width: 0; }
+    .ban-name { font-weight: 700; font-size: .95rem; }
+    .ban-reason { font-size: .82rem; color: var(--ink-2); margin-top: 4px; line-height: 1.4; }
+    .ban-meta { font-size: .72rem; color: var(--ink-3); margin-top: 4px; }
+    .ban-duration { display: inline-block; padding: 2px 8px; background: var(--danger,#ef4444); color: #fff; border-radius: 100px; font-size: .68rem; font-weight: 700; margin-right: 6px; }
+    .ban-duration.perma { background: #0F1115; }
+    .access-denied { text-align: center; padding: 80px 20px; }
+  </style>
+</head>
+<body>
+<script>if(typeof window.supabase==='undefined')window.supabase=null;</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" onerror=""></script>
+<script src="../assets/js/app.js"></script>
+
+<div class="page-body">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="admin.html">Admin</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <span>Bans actifs</span>
+    </div>
+    <div id="admin-content"><div style="text-align:center;padding:40px;color:var(--ink-3)">Chargement…</div></div>
+  </div>
+</div>
+
+<script>
+window.onDjamikReady(async function() {
+  var root = document.getElementById('admin-content');
+  if (!root || !window._supabase) return;
+
+  var u = await window._supabase.auth.getUser();
+  var uid = u && u.data && u.data.user && u.data.user.id;
+  if (!uid) { root.innerHTML = '<div class="access-denied"><h1>Connexion requise</h1></div>'; return; }
+  var ad = await window._supabase.from('admins').select('user_id').eq('user_id', uid).maybeSingle();
+  if (!ad || !ad.data) { root.innerHTML = '<div class="access-denied"><h1>Accès refusé</h1></div>'; return; }
+
+  var sb = window._supabase;
+  var bans = (await sb.from('banned_users').select('*').order('banned_at', { ascending: false })).data || [];
+  var profs = {};
+  if (bans.length) {
+    var ids = bans.map(function(b){ return b.user_id; });
+    var pr = await sb.from('profiles').select('id, full_name, avatar_url').in('id', ids);
+    (pr.data || []).forEach(function(p){ profs[p.id] = p; });
+  }
+
+  function _avatar(p, name) {
+    if (p && p.avatar_url) return p.avatar_url;
+    return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name || 'U') + '&background=E8501A&color=fff';
+  }
+
+  function _render() {
+    if (!bans.length) {
+      root.innerHTML =
+        '<h1 class="admin-h1">Bans actifs</h1>' +
+        '<p class="admin-sub">Aucun utilisateur banni actuellement.</p>';
+      return;
+    }
+    root.innerHTML =
+      '<h1 class="admin-h1">Bans actifs (' + bans.length + ')</h1>' +
+      '<p class="admin-sub">Liste des utilisateurs actuellement bannis.</p>' +
+      '<div id="bans-list">' + bans.map(function(b) {
+        var p = profs[b.user_id] || {};
+        var name = p.full_name || 'Utilisateur ' + b.user_id.slice(0, 6);
+        var dur, durCls = '';
+        if (b.banned_until === null) { dur = 'Permanent'; durCls = 'perma'; }
+        else {
+          var until = new Date(b.banned_until);
+          if (until <= new Date()) dur = 'EXPIRÉ';
+          else {
+            var hoursLeft = Math.round((until - new Date()) / (3600*1000));
+            dur = hoursLeft < 48 ? hoursLeft + 'h restantes' : Math.ceil(hoursLeft/24) + 'j restantes';
+          }
+        }
+        return '<div class="ban-card">' +
+          '<img class="ban-avatar" src="' + _avatar(p, name) + '" alt="">' +
+          '<div class="ban-info">' +
+            '<div class="ban-name"><span class="ban-duration ' + durCls + '">' + dur + '</span>' + window.escHtml(name) + '</div>' +
+            '<div class="ban-reason">' + window.escHtml(b.reason || '—') + '</div>' +
+            '<div class="ban-meta">Banni ' + window.relativeDate(b.banned_at) + ' · ' + (b.ban_count || 1) + ' bannissement' + ((b.ban_count||1)>1?'s':'') + '</div>' +
+          '</div>' +
+          '<button class="btn btn-primary" data-unban="' + b.user_id + '">Débannir</button>' +
+        '</div>';
+      }).join('') + '</div>';
+
+    document.querySelectorAll('[data-unban]').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        if (!confirm('Débannir cet utilisateur ?')) return;
+        var id = btn.dataset.unban;
+        var d = await sb.from('banned_users').delete().eq('user_id', id);
+        if (d.error) { window.toast('Échec : ' + d.error.message, 'error'); return; }
+        bans = bans.filter(function(x){ return x.user_id !== id; });
+        window.toast('Débanni', 'success');
+        _render();
+      });
+    });
+  }
+
+  _render();
+});
+</script>
+</body>
+</html>

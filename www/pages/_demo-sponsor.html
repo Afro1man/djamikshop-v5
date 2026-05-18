@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Booster mon compte — DjamikShop</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* ─────────────────────────────────────────────────────── */
+  /*  TOKENS                                                 */
+  /* ─────────────────────────────────────────────────────── */
+  :root {
+    --brand-50:#FFF4EE; --brand-100:#FFE3D1; --brand-200:#FFC7A3; --brand-500:#E8501A; --brand-600:#D14215; --brand-700:#A8330F;
+    --gold-50:#FFFAEB;  --gold-100:#FEF0C7;  --gold-500:#F5B100;  --gold-600:#C99100;  --gold-700:#8C6500;
+    --plat-50:#F4F1FF;  --plat-500:#7C3AED;  --plat-600:#6D28D9;  --plat-700:#5B21B6;
+    --ink-900:#0A0E1A; --ink-700:#2B313D; --ink-500:#5A6273; --ink-300:#9AA1B0; --ink-100:#E5E8EE;
+    --bg:#FAFBFC; --surface:#FFFFFF; --border:#ECEEF2; --border-strong:#DCE0E8;
+    --sh-sm:0 1px 2px rgba(15,23,42,.04),0 1px 1px rgba(15,23,42,.03);
+    --sh-md:0 1px 3px rgba(15,23,42,.06),0 4px 12px rgba(15,23,42,.05);
+    --sh-lg:0 4px 6px rgba(15,23,42,.04),0 12px 28px rgba(15,23,42,.10);
+    --sh-brand:0 8px 24px rgba(232,80,26,.18);
+    --sh-gold:0 8px 24px rgba(245,177,0,.22);
+    --sh-plat:0 8px 24px rgba(124,58,237,.18);
+    --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:22px; --r-pill:999px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg)}
+  body{font-family:'Inter',-apple-system,BlinkMacSystemFont,system-ui,sans-serif;color:var(--ink-900);line-height:1.5;-webkit-font-smoothing:antialiased;padding:0 0 80px}
+  ::selection{background:var(--brand-100);color:var(--brand-700)}
+
+  .container{max-width:1180px;margin:0 auto;padding:0 24px}
+
+  /* ─────────────────────────────────────────────────────── */
+  /*  HERO                                                    */
+  /* ─────────────────────────────────────────────────────── */
+  .hero{padding:72px 24px 48px;text-align:center;background:radial-gradient(ellipse 800px 400px at 50% 0%,rgba(232,80,26,.08),transparent 60%),var(--bg);border-bottom:1px solid var(--border)}
+  .hero-eyebrow{display:inline-flex;align-items:center;gap:8px;padding:6px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-pill);font-size:12px;font-weight:600;color:var(--ink-700);box-shadow:var(--sh-sm);margin-bottom:20px}
+  .hero-eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--brand-500);box-shadow:0 0 0 3px rgba(232,80,26,.15)}
+  .hero h1{font-family:'Outfit',sans-serif;font-size:clamp(34px,5.5vw,52px);font-weight:800;letter-spacing:-.025em;line-height:1.05;margin-bottom:16px}
+  .hero h1 .accent{background:linear-gradient(135deg,var(--brand-500),var(--brand-700));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .hero p{font-size:17px;color:var(--ink-500);max-width:600px;margin:0 auto 28px}
+  .hero-stats{display:flex;justify-content:center;gap:36px;flex-wrap:wrap;margin-top:8px}
+  .hero-stat{text-align:center}
+  .hero-stat-val{font-family:'Outfit',sans-serif;font-size:28px;font-weight:800;color:var(--brand-500);letter-spacing:-.02em}
+  .hero-stat-lbl{font-size:11px;color:var(--ink-500);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+
+  /* ─────────────────────────────────────────────────────── */
+  /*  SECTION                                                 */
+  /* ─────────────────────────────────────────────────────── */
+  section{padding:64px 0}
+  .section-head{text-align:center;margin-bottom:40px}
+  .section-head .label{display:inline-block;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--brand-500);margin-bottom:10px}
+  .section-head h2{font-family:'Outfit',sans-serif;font-size:clamp(24px,3vw,32px);font-weight:700;letter-spacing:-.02em;margin-bottom:8px}
+  .section-head p{color:var(--ink-500);max-width:560px;margin:0 auto}
+
+  /* ─────────────────────────────────────────────────────── */
+  /*  PRICING — 3 TIERS                                       */
+  /* ─────────────────────────────────────────────────────── */
+  .pricing{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;align-items:stretch;max-width:1100px;margin:0 auto}
+  .plan{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);padding:32px 28px;position:relative;display:flex;flex-direction:column;transition:transform .25s cubic-bezier(.2,.8,.2,1),box-shadow .25s}
+  .plan:hover{transform:translateY(-4px);box-shadow:var(--sh-md)}
+
+  .plan.is-featured{
+    border-color:transparent;
+    background:
+      linear-gradient(180deg,#FFFAEB 0%,var(--surface) 25%) padding-box,
+      linear-gradient(135deg,#FFE08A,var(--gold-500),var(--brand-500)) border-box;
+    border:2px solid transparent;
+    box-shadow:0 8px 30px rgba(245,177,0,.2),0 4px 12px rgba(232,80,26,.15);
+    transform:scale(1.02);
+    position:relative;
+  }
+  .plan.is-featured::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:5px;
+    background:linear-gradient(90deg,#FFE08A,var(--gold-500),var(--brand-500),var(--gold-500),#FFE08A);
+    background-size:200% 100%;
+    animation:vipBar 3s linear infinite;
+    border-radius:var(--r-xl) var(--r-xl) 0 0;
+  }
+  .plan-badge{position:absolute;top:-14px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#FFE08A,var(--gold-500),var(--brand-500));color:#fff;padding:7px 16px;border-radius:var(--r-pill);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;box-shadow:0 4px 16px rgba(245,177,0,.5);text-shadow:0 1px 2px rgba(0,0,0,.15);z-index:2}
+
+  .plan.is-premium{
+    border-color:transparent;
+    background:
+      linear-gradient(180deg,#F4F1FF 0%,var(--surface) 25%) padding-box,
+      linear-gradient(135deg,#C4B5FD,var(--plat-500),#3B0764) border-box;
+    border:2px solid transparent;
+    box-shadow:0 8px 30px rgba(124,58,237,.18);
+    position:relative;
+  }
+  .plan.is-premium::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:5px;
+    background:linear-gradient(90deg,#C4B5FD,var(--plat-500),#3B0764,var(--plat-500),#C4B5FD);
+    background-size:200% 100%;
+    animation:vipBar 4s linear infinite;
+    border-radius:var(--r-xl) var(--r-xl) 0 0;
+  }
+
+  .plan-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+  .plan-icon{width:44px;height:44px;border-radius:var(--r-md);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .plan-icon.s1{background:var(--ink-100);color:var(--ink-500)}
+  .plan-icon.s2{background:linear-gradient(135deg,var(--gold-100),var(--gold-50));color:var(--gold-700)}
+  .plan-icon.s3{background:linear-gradient(135deg,var(--plat-50),#EDE9FE);color:var(--plat-500)}
+  .plan-icon svg{width:22px;height:22px}
+  .plan-name{font-family:'Outfit',sans-serif;font-size:20px;font-weight:700;letter-spacing:-.01em;color:var(--ink-900)}
+  .plan-tagline{font-size:13px;color:var(--ink-500);margin-top:2px}
+
+  .plan-price{display:flex;align-items:baseline;gap:6px;margin-top:8px}
+  .plan-price .num{font-family:'Outfit',sans-serif;font-size:38px;font-weight:800;letter-spacing:-.03em;color:var(--ink-900)}
+  .plan-price .currency{font-size:14px;font-weight:600;color:var(--ink-500)}
+  .plan-period{font-size:13px;color:var(--ink-500);margin-bottom:24px}
+
+  .plan-features{list-style:none;margin-bottom:28px;flex:1}
+  .plan-features li{display:flex;align-items:flex-start;gap:10px;padding:9px 0;font-size:13.5px;color:var(--ink-700);border-bottom:1px dashed var(--border)}
+  .plan-features li:last-child{border-bottom:none}
+  .plan-features li svg{width:16px;height:16px;color:var(--brand-500);flex-shrink:0;margin-top:2px}
+  .plan-features li.bold{font-weight:600;color:var(--ink-900)}
+  .plan-features li.bold svg{color:var(--gold-600)}
+  .plan-features li .pill{display:inline-block;font-size:10px;font-weight:700;background:var(--brand-50);color:var(--brand-700);padding:2px 6px;border-radius:4px;text-transform:uppercase;letter-spacing:.04em}
+
+  .plan-cta{width:100%;padding:13px 20px;background:var(--surface);border:1px solid var(--border-strong);border-radius:var(--r-md);font-family:inherit;font-size:14px;font-weight:600;color:var(--ink-900);cursor:pointer;transition:all .15s}
+  .plan-cta:hover{background:var(--ink-900);color:#fff;border-color:var(--ink-900)}
+  .plan.is-featured .plan-cta{background:linear-gradient(135deg,var(--brand-500),var(--brand-700));color:#fff;border-color:transparent;box-shadow:var(--sh-brand)}
+  .plan.is-featured .plan-cta:hover{transform:translateY(-1px)}
+  .plan.is-premium .plan-cta:hover{background:linear-gradient(135deg,var(--plat-500),var(--plat-700));border-color:transparent}
+
+  /* ─────────────────────────────────────────────────────── */
+  /*  COMPARISON: VISUAL EXAMPLES                             */
+  /* ─────────────────────────────────────────────────────── */
+  .compare-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;max-width:1100px;margin:0 auto}
+  .compare-col{display:flex;flex-direction:column;gap:14px}
+  .compare-col-title{text-align:center;font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;color:var(--ink-700);padding:8px 12px;background:var(--surface);border-radius:var(--r-md);border:1px solid var(--border)}
+  .compare-col.vip .compare-col-title{background:linear-gradient(135deg,var(--gold-50),#FFF4DB);color:var(--gold-700);border-color:var(--gold-100)}
+  .compare-col.premium .compare-col-title{background:linear-gradient(135deg,var(--plat-50),#EDE9FE);color:var(--plat-600);border-color:#DDD0FF}
+
+  /* Mock cards */
+  .mock-card{background:var(--surface);border-radius:var(--r-lg);overflow:hidden;border:1px solid var(--border);position:relative;transition:transform .2s}
+  .mock-card:hover{transform:translateY(-2px)}
+  .mock-img{aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;font-size:2.4rem}
+  .mock-body{padding:12px}
+  .mock-title{font-size:14px;font-weight:600}
+  .mock-price{font-size:15px;font-weight:800;color:var(--brand-500);margin-top:4px}
+  .mock-meta{font-size:11px;color:var(--ink-500);margin-top:4px}
+
+  /* ── BADGES — VIP & PREMIUM enrichis ── */
+  .badge-vip{position:absolute;top:12px;left:12px;background:linear-gradient(135deg,#FFE08A 0%,var(--gold-500) 50%,#B8830C 100%);color:#3D2700;padding:6px 12px;border-radius:var(--r-pill);font-size:11px;font-weight:800;box-shadow:0 4px 12px rgba(245,177,0,.5),inset 0 1px 0 rgba(255,255,255,.4);z-index:3;display:inline-flex;align-items:center;gap:5px;text-shadow:0 1px 0 rgba(255,255,255,.3);letter-spacing:.04em}
+  .badge-premium{position:absolute;top:12px;left:12px;background:linear-gradient(135deg,#C4B5FD 0%,var(--plat-500) 50%,#4C1D95 100%);color:#fff;padding:6px 12px;border-radius:var(--r-pill);font-size:11px;font-weight:800;box-shadow:0 4px 12px rgba(124,58,237,.5),inset 0 1px 0 rgba(255,255,255,.3);z-index:3;display:inline-flex;align-items:center;gap:5px;letter-spacing:.04em}
+
+  /* ── VIP CARD ── */
+  .mock-card.vip{
+    border:2px solid transparent;
+    background:
+      linear-gradient(180deg,var(--surface) 0%,var(--surface) 100%) padding-box,
+      linear-gradient(135deg,#FFE08A,var(--gold-500),#B8830C) border-box;
+    box-shadow:0 4px 16px rgba(245,177,0,.18);
+  }
+  .mock-card.vip:hover{box-shadow:0 12px 32px rgba(245,177,0,.35)}
+  .mock-card.vip::before{
+    content:'';position:absolute;top:0;left:0;right:0;height:6px;
+    background:linear-gradient(90deg,#FFE08A,var(--gold-500),#FFD86F,var(--gold-500),#FFE08A);
+    background-size:200% 100%;
+    animation:vipBar 3s linear infinite;
+    z-index:2;
+  }
+  @keyframes vipBar{from{background-position:0 0}to{background-position:200% 0}}
+  .mock-card.vip::after{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(110deg,transparent 30%,rgba(255,220,130,.4) 50%,transparent 70%);
+    background-size:250% 100%;background-position:200% 0;
+    animation:shine 3.5s ease-in-out infinite;
+    pointer-events:none;border-radius:var(--r-lg);
+    mix-blend-mode:overlay;
+  }
+  @keyframes shine{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+  /* ── PREMIUM CARD ── */
+  .mock-card.premium{
+    border:2px solid transparent;
+    background:
+      linear-gradient(180deg,#FAFAFC 0%,var(--surface) 100%) padding-box,
+      linear-gradient(135deg,#C4B5FD,var(--plat-500),#3B0764) border-box;
+    box-shadow:0 4px 16px rgba(124,58,237,.18);
+  }
+  .mock-card.premium:hover{box-shadow:0 12px 32px rgba(124,58,237,.35)}
+  .mock-card.premium::before{
+    content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+    background:
+      radial-gradient(circle at 90% 10%,rgba(196,181,253,.25) 0,transparent 40%),
+      radial-gradient(circle at 10% 90%,rgba(124,58,237,.15) 0,transparent 40%);
+    pointer-events:none;border-radius:var(--r-lg);z-index:1;
+  }
+  .mock-card.premium .mock-img,.mock-card.premium .mock-body{position:relative;z-index:2}
+
+  /* Décoration corner Premium - petite étincelle */
+  .mock-card.premium .sparkle{position:absolute;top:8px;right:8px;width:24px;height:24px;color:var(--plat-500);z-index:3;animation:sparkle 2s ease-in-out infinite}
+  @keyframes sparkle{0%,100%{transform:scale(1) rotate(0);opacity:.7}50%{transform:scale(1.2) rotate(180deg);opacity:1}}
+
+  /* ── PROFIL CARDS ── */
+  .mock-profile{display:flex;align-items:center;gap:12px;padding:16px;background:var(--surface);border-radius:var(--r-lg);border:1px solid var(--border);position:relative;overflow:hidden}
+
+  .mock-profile.vip{
+    border:2px solid transparent;
+    background:
+      linear-gradient(135deg,#FFFAEB 0%,var(--surface) 100%) padding-box,
+      linear-gradient(135deg,#FFE08A,var(--gold-500),#B8830C) border-box;
+    box-shadow:0 4px 16px rgba(245,177,0,.15);
+  }
+  .mock-profile.vip::after{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(110deg,transparent 30%,rgba(255,220,130,.25) 50%,transparent 70%);
+    background-size:250% 100%;background-position:200% 0;
+    animation:shine 3.5s ease-in-out infinite;
+    pointer-events:none;
+  }
+
+  .mock-profile.premium{
+    border:2px solid transparent;
+    background:
+      linear-gradient(135deg,#F4F1FF 0%,var(--surface) 100%) padding-box,
+      linear-gradient(135deg,#C4B5FD,var(--plat-500),#3B0764) border-box;
+    box-shadow:0 4px 16px rgba(124,58,237,.15);
+  }
+
+  .mock-profile-avatar{
+    width:54px;height:54px;border-radius:50%;
+    background:linear-gradient(135deg,#FFC7A3,var(--brand-500));
+    flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:18px;
+    position:relative;
+  }
+  .mock-profile.vip .mock-profile-avatar{box-shadow:0 0 0 3px #fff,0 0 0 6px var(--gold-500),0 4px 12px rgba(245,177,0,.4)}
+  .mock-profile.premium .mock-profile-avatar{box-shadow:0 0 0 3px #fff,0 0 0 6px var(--plat-500),0 4px 12px rgba(124,58,237,.4)}
+
+  /* Couronne au-dessus de l'avatar Premium */
+  .mock-profile.premium .mock-profile-avatar::after{
+    content:'';position:absolute;top:-12px;left:50%;transform:translateX(-50%);
+    width:18px;height:14px;
+    background:linear-gradient(135deg,#FFD86F,var(--gold-500));
+    clip-path:polygon(0 100%,15% 30%,30% 60%,50% 0,70% 60%,85% 30%,100% 100%);
+    filter:drop-shadow(0 1px 2px rgba(0,0,0,.2));
+  }
+
+  .mock-profile-name{font-weight:700;font-size:14px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .mock-profile-sub{font-size:11px;color:var(--ink-500);margin-top:3px;display:flex;align-items:center;gap:5px}
+
+  /* Mini badges enrichis */
+  .mini-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:800;padding:3px 7px;border-radius:4px;text-transform:uppercase;letter-spacing:.06em;line-height:1}
+  .mini-badge.vip{background:linear-gradient(135deg,#FFE08A,var(--gold-500),#B8830C);color:#3D2700;box-shadow:0 1px 3px rgba(245,177,0,.4),inset 0 1px 0 rgba(255,255,255,.4);text-shadow:0 1px 0 rgba(255,255,255,.3)}
+  .mini-badge.premium{background:linear-gradient(135deg,#C4B5FD,var(--plat-500),#4C1D95);color:#fff;box-shadow:0 1px 3px rgba(124,58,237,.4),inset 0 1px 0 rgba(255,255,255,.2)}
+  .mini-badge.verified{background:#1D9BF0;color:#fff;padding:3px;width:14px;height:14px;border-radius:50%}
+  .mini-badge.verified svg{width:10px;height:10px}
+
+  /* ─────────────────────────────────────────────────────── */
+  /*  MARKETING BENEFITS                                      */
+  /* ─────────────────────────────────────────────────────── */
+  .benefits{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;max-width:1100px;margin:0 auto}
+  .benefit{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:24px;transition:transform .25s,box-shadow .25s}
+  .benefit:hover{transform:translateY(-3px);box-shadow:var(--sh-md)}
+  .benefit-icon{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,var(--brand-50),var(--gold-50));color:var(--brand-500);display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+  .benefit-icon svg{width:22px;height:22px}
+  .benefit h3{font-family:'Outfit',sans-serif;font-size:16px;font-weight:700;margin-bottom:6px}
+  .benefit p{font-size:13px;color:var(--ink-500);line-height:1.55}
+
+  /* ─────────────────────────────────────────────────────── */
+  /*  FAQ                                                     */
+  /* ─────────────────────────────────────────────────────── */
+  .faq{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+  .faq details{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);padding:16px 20px;cursor:pointer;transition:border-color .15s}
+  .faq details[open]{border-color:var(--brand-200)}
+  .faq summary{font-weight:600;font-size:14px;list-style:none;display:flex;justify-content:space-between;align-items:center}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary::after{content:'+';font-size:1.4rem;color:var(--brand-500);transition:transform .2s;line-height:1}
+  .faq details[open] summary::after{transform:rotate(45deg)}
+  .faq details p{margin-top:10px;color:var(--ink-500);font-size:13.5px;line-height:1.6}
+</style>
+</head>
+<body>
+
+<!-- ═════ HERO ═════ -->
+<header class="hero">
+  <div class="hero-eyebrow">
+    <span class="dot"></span>
+    <span>DjamikShop Boost</span>
+  </div>
+  <h1>Vends plus, vends mieux.<br><span class="accent">Sans effort.</span></h1>
+  <p>3 formules pour propulser tes annonces. Choisis ce qui te correspond, sans engagement.</p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="hero-stat-val">×5</div><div class="hero-stat-lbl">Visibilité VIP</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">×10</div><div class="hero-stat-lbl">Visibilité Premium</div></div>
+    <div class="hero-stat"><div class="hero-stat-val">24h</div><div class="hero-stat-lbl">Durée d'un boost</div></div>
+  </div>
+</header>
+
+<!-- ═════ PRICING ═════ -->
+<section>
+  <div class="container">
+    <div class="section-head">
+      <div class="label">Tarifs</div>
+      <h2>Choisis ta formule</h2>
+      <p>Aucun engagement, résiliation à tout moment. Paiement Mobile Money.</p>
+    </div>
+
+    <div class="pricing">
+
+      <!-- ── GRATUIT ── -->
+      <div class="plan">
+        <div class="plan-header">
+          <div class="plan-icon s1">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/></svg>
+          </div>
+          <div>
+            <div class="plan-name">Gratuit</div>
+            <div class="plan-tagline">Pour démarrer</div>
+          </div>
+        </div>
+        <div class="plan-price"><span class="num">0</span><span class="currency">FCFA</span></div>
+        <div class="plan-period">à vie · sans carte</div>
+        <ul class="plan-features">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Jusqu'à <strong>10 annonces</strong> actives</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Messagerie illimitée</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Partage WhatsApp + lien</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Design classique</li>
+          <li style="color:var(--ink-300)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>Pas de boost</li>
+        </ul>
+        <button class="plan-cta">Continuer gratuitement</button>
+      </div>
+
+      <!-- ── VIP ── -->
+      <div class="plan is-featured">
+        <div class="plan-badge">Plus populaire</div>
+        <div class="plan-header">
+          <div class="plan-icon s2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7l4.5 4L12 4l5.5 7L22 7l-2 12H4L2 7z"/></svg>
+          </div>
+          <div>
+            <div class="plan-name">VIP</div>
+            <div class="plan-tagline">Pour vendre régulièrement</div>
+          </div>
+        </div>
+        <div class="plan-price"><span class="num">1 500</span><span class="currency">FCFA</span></div>
+        <div class="plan-period">par mois · sans engagement</div>
+        <ul class="plan-features">
+          <li class="bold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Jusqu'à <strong>50 annonces</strong> actives</li>
+          <li class="bold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><strong>5 boosts par jour</strong> <span class="pill">×5 visibilité</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Badge <strong>VIP doré</strong> sur profil & annonces</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Bandeau "Annonces vedette"</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Notification push aux acheteurs</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Statistiques de base (vues, contacts)</li>
+        </ul>
+        <button class="plan-cta">Devenir VIP</button>
+      </div>
+
+      <!-- ── PREMIUM ── -->
+      <div class="plan is-premium">
+        <div class="plan-header">
+          <div class="plan-icon s3">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9h18M3 9l2-5h14l2 5M3 9v11a1 1 0 001 1h16a1 1 0 001-1V9"/><path d="M8 14h8"/></svg>
+          </div>
+          <div>
+            <div class="plan-name">Premium</div>
+            <div class="plan-tagline">Pour les pros</div>
+          </div>
+        </div>
+        <div class="plan-price"><span class="num">2 500</span><span class="currency">FCFA</span></div>
+        <div class="plan-period">par mois · sans engagement</div>
+        <ul class="plan-features">
+          <li class="bold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Jusqu'à <strong>100 annonces</strong> actives</li>
+          <li class="bold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><strong>15 boosts par jour</strong> <span class="pill" style="background:#EDE9FE;color:var(--plat-700)">×10 visibilité</span></li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Badge <strong>Premium</strong> exclusif (profil + annonces)</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Boutique dédiée sur ton profil</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Statistiques détaillées (graphiques, audience)</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Support WhatsApp prioritaire (réponse &lt; 2h)</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Vérifié officiellement <strong>Vendeur de confiance</strong></li>
+        </ul>
+        <button class="plan-cta">Devenir Premium</button>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ═════ COMPARAISON VISUELLE ═════ -->
+<section style="padding-top:0;background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border)">
+  <div class="container" style="padding-top:64px;padding-bottom:0">
+    <div class="section-head">
+      <div class="label">Aperçu visuel</div>
+      <h2>Vois la différence</h2>
+      <p>À gauche le rendu actuel, à droite ce que tes acheteurs verront avec VIP ou Premium.</p>
+    </div>
+
+    <div class="compare-grid">
+      <!-- Gratuit -->
+      <div class="compare-col">
+        <div class="compare-col-title">Gratuit</div>
+        <div class="mock-card">
+          <div class="mock-img" style="background:linear-gradient(135deg,#F1F2F6,#DCDFE6)">📱</div>
+          <div class="mock-body"><div class="mock-title">iPhone 13 Pro</div><div class="mock-price">350 000 FCFA</div><div class="mock-meta">Niamey · il y a 2j</div></div>
+        </div>
+        <div class="mock-profile">
+          <div class="mock-profile-avatar">A</div>
+          <div><div class="mock-profile-name">Aboubacar</div><div class="mock-profile-sub">Vendeur · Niamey</div></div>
+        </div>
+      </div>
+
+      <!-- VIP -->
+      <div class="compare-col vip">
+        <div class="compare-col-title">VIP</div>
+        <div class="mock-card vip">
+          <span class="badge-vip">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="11" height="11"><path d="M2 7l4.5 4L12 4l5.5 7L22 7l-2 12H4L2 7z"/></svg> VIP
+          </span>
+          <div class="mock-img" style="background:linear-gradient(135deg,#FFE5A3,var(--gold-500))">📱</div>
+          <div class="mock-body"><div class="mock-title">iPhone 13 Pro</div><div class="mock-price">350 000 FCFA</div><div class="mock-meta">Niamey · il y a 2j</div></div>
+        </div>
+        <div class="mock-profile vip">
+          <div class="mock-profile-avatar">A</div>
+          <div>
+            <div class="mock-profile-name">Aboubacar <span class="mini-badge vip">VIP</span></div>
+            <div class="mock-profile-sub">Vendeur · Niamey</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Premium -->
+      <div class="compare-col premium">
+        <div class="compare-col-title">Premium</div>
+        <div class="mock-card premium">
+          <span class="badge-premium">
+            <svg viewBox="0 0 24 24" fill="currentColor" width="11" height="11"><path d="M12 2l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z"/></svg> Premium
+          </span>
+          <svg class="sparkle" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0l2.5 9.5L24 12l-9.5 2.5L12 24l-2.5-9.5L0 12l9.5-2.5z"/></svg>
+          <div class="mock-img" style="background:linear-gradient(135deg,#C4A8FF,var(--plat-500))">📱</div>
+          <div class="mock-body"><div class="mock-title">iPhone 13 Pro</div><div class="mock-price">350 000 FCFA</div><div class="mock-meta">Niamey · il y a 2j</div></div>
+        </div>
+        <div class="mock-profile premium">
+          <div class="mock-profile-avatar">A</div>
+          <div>
+            <div class="mock-profile-name">Aboubacar
+              <span class="mini-badge premium">Premium</span>
+              <span class="mini-badge verified" title="Vendeur vérifié"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span>
+            </div>
+            <div class="mock-profile-sub">Vendeur de confiance · Niamey</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="height:64px"></div>
+</section>
+
+<!-- ═════ MARKETING BENEFITS (leviers ajoutés) ═════ -->
+<section>
+  <div class="container">
+    <div class="section-head">
+      <div class="label">Pourquoi passer payant</div>
+      <h2>Les leviers qui font la différence</h2>
+      <p>Au-delà du badge, voilà ce qui transforme le résultat de tes ventes.</p>
+    </div>
+
+    <div class="benefits">
+      <div class="benefit">
+        <div class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+        <h3>Position prioritaire</h3>
+        <p>Tes annonces remontent <strong>en tête des résultats</strong> de la catégorie et de la ville. Plus tu boostes, plus tu domines.</p>
+      </div>
+      <div class="benefit">
+        <div class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg></div>
+        <h3>Notif push aux acheteurs</h3>
+        <p>Quand tu boostes, les acheteurs intéressés reçoivent une <strong>notification</strong>. Marche même hors-ligne.</p>
+      </div>
+      <div class="benefit">
+        <div class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <h3>Stats détaillées</h3>
+        <p>Vues, contacts, partages, taux de conversion. Sache <strong>quelle annonce performe</strong> et quand booster.</p>
+      </div>
+      <div class="benefit">
+        <div class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <h3>Badge "Vendeur de confiance"</h3>
+        <p>Premium : <strong>vérification d'identité</strong> + badge bleu. Les acheteurs te font 3× plus confiance.</p>
+      </div>
+      <div class="benefit">
+        <div class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+        <h3>Support WhatsApp prioritaire</h3>
+        <p>Premium : ligne directe avec l'équipe DjamikShop, réponse en moins de <strong>2 heures</strong>.</p>
+      </div>
+      <div class="benefit">
+        <div class="benefit-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg></div>
+        <h3>Boutique dédiée</h3>
+        <p>Premium : page boutique avec ton logo, bannière, toutes tes annonces. Lien partageable <strong>djamikshop.com/boutique/ton-nom</strong>.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════ FAQ ═════ -->
+<section style="padding-top:0">
+  <div class="container">
+    <div class="section-head">
+      <div class="label">Questions fréquentes</div>
+      <h2>On répond à tout</h2>
+    </div>
+    <div class="faq">
+      <details>
+        <summary>Comment je paie ?</summary>
+        <p>Mobile Money : <strong>Mynita</strong> ou <strong>Amanata</strong>. Le paiement débloque ton abonnement instantanément.</p>
+      </details>
+      <details>
+        <summary>Que se passe-t-il si j'arrête de payer ?</summary>
+        <p>Quand ton abonnement expire (et que tu ne renouvelles pas), ton compte <strong>repasse automatiquement en Gratuit</strong>.<br><br>
+        Si tu as plus de 10 annonces actives au moment du downgrade, tes annonces les plus anciennes deviennent <strong>"inactives"</strong> et reçoivent un <strong>délai de grâce de 48h</strong>. Pendant ces 48h tu peux : repayer un abonnement (tout est restauré), ou désactiver/supprimer toi-même les annonces que tu veux garder. <strong>Passé 48h, les annonces inactives sont supprimées définitivement.</strong></p>
+      </details>
+      <details>
+        <summary>Un boost dure combien de temps ?</summary>
+        <p><strong>1 jour par boost (24h).</strong> VIP : 5 boosts/jour. Premium : 15 boosts/jour. Tu peux booster la même annonce chaque jour pour la maintenir en tête.</p>
+      </details>
+      <details>
+        <summary>C'est quoi exactement "×5 visibilité" ?</summary>
+        <p>Tes annonces apparaissent en haut des résultats de la catégorie et de la ville, avec un bandeau "Annonces vedette" sur la home. Statistiquement : ~5× plus de vues qu'une annonce gratuite (×10 pour Premium).</p>
+      </details>
+      <details>
+        <summary>Le badge "Vendeur de confiance", c'est quoi ?</summary>
+        <p>Pour Premium uniquement : on vérifie ton identité (CNI ou pièce officielle) et tu reçois un badge bleu vérifié. Les acheteurs achètent 3× plus chez les vendeurs vérifiés.</p>
+      </details>
+      <details>
+        <summary>Est-ce que DjamikShop prend une commission sur mes ventes ?</summary>
+        <p>Non. <strong>Zéro commission</strong>, peu importe ta formule. L'abonnement est notre seul revenu.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

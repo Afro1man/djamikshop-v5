@@ -1,0 +1,27 @@
+{
+  "name": "djamikshop-v5",
+  "version": "1.0.0",
+  "description": "1. **Architecture modulaire** — CSS et JS séparés en modules réutilisables 2. **Zero duplication** — Navbar, side-menu et toast injectés automatiquement via JS 3. **Design system cohérent** — Variables CSS, thème clair/sombre natif, glassmorphism 4. **Mobile-first** — Toutes les pages pensées pour le mobile en premier",
+  "main": "sw.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Afro1man/djamikshop-v5.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Afro1man/djamikshop-v5/issues"
+  },
+  "homepage": "https://github.com/Afro1man/djamikshop-v5#readme",
+  "dependencies": {
+    "@capacitor/android": "^8.3.4",
+    "@capacitor/app": "^8.1.0",
+    "@capacitor/cli": "^8.3.4",
+    "@capacitor/core": "^8.3.4"
+  }
+}

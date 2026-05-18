@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Mon panier — DjamikShop</title>
+  <!-- PWA -->
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="theme-color" content="#E8501A">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="DjamikShop">
+  <link rel="apple-touch-icon" href="/assets/icons/icon.svg">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/icon.svg">
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="DjamikShop">
+  <meta property="og:title" content="DjamikShop — La marketplace du Niger">
+  <meta property="og:description" content="Achetez et vendez partout au Niger : Niamey, Zinder, Maradi, Tahoua, Agadez et plus.">
+  <meta property="og:image" content="https://djamikshop-v5.vercel.app/assets/icons/og-image.svg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="fr_FR">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="DjamikShop — La marketplace du Niger">
+  <meta name="twitter:description" content="Achetez et vendez partout au Niger.">
+  <meta name="twitter:image" content="https://djamikshop-v5.vercel.app/assets/icons/og-image.svg">
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    .cart-layout { display: grid; grid-template-columns: 1fr 360px; gap: var(--space-6); align-items: start; }
+    .cart-item {
+      display: flex; gap: var(--space-4); padding: var(--space-4);
+      background: var(--white); border: 1px solid var(--surface-3); border-radius: var(--r-lg);
+      transition: all var(--transition-fast);
+    }
+    .cart-item:hover { border-color: var(--surface-4); box-shadow: var(--shadow-sm); }
+    .cart-item img { width: 80px; height: 80px; object-fit: cover; border-radius: var(--r-md); flex-shrink: 0; }
+    .cart-item-body { flex: 1; }
+    .cart-item-name { font-weight: 600; margin-bottom: 2px; font-size: .95rem; }
+    .cart-item-price { color: var(--brand); font-weight: 700; font-family: 'Outfit',sans-serif; }
+    .cart-item-meta { font-size: .78rem; color: var(--ink-3); margin-top: 2px; }
+    .cart-item-actions { display: flex; align-items: center; gap: var(--space-3); margin-top: var(--space-2); }
+    .qty-control { display: flex; align-items: center; gap: var(--space-1); }
+    .qty-btn {
+      width: 28px; height: 28px; border: 1.5px solid var(--surface-3); border-radius: var(--r-sm);
+      background: var(--white); cursor: pointer; font-size: 1rem; display: flex; align-items: center; justify-content: center;
+      transition: all var(--transition-fast); color: var(--ink-2);
+    }
+    .qty-btn:hover { border-color: var(--brand); color: var(--brand); }
+    .qty-val { font-weight: 700; min-width: 24px; text-align: center; font-size: .9rem; }
+    .remove-btn { font-size: .8rem; color: var(--danger); cursor: pointer; background: none; border: none; }
+    .remove-btn:hover { text-decoration: underline; }
+
+    .order-summary {
+      background: var(--white); border: 1px solid var(--surface-3); border-radius: var(--r-xl);
+      padding: var(--space-5);
+      position: sticky; top: calc(var(--nav-h) + var(--space-4));
+    }
+    .order-summary h3 { font-family: 'Outfit',sans-serif; margin-bottom: var(--space-4); }
+    .summary-row { display: flex; justify-content: space-between; font-size: .9rem; padding: var(--space-2) 0; border-bottom: 1px solid var(--surface-3); }
+    .summary-row:last-child { border: none; font-weight: 700; font-size: 1.1rem; color: var(--brand); font-family: 'Outfit',sans-serif; }
+
+    .trust-panel {
+      background: var(--white); border: 1px solid var(--surface-3); border-radius: var(--r-lg);
+      padding: var(--space-4); margin-top: var(--space-3);
+    }
+    .trust-item { display: flex; align-items: center; gap: var(--space-2); font-size: .85rem; color: var(--ink-2); margin-bottom: var(--space-2); }
+    .trust-item:last-child { margin-bottom: 0; }
+
+    @media (max-width: 900px) {
+      .cart-layout { grid-template-columns: 1fr; }
+      .order-summary { position: static; }
+    }
+  </style>
+</head>
+<body>
+<script>if(typeof window.supabase==='undefined')window.supabase=null;</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" onerror=""></script>
+<script src="../assets/js/app.js"></script>
+
+<div class="page-body">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="index.html">Accueil</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <span>Mon panier</span>
+    </div>
+    <h1 style="margin-bottom:var(--space-6)"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 1.95-1.57l1.65-8.42H6"/></svg> Mon panier</h1>
+
+    <div id="cart-empty" class="empty-state hidden">
+      <div class="empty-icon"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 1.95-1.57l1.65-8.42H6"/></svg></div>
+      <h3>Votre panier est vide</h3>
+      <p>Parcourez les annonces et ajoutez des articles.</p>
+      <a href="index.html" class="btn btn-primary mt-4">Parcourir les annonces</a>
+    </div>
+
+    <div id="cart-summary" class="cart-layout hidden">
+      <div class="flex flex-col gap-3">
+        <div id="cart-list"></div>
+        <div class="panel">
+          <h4 style="margin-bottom:var(--space-2)"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> Message pour le vendeur</h4>
+          <textarea id="order-note" class="form-textarea" rows="3" placeholder="Ex: Je suis disponible le week-end..."></textarea>
+        </div>
+        <a href="index.html" class="flex items-center gap-2" style="font-size:.875rem;color:var(--brand)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="15 18 9 12 15 6"/></svg>
+          Continuer mes achats
+        </a>
+      </div>
+      <div>
+        <div class="order-summary">
+          <h3>Récapitulatif</h3>
+          <div class="summary-row"><span>Articles</span><span id="summary-items">—</span></div>
+          <div class="summary-row"><span>Sous-total</span><span id="summary-subtotal">—</span></div>
+          <div class="summary-row"><span>Livraison</span><span style="color:var(--success)">À négocier</span></div>
+          <div class="summary-row"><span>Total estimé</span><span id="summary-total">—</span></div>
+          <div style="background:var(--brand-light);border-radius:var(--r-md);padding:var(--space-3);font-size:.8rem;color:var(--ink-2);margin:var(--space-3) 0;line-height:1.6">
+            <svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.25 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.16 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9a16 16 0 0 0 6.72 6.72l1.36-1.36a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg> En confirmant, un message est automatiquement envoyé à chaque vendeur.
+          </div>
+          <button id="btn-checkout" class="btn btn-primary btn-full btn-lg"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Confirmer la commande</button>
+          <p style="font-size:.75rem;color:var(--ink-3);text-align:center;margin-top:var(--space-2)"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Transaction sécurisée</p>
+        </div>
+        <div class="trust-panel">
+          <div class="trust-item"><span style="font-size:1.2rem"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span> Achat protégé</div>
+          <div class="trust-item"><span style="font-size:1.2rem"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span> Communication directe vendeur</div>
+          <div class="trust-item"><span style="font-size:1.2rem"><svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"/></svg></span> Rencontre dans un lieu sûr</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../assets/js/features/cart.js"></script>
+</body>
+</html>

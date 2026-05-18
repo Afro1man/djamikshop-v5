@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Paiement — DjamikShop</title>
+  <meta name="theme-color" content="#E8501A">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/icon.svg">
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    .pay-wrap { max-width: 580px; margin: 0 auto; padding: 0 16px; }
+    .pay-head { text-align: center; margin-bottom: var(--space-6); }
+    .pay-head .eyebrow { display: inline-block; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: var(--primary,#E8501A); margin-bottom: 8px; }
+    .pay-head h1 { font-family: Outfit,sans-serif; font-size: 1.6rem; margin: 0 0 4px; }
+    .pay-head p { color: var(--ink-3); font-size: .92rem; }
+
+    .pay-step { background: var(--white); border: 1px solid var(--surface-3); border-radius: var(--r-xl,22px); padding: 22px; margin-bottom: 14px; box-shadow: var(--shadow-sm); position: relative; }
+    .pay-step-num { position: absolute; top: -10px; left: 18px; width: 26px; height: 26px; background: var(--primary,#E8501A); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: Outfit,sans-serif; font-weight: 800; font-size: .85rem; }
+    .pay-step h3 { font-family: Outfit,sans-serif; font-size: 1.05rem; margin: 6px 0 14px; }
+
+    .method-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+    .method-card { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 2px solid var(--surface-3); border-radius: var(--r-md); cursor: pointer; transition: all .15s; background: var(--white); font-size: .88rem; font-weight: 600; }
+    .method-card:hover { border-color: var(--primary,#E8501A); }
+    .method-card input { display: none; }
+    .method-card .dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+    .method-card.checked { border-color: var(--primary,#E8501A); background: rgba(232,80,26,.04); }
+
+    .pay-info-line { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px dashed var(--surface-3); font-size: .92rem; }
+    .pay-info-line:last-child { border-bottom: none; }
+    .pay-info-line strong { color: var(--ink); }
+
+    .pay-num-card { background: linear-gradient(135deg, var(--primary,#E8501A), #C03E0E); color: #fff; padding: 18px 20px; border-radius: var(--r-md); margin: 14px 0; font-family: Outfit,sans-serif; font-size: 1.4rem; font-weight: 800; letter-spacing: .04em; text-align: center; box-shadow: 0 8px 24px rgba(232,80,26,.25); }
+    .pay-num-card-lbl { font-size: .68rem; font-weight: 600; opacity: .85; letter-spacing: .12em; text-transform: uppercase; margin-bottom: 6px; }
+    .pay-num-copy { display: inline-block; margin-top: 8px; background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.3); color: #fff; padding: 4px 12px; border-radius: 100px; font-size: .72rem; font-weight: 600; cursor: pointer; transition: background .15s; font-family: Inter,sans-serif; }
+    .pay-num-copy:hover { background: rgba(255,255,255,.3); }
+
+    .pay-ref-box { background: #FFFAEB; border: 2px dashed #F59E0B; border-radius: var(--r-md); padding: 16px; text-align: center; margin: 14px 0; }
+    .pay-ref-lbl { font-size: .72rem; color: #92400E; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 6px; }
+    .pay-ref-code { font-family: 'Outfit',sans-serif; font-size: 1.5rem; font-weight: 800; color: #78350F; letter-spacing: .15em; }
+    .pay-ref-help { font-size: .8rem; color: #92400E; margin-top: 8px; }
+
+    .pay-btn-confirm { width: 100%; padding: 14px; background: linear-gradient(135deg, var(--primary,#E8501A), #C03E0E); color: #fff; border: none; border-radius: var(--r-md); font-weight: 700; font-size: 1rem; cursor: pointer; box-shadow: 0 8px 24px rgba(232,80,26,.3); transition: transform .15s, box-shadow .15s; font-family: inherit; }
+    .pay-btn-confirm:hover { transform: translateY(-2px); }
+    .pay-btn-confirm:disabled { opacity: .6; cursor: not-allowed; }
+
+    .pay-success { text-align: center; padding: 40px 20px; }
+    .pay-success-icon { width: 80px; height: 80px; border-radius: 50%; background: #DCFCE7; color: #166534; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; }
+    .pay-success-icon svg { width: 40px; height: 40px; }
+    .pay-success h2 { font-family: Outfit,sans-serif; font-size: 1.4rem; margin-bottom: 8px; }
+    .pay-success p { color: var(--ink-3); margin-bottom: 18px; line-height: 1.6; }
+    .pay-success-ref { display: inline-block; background: var(--surface-2); padding: 8px 16px; border-radius: 100px; font-family: 'Outfit',sans-serif; font-weight: 700; letter-spacing: .15em; color: var(--ink); margin-bottom: 18px; }
+
+    .access-denied { text-align: center; padding: 80px 20px; }
+  </style>
+</head>
+<body>
+<script>if(typeof window.supabase==='undefined')window.supabase=null;</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" onerror=""></script>
+<script src="../assets/js/app.js"></script>
+
+<div class="page-body">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="tarifs.html">Tarifs</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <span>Paiement</span>
+    </div>
+    <div class="pay-wrap"><div id="pay-content"><div style="text-align:center;padding:40px;color:var(--ink-3)">Chargement…</div></div></div>
+  </div>
+</div>
+
+<script>
+window.onDjamikReady(async function() {
+  var root = document.getElementById('pay-content');
+  if (!root || !window._supabase) return;
+
+  // Récupère le tier + promo depuis l'URL
+  var params = new URLSearchParams(window.location.search);
+  var tier = params.get('tier');
+  var promoCode = params.get('promo');
+  if (!['vip','premium'].includes(tier)) {
+    root.innerHTML = '<div class="access-denied"><h1>Plan invalide</h1><p><a href="tarifs.html" style="color:var(--brand)">Retour aux tarifs</a></p></div>';
+    return;
+  }
+
+  // Vérifie connexion
+  var u = await window._supabase.auth.getUser();
+  var uid = u && u.data && u.data.user && u.data.user.id;
+  if (!uid) {
+    root.innerHTML = '<div class="access-denied"><h1>Connexion requise</h1><p><a href="login.html?next=' + encodeURIComponent('payment.html?tier=' + tier) + '" style="color:var(--brand)">Se connecter</a></p></div>';
+    return;
+  }
+
+  // Numéros Mobile Money DjamikShop
+  var DJAMIK_NUMBERS = {
+    mynita:  '+227 89 77 00 02',
+    amanata: '+227 89 77 00 02'
+  };
+  var METHOD_LABELS = {
+    mynita:  'Mynita',
+    amanata: 'Amanata'
+  };
+  var METHOD_COLORS = {
+    mynita:  '#7C3AED',
+    amanata: '#16A34A'
+  };
+
+  var baseAmount = tier === 'vip' ? 1500 : 2500;
+  var amount = baseAmount;
+  var tierLabel = tier === 'vip' ? 'VIP' : 'Premium';
+  var promoApplied = null;
+
+  // Vérifie l'éligibilité promo
+  if (promoCode && tier === 'vip') {
+    try {
+      var pr = await window._supabase.rpc('is_promo_eligible', { p_user_id: uid, p_code: promoCode });
+      if (pr.data === true && promoCode.toUpperCase() === 'WELCOME50') {
+        amount = baseAmount / 2;
+        promoApplied = promoCode.toUpperCase();
+      }
+    } catch(e) {}
+  }
+
+  function _renderForm(selectedMethod) {
+    selectedMethod = selectedMethod || 'mynita';
+    root.innerHTML =
+      '<div class="pay-head">' +
+        '<span class="eyebrow">' + tierLabel + ' · 30 jours' + (promoApplied ? ' · PROMO ' + promoApplied : '') + '</span>' +
+        '<h1>Paie ' + amount.toLocaleString('fr-FR').replace(',', ' ') + ' FCFA' +
+          (promoApplied ? ' <span style="font-size:1rem;text-decoration:line-through;color:var(--ink-3);font-weight:500">' + baseAmount.toLocaleString('fr-FR').replace(',', ' ') + '</span>' : '') +
+        '</h1>' +
+        '<p>2 minutes, en Mobile Money. Activation après vérification.' +
+        (promoApplied ? '<br><span style="color:#92400E;font-weight:600">🎁 Tu profites de la promo découverte (-50%)</span>' : '') +
+        '</p>' +
+      '</div>' +
+
+      // Étape 1 : choisir méthode
+      '<div class="pay-step">' +
+        '<div class="pay-step-num">1</div>' +
+        '<h3>Choisis ton moyen de paiement</h3>' +
+        '<div class="method-grid" id="method-grid">' +
+          Object.keys(METHOD_LABELS).map(function(m) {
+            return '<label class="method-card' + (m === selectedMethod ? ' checked' : '') + '" data-method="' + m + '">' +
+              '<input type="radio" name="method" value="' + m + '"' + (m === selectedMethod ? ' checked' : '') + '>' +
+              '<span class="dot" style="background:' + METHOD_COLORS[m] + '"></span>' +
+              '<span>' + METHOD_LABELS[m] + '</span>' +
+            '</label>';
+          }).join('') +
+        '</div>' +
+      '</div>' +
+
+      // Étape 2 : envoyer paiement
+      '<div class="pay-step">' +
+        '<div class="pay-step-num">2</div>' +
+        '<h3>Envoie le paiement</h3>' +
+        '<div class="pay-info-line"><span>Montant</span><strong>' + amount.toLocaleString('fr-FR').replace(',', ' ') + ' FCFA</strong></div>' +
+        '<div class="pay-info-line"><span>Méthode</span><strong>' + METHOD_LABELS[selectedMethod] + '</strong></div>' +
+        '<div class="pay-num-card">' +
+          '<div class="pay-num-card-lbl">Numéro DjamikShop</div>' +
+          '<div id="pay-num">' + DJAMIK_NUMBERS[selectedMethod] + '</div>' +
+          '<button class="pay-num-copy" onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent.trim()); this.textContent=\'✓ Copié\'">Copier le numéro</button>' +
+        '</div>' +
+        '<p style="font-size:.85rem;color:var(--ink-2);line-height:1.5;margin-top:10px">Envoie exactement <strong>' + amount.toLocaleString('fr-FR').replace(',', ' ') + ' FCFA</strong> au numéro ci-dessus avec la référence ci-dessous comme motif/objet.</p>' +
+      '</div>' +
+
+      // Étape 3 : valider
+      '<div class="pay-step">' +
+        '<div class="pay-step-num">3</div>' +
+        '<h3>Confirme avoir payé</h3>' +
+        '<p style="font-size:.85rem;color:var(--ink-3);margin-bottom:10px">Une fois ton paiement envoyé, clique pour générer ta référence et notifier l\'admin.</p>' +
+        '<textarea id="pay-note" placeholder="Note optionnelle (ex: numéro depuis lequel tu as payé)" maxlength="200" style="width:100%;padding:10px 12px;border:1px solid var(--surface-3);border-radius:10px;font-family:inherit;font-size:.88rem;resize:vertical;min-height:60px;margin-bottom:14px"></textarea>' +
+        '<button class="pay-btn-confirm" id="pay-confirm-btn">J\'ai envoyé le paiement</button>' +
+      '</div>';
+
+    // Wire methods
+    root.querySelectorAll('.method-card').forEach(function(card) {
+      card.addEventListener('click', function() {
+        var m = this.dataset.method;
+        _renderForm(m);
+      });
+    });
+    document.getElementById('pay-confirm-btn').addEventListener('click', _onSubmit);
+  }
+
+  async function _onSubmit() {
+    var btn = document.getElementById('pay-confirm-btn');
+    var method = (document.querySelector('input[name=method]:checked') || {}).value;
+    var note = document.getElementById('pay-note').value.trim();
+    if (!method) return;
+
+    btn.disabled = true; btn.textContent = 'Envoi…';
+    try {
+      var r = await window._supabase.rpc('create_payment_request', {
+        p_tier: tier, p_method: method, p_user_note: note || null, p_promo_code: promoApplied
+      });
+      if (r.error) throw r.error;
+      var req = r.data;
+      _renderSuccess(req);
+    } catch(err) {
+      window.toast && window.toast('Erreur : ' + (err.message || 'inconnue'), 'error', 6000);
+      btn.disabled = false; btn.textContent = 'J\'ai envoyé le paiement';
+    }
+  }
+
+  function _renderSuccess(req) {
+    root.innerHTML =
+      '<div class="pay-success">' +
+        '<div class="pay-success-icon">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' +
+        '</div>' +
+        '<h2>Demande enregistrée !</h2>' +
+        '<p>Ta demande de paiement <strong>' + tierLabel + '</strong> a été envoyée à l\'équipe DjamikShop. Voici ta référence :</p>' +
+        '<div class="pay-success-ref">' + req.reference + '</div>' +
+        '<p>L\'admin va vérifier ton paiement Mobile Money sous quelques heures. Tu recevras une <strong>notification</strong> dès que ton compte ' + tierLabel + ' sera activé.</p>' +
+        '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">' +
+          '<a class="btn btn-primary" href="index.html">Retour à l\'accueil</a>' +
+          '<a class="btn btn-outline" href="https://wa.me/22789770002?text=' + encodeURIComponent('Bonjour, j\'ai effectué un paiement DjamikShop. Référence : ' + req.reference) + '" target="_blank">Confirmer sur WhatsApp</a>' +
+        '</div>' +
+      '</div>';
+  }
+
+  _renderForm();
+});
+</script>
+</body>
+</html>

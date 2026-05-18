@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">DjamikShop</string>
+    <string name="title_activity_main">DjamikShop</string>
+    <string name="package_name">com.djamikshop.app</string>
+    <string name="custom_url_scheme">com.djamikshop.app</string>
+</resources>

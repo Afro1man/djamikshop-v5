@@ -1,0 +1,16 @@
+{
+  "appId": "com.djamikshop.app",
+  "appName": "DjamikShop",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#E8501A",
+    "allowMixedContent": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 1500,
+      "backgroundColor": "#E8501A",
+      "showSpinner": false
+    }
+  }
+}

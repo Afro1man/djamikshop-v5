@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Modération — DjamikShop</title>
+  <meta name="theme-color" content="#E8501A">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/icon.svg">
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    .admin-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: var(--space-4); flex-wrap: wrap; }
+    .admin-head h1 { font-family: Outfit, sans-serif; font-size: 1.4rem; margin: 0; display: flex; align-items: center; gap: 8px; }
+    .admin-tabs { display: inline-flex; gap: 4px; background: var(--surface-2); padding: 4px; border-radius: var(--r-md); }
+    .admin-tab { padding: 6px 14px; background: transparent; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: .85rem; color: var(--ink-3); font-family: inherit; }
+    .admin-tab.active { background: var(--white); color: var(--ink); box-shadow: var(--shadow-sm); }
+    .admin-tab-count { display: inline-block; min-width: 18px; padding: 0 5px; background: var(--brand,#E8501A); color: #fff; border-radius: 10px; font-size: .7rem; margin-left: 4px; }
+
+    .rep-card { display: flex; gap: 12px; background: var(--white); border: 1px solid var(--surface-3); border-radius: var(--r-lg); padding: 14px; margin-bottom: 12px; box-shadow: var(--shadow-sm); }
+    .rep-card.urgent { border-left: 4px solid var(--danger,#ef4444); }
+    .rep-card-img { width: 80px; height: 80px; border-radius: var(--r-md); overflow: hidden; flex-shrink: 0; background: var(--surface-2); }
+    .rep-card-img img { width: 100%; height: 100%; object-fit: cover; }
+    .rep-card-img .ph { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--ink-3); font-size: 1.5rem; }
+    .rep-card-body { flex: 1; min-width: 0; }
+    .rep-card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; flex-wrap: wrap; }
+    .rep-reason { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 100px; font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; background: var(--brand-light,#FFF4EE); color: var(--brand,#E8501A); }
+    .rep-reason.scam, .rep-reason.forbidden { background: #FEE2E2; color: #991B1B; }
+    .rep-reason.false_price, .rep-reason.duplicate { background: #FEF3C7; color: #92400E; }
+    .rep-reason.offensive { background: #FCE7F3; color: #9D174D; }
+    .rep-product-title { font-weight: 700; color: var(--ink); margin-bottom: 2px; }
+    .rep-product-title a { color: inherit; text-decoration: none; }
+    .rep-product-title a:hover { color: var(--brand,#E8501A); text-decoration: underline; }
+    .rep-meta { font-size: .75rem; color: var(--ink-3); margin-bottom: 8px; }
+    .rep-message { font-size: .85rem; color: var(--ink-2); background: var(--surface-2); padding: 8px 12px; border-radius: 8px; margin-bottom: 10px; border-left: 3px solid var(--surface-3); white-space: pre-wrap; }
+    .rep-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .rep-actions .btn { padding: 6px 12px; font-size: .78rem; }
+    .rep-status-badge { display: inline-block; padding: 2px 8px; border-radius: 100px; font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
+    .rep-status-badge.open { background: #DBEAFE; color: #1E40AF; }
+    .rep-status-badge.resolved { background: #DCFCE7; color: #166534; }
+    .rep-status-badge.rejected { background: #F1F5F9; color: #475569; }
+
+    .admin-empty { text-align: center; padding: 60px 20px; color: var(--ink-3); }
+    .admin-empty svg { width: 60px; height: 60px; opacity: .4; margin-bottom: 12px; }
+
+    .access-denied { text-align: center; padding: 80px 20px; }
+    .access-denied h1 { font-family: Outfit, sans-serif; color: var(--danger,#ef4444); margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+<script>if(typeof window.supabase==='undefined')window.supabase=null;</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" onerror=""></script>
+<script src="../assets/js/app.js"></script>
+
+<div class="page-body">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="index.html">Accueil</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <span>Modération</span>
+    </div>
+
+    <div id="admin-content">
+      <div style="text-align:center;padding:40px;color:var(--ink-3)">Chargement…</div>
+    </div>
+  </div>
+</div>
+
+<script>
+window.onDjamikReady(async function() {
+  var root = document.getElementById('admin-content');
+  if (!root || !window._supabase) return;
+
+  // Vérifie connexion
+  var u = await window._supabase.auth.getUser();
+  var uid = u && u.data && u.data.user && u.data.user.id;
+  if (!uid) {
+    root.innerHTML = '<div class="access-denied"><h1>Connexion requise</h1><p><a href="login.html?next=admin-reports.html" style="color:var(--brand)">Se connecter</a></p></div>';
+    return;
+  }
+
+  // Vérifie admin
+  var ad = await window._supabase.from('admins').select('user_id').eq('user_id', uid).maybeSingle();
+  if (!ad || !ad.data) {
+    root.innerHTML = '<div class="access-denied"><h1>Accès refusé</h1><p>Cette page est réservée aux administrateurs.</p></div>';
+    return;
+  }
+
+  var REASONS = {
+    scam:        'Arnaque',
+    forbidden:   'Contenu interdit',
+    false_price: 'Prix faux',
+    duplicate:   'Doublon',
+    offensive:   'Offensant',
+    other:       'Autre'
+  };
+
+  var allReports = [];
+  var currentTab = 'open';
+
+  async function _loadReports() {
+    var r = await window._supabase.from('reports')
+      .select('*, products(id, title, image_url, seller_id, sold)')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (r && r.data) allReports = r.data;
+  }
+
+  function _render() {
+    var counts = { open: 0, reviewed: 0, resolved: 0, rejected: 0 };
+    allReports.forEach(function(r){ counts[r.status] = (counts[r.status] || 0) + 1; });
+
+    var head =
+      '<div class="admin-head">' +
+        '<h1>' +
+          '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4M4 4h13l-2 5 2 5H4"/></svg>' +
+          'Modération' +
+        '</h1>' +
+        '<div class="admin-tabs">' +
+          ['open','resolved','rejected'].map(function(s) {
+            var label = s === 'open' ? 'En attente' : (s === 'resolved' ? 'Résolus' : 'Rejetés');
+            var c = counts[s] || 0;
+            return '<button class="admin-tab' + (currentTab===s?' active':'') + '" data-tab="' + s + '">' + label +
+              (c > 0 ? ' <span class="admin-tab-count">' + c + '</span>' : '') +
+            '</button>';
+          }).join('') +
+        '</div>' +
+      '</div>' +
+      '<div id="rep-list"></div>';
+
+    root.innerHTML = head;
+    _renderList();
+
+    root.querySelectorAll('.admin-tab').forEach(function(t) {
+      t.addEventListener('click', function() { currentTab = t.dataset.tab; _render(); });
+    });
+  }
+
+  function _renderList() {
+    var list = allReports.filter(function(r){ return r.status === currentTab; });
+    var container = document.getElementById('rep-list');
+    if (!list.length) {
+      container.innerHTML =
+        '<div class="admin-empty">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' +
+          '<p>' + (currentTab === 'open' ? 'Aucun signalement en attente.' : 'Aucun signalement.') + '</p>' +
+        '</div>';
+      return;
+    }
+    container.innerHTML = list.map(function(r) {
+      var p = r.products || {};
+      var urgent = r.reason === 'scam' || r.reason === 'forbidden';
+      var img = p.image_url
+        ? '<img src="' + p.image_url + '" alt="">'
+        : '<div class="ph">📦</div>';
+      var prodLink = p.id
+        ? '<a href="product-details.html?id=' + p.id + '" target="_blank">' + (window.escHtml ? window.escHtml(p.title || '(produit supprimé)') : p.title) + '</a>'
+        : '(produit supprimé)';
+      return '<div class="rep-card' + (urgent ? ' urgent' : '') + '">' +
+        '<div class="rep-card-img">' + img + '</div>' +
+        '<div class="rep-card-body">' +
+          '<div class="rep-card-head">' +
+            '<span class="rep-reason ' + r.reason + '">' + (REASONS[r.reason] || r.reason) + '</span>' +
+            '<span class="rep-status-badge ' + r.status + '">' + r.status + '</span>' +
+            (p.sold ? '<span class="rep-status-badge resolved">Vendu</span>' : '') +
+          '</div>' +
+          '<div class="rep-product-title">' + prodLink + '</div>' +
+          '<div class="rep-meta">Signalé ' + (window.relativeDate ? window.relativeDate(r.created_at) : r.created_at) + '</div>' +
+          (r.message ? '<div class="rep-message">' + (window.escHtml ? window.escHtml(r.message) : r.message) + '</div>' : '') +
+          (r.status === 'open' ? '<div class="rep-actions">' +
+            '<button class="btn btn-primary" data-act="resolve" data-id="' + r.id + '">✓ Marquer résolu</button>' +
+            '<button class="btn btn-outline" data-act="reject" data-id="' + r.id + '">✗ Rejeter</button>' +
+            (p.id ? '<button class="btn btn-outline" data-act="delete-product" data-id="' + r.id + '" data-pid="' + p.id + '" style="color:var(--danger,#ef4444);border-color:rgba(239,68,68,.3)">🗑 Supprimer le produit</button>' : '') +
+          '</div>' : '') +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    container.querySelectorAll('[data-act]').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        var act = btn.dataset.act, id = btn.dataset.id;
+        if (act === 'resolve' || act === 'reject') {
+          var newStatus = act === 'resolve' ? 'resolved' : 'rejected';
+          await window._supabase.from('reports').update({ status: newStatus, resolved_at: new Date().toISOString() }).eq('id', id);
+          allReports.forEach(function(x){ if (x.id === id) { x.status = newStatus; x.resolved_at = new Date().toISOString(); } });
+          window.toast && window.toast(newStatus === 'resolved' ? 'Marqué résolu' : 'Rejeté', 'success');
+          _render();
+        } else if (act === 'delete-product') {
+          if (!confirm('Supprimer définitivement ce produit ?\n\nL\'annonce sera retirée et le signalement marqué résolu.')) return;
+          var pid = btn.dataset.pid;
+          var d = await window._supabase.from('products').delete().eq('id', pid);
+          if (d && d.error) { window.toast && window.toast('Échec : ' + d.error.message, 'error'); return; }
+          await window._supabase.from('reports').update({ status: 'resolved', resolved_at: new Date().toISOString() }).eq('id', id);
+          allReports.forEach(function(x){ if (x.id === id) { x.status = 'resolved'; x.products = null; } });
+          window.toast && window.toast('Produit supprimé', 'success');
+          _render();
+        }
+      });
+    });
+  }
+
+  // Realtime : nouveau signalement
+  window._supabase.channel('admin-reports')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'reports' }, async function() {
+      await _loadReports();
+      _render();
+      if (currentTab !== 'open') window.toast && window.toast('Nouveau signalement reçu — onglet "En attente"', 'info', 4000);
+    })
+    .subscribe();
+
+  await _loadReports();
+  _render();
+});
+</script>
+</body>
+</html>

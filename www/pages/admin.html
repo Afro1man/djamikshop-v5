@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Administration — DjamikShop</title>
+  <meta name="theme-color" content="#E8501A">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/icon.svg">
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    .admin-h1 { font-family: Outfit,sans-serif; font-size: 1.6rem; margin: 0 0 4px; display: flex; align-items: center; gap: 10px; }
+    .admin-sub { color: var(--ink-3); margin-bottom: var(--space-6); font-size: .92rem; }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin-bottom: var(--space-8); }
+    .stat-card { background: var(--white); border: 1px solid var(--surface-3); border-radius: var(--r-lg); padding: 18px; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; }
+    .stat-card-icon { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+    .stat-card-icon svg { width: 18px; height: 18px; }
+    .stat-icon-blue   { background: #DBEAFE; color: #1E40AF; }
+    .stat-icon-green  { background: #DCFCE7; color: #166534; }
+    .stat-icon-orange { background: #FFE3D1; color: #C03E0E; }
+    .stat-icon-red    { background: #FEE2E2; color: #991B1B; }
+    .stat-icon-purple { background: #EDE9FE; color: #6D28D9; }
+    .stat-card-val { font-family: Outfit,sans-serif; font-size: 2rem; font-weight: 800; color: var(--ink); line-height: 1; }
+    .stat-card-lbl { font-size: .78rem; color: var(--ink-3); text-transform: uppercase; letter-spacing: .04em; margin-top: 6px; font-weight: 600; }
+    .stat-card.alert { border-color: var(--danger,#ef4444); background: linear-gradient(135deg, #FEF2F2, #fff); }
+    .stat-card.alert .stat-card-val { color: var(--danger,#ef4444); }
+
+    .links-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+    .link-card { display: flex; align-items: center; gap: 14px; padding: 18px; background: var(--white); border: 1px solid var(--surface-3); border-radius: var(--r-lg); text-decoration: none; color: var(--ink); transition: all .15s; box-shadow: var(--shadow-sm); }
+    .link-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.08); border-color: var(--brand,#E8501A); }
+    .link-card-icon { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: linear-gradient(135deg, rgba(232,80,26,.1), rgba(245,177,0,.1)); color: var(--brand,#E8501A); }
+    .link-card-icon svg { width: 22px; height: 22px; }
+    .link-card-body { flex: 1; min-width: 0; }
+    .link-card-title { font-weight: 700; font-size: .95rem; display: flex; align-items: center; gap: 8px; }
+    .link-card-sub { font-size: .8rem; color: var(--ink-3); margin-top: 2px; }
+    .link-card-badge { background: var(--danger,#ef4444); color: #fff; font-size: .68rem; font-weight: 700; padding: 2px 8px; border-radius: 100px; }
+
+    .access-denied { text-align: center; padding: 80px 20px; }
+    .access-denied h1 { font-family: Outfit,sans-serif; color: var(--danger,#ef4444); margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+<script>if(typeof window.supabase==='undefined')window.supabase=null;</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" onerror=""></script>
+<script src="../assets/js/app.js"></script>
+
+<div class="page-body">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="index.html">Accueil</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <span>Administration</span>
+    </div>
+    <div id="admin-content"><div style="text-align:center;padding:40px;color:var(--ink-3)">Chargement…</div></div>
+  </div>
+</div>
+
+<script>
+window.onDjamikReady(async function() {
+  var root = document.getElementById('admin-content');
+  if (!root || !window._supabase) return;
+
+  var u = await window._supabase.auth.getUser();
+  var uid = u && u.data && u.data.user && u.data.user.id;
+  if (!uid) {
+    root.innerHTML = '<div class="access-denied"><h1>Connexion requise</h1><p><a href="login.html?next=admin.html" style="color:var(--brand)">Se connecter</a></p></div>';
+    return;
+  }
+  var ad = await window._supabase.from('admins').select('user_id').eq('user_id', uid).maybeSingle();
+  if (!ad || !ad.data) {
+    root.innerHTML = '<div class="access-denied"><h1>Accès refusé</h1><p>Cette page est réservée aux administrateurs.</p></div>';
+    return;
+  }
+
+  // Fetch stats
+  var sb = window._supabase;
+  var [users, products, soldProducts, openReports, activeBans, openIncidents, conversations, pendingPay, activeSubs] = await Promise.all([
+    sb.from('profiles').select('id', { count: 'exact', head: true }),
+    sb.from('products').select('id', { count: 'exact', head: true }).eq('sold', false),
+    sb.from('products').select('id', { count: 'exact', head: true }).eq('sold', true),
+    sb.from('reports').select('id', { count: 'exact', head: true }).eq('status', 'open'),
+    sb.from('banned_users').select('user_id', { count: 'exact', head: true }),
+    sb.from('security_events').select('id', { count: 'exact', head: true }).eq('resolved', false).in('severity', ['medium','high','critical']),
+    sb.from('conversations').select('id', { count: 'exact', head: true }),
+    sb.from('payment_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+    sb.from('subscriptions').select('user_id', { count: 'exact', head: true }).neq('tier', 'free')
+  ]);
+
+  function _stat(icon, val, lbl, alert) {
+    return '<div class="stat-card' + (alert ? ' alert' : '') + '">' +
+      '<div class="stat-card-icon stat-icon-' + icon.color + '">' + icon.svg + '</div>' +
+      '<div class="stat-card-val">' + (val || 0) + '</div>' +
+      '<div class="stat-card-lbl">' + lbl + '</div>' +
+    '</div>';
+  }
+
+  var ICONS = {
+    user:    { color:'blue',   svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>' },
+    product: { color:'green',  svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>' },
+    sold:    { color:'orange', svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>' },
+    flag:    { color:'red',    svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22V4M4 4h13l-2 5 2 5H4"/></svg>' },
+    ban:     { color:'red',    svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>' },
+    alert:   { color:'red',    svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' },
+    chat:    { color:'purple', svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>' }
+  };
+
+  var ICON_MONEY = { color:'green', svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>' };
+  var ICON_CROWN = { color:'orange', svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7l4.5 4L12 4l5.5 7L22 7l-2 12H4L2 7z"/></svg>' };
+
+  var statsHtml = '<div class="stats-grid">' +
+    _stat(ICONS.user,    users.count,        'Utilisateurs') +
+    _stat(ICONS.product, products.count,     'Annonces actives') +
+    _stat(ICONS.sold,    soldProducts.count, 'Annonces vendues') +
+    _stat(ICONS.chat,    conversations.count,'Conversations') +
+    _stat(ICON_CROWN,    activeSubs.count,   'Abonnés VIP/Premium') +
+    _stat(ICON_MONEY,    pendingPay.count,   'Paiements en attente', pendingPay.count > 0) +
+    _stat(ICONS.flag,    openReports.count,  'Signalements ouverts', openReports.count > 0) +
+    _stat(ICONS.ban,     activeBans.count,   'Bans actifs') +
+    _stat(ICONS.alert,   openIncidents.count,'Incidents sécurité', openIncidents.count > 0) +
+  '</div>';
+
+  function _link(href, icon, title, sub, badge) {
+    return '<a class="link-card" href="' + href + '">' +
+      '<div class="link-card-icon">' + icon + '</div>' +
+      '<div class="link-card-body">' +
+        '<div class="link-card-title">' + title + (badge ? ' <span class="link-card-badge">' + badge + '</span>' : '') + '</div>' +
+        '<div class="link-card-sub">' + sub + '</div>' +
+      '</div>' +
+    '</a>';
+  }
+
+  var linksHtml = '<div class="links-grid">' +
+    _link('admin-payments.html',ICON_MONEY.svg, 'Paiements', 'Vérifier et activer les abonnements', pendingPay.count > 0 ? pendingPay.count : '') +
+    _link('admin-reports.html', ICONS.flag.svg, 'Signalements', 'Traiter les annonces signalées', openReports.count > 0 ? openReports.count : '') +
+    _link('admin-users.html',   ICONS.user.svg, 'Utilisateurs', 'Voir et bannir les comptes') +
+    _link('admin-bans.html',    ICONS.ban.svg,  'Bans actifs', 'Gérer les utilisateurs bannis') +
+    _link('admin-words.html',   ICONS.alert.svg,'Mots interdits', 'Gérer la liste de modération') +
+  '</div>';
+
+  root.innerHTML =
+    '<h1 class="admin-h1">' +
+      '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>' +
+      'Administration' +
+    '</h1>' +
+    '<p class="admin-sub">Vue d\'ensemble et outils de modération.</p>' +
+    statsHtml +
+    '<h2 style="font-family:Outfit,sans-serif;font-size:1.05rem;margin:0 0 14px;color:var(--ink-2)">Outils</h2>' +
+    linksHtml;
+});
+</script>
+</body>
+</html>

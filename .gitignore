@@ -25,3 +25,24 @@ Thumbs.db
 
 # Claude / local tooling
 .claude/
+
+# Capacitor / Android build artefacts
+android/.gradle/
+android/.idea/
+android/build/
+android/app/build/
+android/captures/
+android/local.properties
+android/app/release/
+android/app/debug/
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# Capacitor generated (regenerated par 'npx cap sync')
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json
+android/capacitor.settings.gradle
+android/capacitor-cordova-android-plugins/

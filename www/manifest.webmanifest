@@ -1,0 +1,48 @@
+{
+  "name": "DjamikShop — Marketplace du Niger",
+  "short_name": "DjamikShop",
+  "description": "Achetez et vendez partout au Niger : Niamey, Zinder, Maradi, Tahoua…",
+  "start_url": "/pages/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ffffff",
+  "theme_color": "#E8501A",
+  "lang": "fr",
+  "dir": "ltr",
+  "categories": ["shopping", "business"],
+  "icons": [
+    {
+      "src": "/assets/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icons/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Publier une annonce",
+      "short_name": "Publier",
+      "url": "/pages/add-product.html",
+      "icons": [{ "src": "/assets/icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Mes messages",
+      "short_name": "Messages",
+      "url": "/pages/messages.html",
+      "icons": [{ "src": "/assets/icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    },
+    {
+      "name": "Mon panier",
+      "short_name": "Panier",
+      "url": "/pages/cart.html",
+      "icons": [{ "src": "/assets/icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+    }
+  ]
+}

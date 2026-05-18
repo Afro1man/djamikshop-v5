@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Utilisateurs — DjamikShop Admin</title>
+  <meta name="theme-color" content="#E8501A">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/icon.svg">
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    .admin-h1 { font-family: Outfit,sans-serif; font-size: 1.4rem; margin: 0 0 4px; }
+    .admin-sub { color: var(--ink-3); margin-bottom: var(--space-4); font-size: .9rem; }
+    .users-search { width: 100%; padding: 12px 16px; border: 1px solid var(--surface-3); border-radius: var(--r-md); margin-bottom: var(--space-4); font-family: inherit; font-size: .9rem; }
+    .user-card { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--white); border: 1px solid var(--surface-3); border-radius: var(--r-lg); margin-bottom: 8px; box-shadow: var(--shadow-sm); }
+    .user-avatar { width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0; background: var(--surface-2); object-fit: cover; }
+    .user-info { flex: 1; min-width: 0; }
+    .user-name { font-weight: 700; font-size: .95rem; color: var(--ink); }
+    .user-meta { font-size: .78rem; color: var(--ink-3); margin-top: 2px; }
+    .user-stats { font-size: .72rem; color: var(--ink-3); margin-top: 2px; }
+    .user-stats span { margin-right: 10px; }
+    .user-actions { display: flex; gap: 6px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+    .user-actions .btn { padding: 5px 10px; font-size: .72rem; }
+    .user-card.banned { background: #FEF2F2; border-color: #FECACA; }
+    .user-banned-badge { display: inline-block; background: var(--danger,#ef4444); color: #fff; padding: 2px 8px; border-radius: 100px; font-size: .65rem; font-weight: 700; margin-left: 6px; }
+    .access-denied { text-align: center; padding: 80px 20px; }
+  </style>
+</head>
+<body>
+<script>if(typeof window.supabase==='undefined')window.supabase=null;</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" onerror=""></script>
+<script src="../assets/js/app.js"></script>
+
+<div class="page-body">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="admin.html">Admin</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <span>Utilisateurs</span>
+    </div>
+    <div id="admin-content"><div style="text-align:center;padding:40px;color:var(--ink-3)">Chargement…</div></div>
+  </div>
+</div>
+
+<script>
+window.onDjamikReady(async function() {
+  var root = document.getElementById('admin-content');
+  if (!root || !window._supabase) return;
+
+  var u = await window._supabase.auth.getUser();
+  var uid = u && u.data && u.data.user && u.data.user.id;
+  if (!uid) { root.innerHTML = '<div class="access-denied"><h1>Connexion requise</h1></div>'; return; }
+  var ad = await window._supabase.from('admins').select('user_id').eq('user_id', uid).maybeSingle();
+  if (!ad || !ad.data) { root.innerHTML = '<div class="access-denied"><h1>Accès refusé</h1></div>'; return; }
+
+  var sb = window._supabase;
+
+  // Charge profils + bans + counts annonces
+  var [profsRes, bansRes, prodCountRes] = await Promise.all([
+    sb.from('profiles').select('id, full_name, avatar_url, location, phone, created_at').order('created_at', { ascending: false }).limit(500),
+    sb.from('banned_users').select('user_id, reason, banned_until, ban_count'),
+    sb.from('products').select('seller_id')
+  ]);
+
+  var profiles = profsRes.data || [];
+  var bansById = {};
+  (bansRes.data || []).forEach(function(b){ bansById[b.user_id] = b; });
+  var prodCount = {};
+  (prodCountRes.data || []).forEach(function(p){ prodCount[p.seller_id] = (prodCount[p.seller_id] || 0) + 1; });
+
+  function _avatar(p) {
+    return p.avatar_url || ('https://ui-avatars.com/api/?name=' + encodeURIComponent(p.full_name || 'U') + '&background=E8501A&color=fff');
+  }
+
+  function _renderUsers(filter) {
+    var list = profiles;
+    if (filter) {
+      var q = filter.toLowerCase();
+      list = list.filter(function(p) {
+        return (p.full_name || '').toLowerCase().includes(q) ||
+               (p.location || '').toLowerCase().includes(q);
+      });
+    }
+    var container = document.getElementById('users-list');
+    if (!list.length) { container.innerHTML = '<p style="text-align:center;color:var(--ink-3);padding:40px">Aucun utilisateur.</p>'; return; }
+
+    container.innerHTML = list.map(function(p) {
+      var ban = bansById[p.id];
+      var banText = '';
+      if (ban) {
+        if (ban.banned_until === null) banText = 'BANNI ∞';
+        else {
+          var until = new Date(ban.banned_until);
+          if (until > new Date()) {
+            var daysLeft = Math.ceil((until - new Date()) / (1000*60*60*24));
+            banText = 'BANNI ' + daysLeft + 'j';
+          }
+        }
+      }
+      var nbAnn = prodCount[p.id] || 0;
+      return '<div class="user-card' + (banText ? ' banned' : '') + '">' +
+        '<img class="user-avatar" src="' + _avatar(p) + '" alt="">' +
+        '<div class="user-info">' +
+          '<div class="user-name">' + (window.escHtml(p.full_name || 'Sans nom')) + (banText ? '<span class="user-banned-badge">' + banText + '</span>' : '') + '</div>' +
+          '<div class="user-meta">' + (p.location ? p.location + ' · ' : '') + 'Inscrit ' + window.relativeDate(p.created_at) + '</div>' +
+          '<div class="user-stats">' +
+            '<span>📦 ' + nbAnn + ' annonce' + (nbAnn>1?'s':'') + '</span>' +
+            (p.phone ? '<span>📞 ' + window.escHtml(p.phone) + '</span>' : '') +
+          '</div>' +
+        '</div>' +
+        '<div class="user-actions">' +
+          '<a class="btn btn-outline" href="my-profile.html?id=' + p.id + '" target="_blank">Profil</a>' +
+          (banText
+            ? '<button class="btn btn-primary" data-act="unban" data-id="' + p.id + '">Débannir</button>'
+            : '<button class="btn btn-outline" data-act="ban24" data-id="' + p.id + '" style="color:var(--danger);border-color:rgba(239,68,68,.3)">Bannir 24h</button>' +
+              '<button class="btn btn-outline" data-act="ban7" data-id="' + p.id + '" style="color:var(--danger);border-color:rgba(239,68,68,.3)">7j</button>' +
+              '<button class="btn btn-outline" data-act="banperma" data-id="' + p.id + '" style="color:var(--danger);border-color:rgba(239,68,68,.3)">∞</button>'
+          ) +
+        '</div>' +
+      '</div>';
+    }).join('');
+
+    container.querySelectorAll('[data-act]').forEach(function(btn) {
+      btn.addEventListener('click', function() { _onAction(btn.dataset.act, btn.dataset.id); });
+    });
+  }
+
+  async function _onAction(act, userId) {
+    if (act === 'unban') {
+      if (!confirm('Débannir cet utilisateur ?')) return;
+      var d = await sb.from('banned_users').delete().eq('user_id', userId);
+      if (d.error) { window.toast('Échec : ' + d.error.message, 'error'); return; }
+      delete bansById[userId];
+      window.toast('Débanni', 'success');
+      _renderUsers(document.getElementById('users-search').value);
+    }
+    else if (act.startsWith('ban')) {
+      var duration = act === 'ban24' ? '24 heures' : (act === 'ban7' ? '7 jours' : 'permanente');
+      var reason = prompt('Raison du bannissement (' + duration + ') :');
+      if (reason === null) return;
+      var until = null;
+      if (act === 'ban24') until = new Date(Date.now() + 24*3600*1000).toISOString();
+      else if (act === 'ban7') until = new Date(Date.now() + 7*24*3600*1000).toISOString();
+      var ins = await sb.from('banned_users').upsert({
+        user_id: userId,
+        reason: reason || ('Bannissement manuel ' + duration),
+        banned_until: until,
+        ban_count: ((bansById[userId] && bansById[userId].ban_count) || 0) + 1
+      });
+      if (ins.error) { window.toast('Échec : ' + ins.error.message, 'error'); return; }
+      bansById[userId] = { user_id: userId, banned_until: until, ban_count: 1, reason: reason };
+      window.toast('Banni (' + duration + ')', 'success');
+      _renderUsers(document.getElementById('users-search').value);
+    }
+  }
+
+  root.innerHTML =
+    '<h1 class="admin-h1">Utilisateurs (' + profiles.length + ')</h1>' +
+    '<p class="admin-sub">Recherche par nom ou ville. Bannir un user l\'empêche de publier des annonces.</p>' +
+    '<input class="users-search" id="users-search" type="search" placeholder="Rechercher un utilisateur…">' +
+    '<div id="users-list"></div>';
+
+  _renderUsers('');
+  document.getElementById('users-search').addEventListener('input', function(e) {
+    _renderUsers(e.target.value);
+  });
+});
+</script>
+</body>
+</html>
