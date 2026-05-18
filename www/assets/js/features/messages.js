@@ -556,6 +556,23 @@ window.onDjamikReady(async function() {
           recipient_id: recipient,
           text:         text
         }]).select().single();
+
+        // Supabase ne throw pas : check explicite de l'erreur
+        if (ins && ins.error) {
+          var msg = (ins.error.message || '').toLowerCase();
+          var friendly = ins.error.message || 'Envoi échoué';
+          if (msg.indexOf('compte suspendu') !== -1) friendly = 'Ton compte est suspendu.';
+          else if (msg.indexOf('non disponible') !== -1) friendly = 'Ce destinataire n\'est plus joignable.';
+          else if (msg.indexOf('100 max') !== -1 || msg.indexOf('rate') !== -1) friendly = 'Trop de messages envoyés cette heure. Réessaye plus tard.';
+          else if (msg.indexOf('verifiez') !== -1 || msg.indexOf('vérifiez') !== -1 || msg.indexOf('email') !== -1) friendly = 'Vérifie ton email avant d\'envoyer des messages.';
+          window.toast && window.toast(friendly, 'error', 5000);
+          // Retire le message optimiste + restaure le texte
+          conv.messages = conv.messages.filter(function(m){ return m.id !== optimistic.id; });
+          _renderMessages(conv.messages);
+          if (inp) inp.value = text;
+          return;
+        }
+
         if (ins && ins.data) {
           var idx = conv.messages.findIndex(function(m){ return m.id === optimistic.id; });
           if (idx !== -1) conv.messages[idx] = ins.data;
@@ -595,7 +612,11 @@ window.onDjamikReady(async function() {
           }]);
         } catch(_) {}
       } catch(err) {
-        window.toast && window.toast('Envoi échoué', 'error');
+        window.toast && window.toast('Envoi échoué : ' + (err.message || 'erreur réseau'), 'error', 5000);
+        // Restaure le texte + retire l'optimistic
+        conv.messages = conv.messages.filter(function(m){ return m.id !== optimistic.id; });
+        _renderMessages(conv.messages);
+        if (inp) inp.value = text;
       }
     });
 
