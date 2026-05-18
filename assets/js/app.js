@@ -23,6 +23,7 @@ window.onDjamikReady = function(cb) {
     base + 'core/state.js',
     base + 'core/theme.js',
     base + 'core/sponsor.js',     // utilisé par products + my-profile au boot
+    base + 'core/staff.js',       // helpers myStaffRole / isMyselfAdmin
     base + 'core/ban-check.js',   // overlay 'Compte suspendu' si user banni
     base + 'features/auth.js',    // requireAuth utilisé partout
     base + 'components/ui.js',

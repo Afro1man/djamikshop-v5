@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Équipe — DjamikShop Admin</title>
+  <meta name="theme-color" content="#E8501A">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/icon.svg">
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    .admin-h1 { font-family: Outfit,sans-serif; font-size: 1.4rem; margin: 0 0 4px; }
+    .admin-sub { color: var(--ink-3); margin-bottom: var(--space-4); font-size: .9rem; }
+
+    .staff-card { display:flex; align-items:center; gap:12px; padding:14px; background:var(--white); border:1px solid var(--surface-3); border-radius:var(--r-lg); margin-bottom:10px; box-shadow:var(--shadow-sm); }
+    .staff-card.role-admin { border-left:4px solid var(--brand,#E8501A); }
+    .staff-card.role-moderator { border-left:4px solid #1E40AF; }
+    .staff-avatar { width:48px; height:48px; border-radius:50%; flex-shrink:0; background:var(--surface-2); object-fit:cover; }
+    .staff-info { flex:1; min-width:0; }
+    .staff-name { font-weight:700; font-size:.95rem; display:flex; align-items:center; gap:8px; }
+    .role-badge { display:inline-block; padding:3px 10px; font-size:.65rem; font-weight:800; text-transform:uppercase; letter-spacing:.05em; border-radius:100px; }
+    .role-badge.admin { background:var(--brand,#E8501A); color:#fff; }
+    .role-badge.moderator { background:#DBEAFE; color:#1E40AF; }
+    .staff-meta { font-size:.78rem; color:var(--ink-3); margin-top:2px; }
+    .staff-actions { display:flex; gap:6px; flex-shrink:0; }
+    .staff-actions .btn { font-size:.78rem; padding:6px 12px; }
+
+    .add-form { background:var(--white); border:1px solid var(--surface-3); border-radius:var(--r-lg); padding:16px; margin-bottom:var(--space-4); box-shadow:var(--shadow-sm); }
+    .add-form h3 { font-family:Outfit,sans-serif; font-size:1rem; margin:0 0 12px; }
+    .add-form input, .add-form select { padding:10px 12px; border:1px solid var(--surface-3); border-radius:var(--r-md); font-family:inherit; font-size:.9rem; width:100%; margin-bottom:10px; box-sizing:border-box; }
+    .add-form .row { display:grid; grid-template-columns:1fr 180px auto; gap:8px; align-items:end; }
+    .add-form select { margin-bottom:0; }
+    .add-form .btn { white-space:nowrap; padding:10px 16px; }
+    @media (max-width:600px) { .add-form .row { grid-template-columns:1fr; } }
+
+    .access-denied { text-align:center; padding:80px 20px; }
+    .access-denied h1 { font-family:Outfit,sans-serif; color:var(--danger,#ef4444); margin-bottom:8px; }
+  </style>
+</head>
+<body>
+<script>if(typeof window.supabase==='undefined')window.supabase=null;</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" onerror=""></script>
+<script src="../assets/js/app.js"></script>
+
+<div class="page-body">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="admin.html">Admin</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <span>Équipe</span>
+    </div>
+    <div id="content"><div style="text-align:center;padding:40px;color:var(--ink-3)">Chargement…</div></div>
+  </div>
+</div>
+
+<script>
+window.onDjamikReady(async function() {
+  var root = document.getElementById('content');
+  if (!root || !window._supabase) return;
+  var sb = window._supabase;
+
+  var u = await sb.auth.getUser();
+  var uid = u && u.data && u.data.user && u.data.user.id;
+  if (!uid) { root.innerHTML = '<div class="access-denied"><h1>Connexion requise</h1></div>'; return; }
+
+  var myRole = await window.myStaffRole();
+  if (myRole !== 'admin') {
+    root.innerHTML = '<div class="access-denied"><h1>Accès refusé</h1><p>Cette page est réservée aux administrateurs.</p></div>';
+    return;
+  }
+
+  // Charge tous les membres du staff + leurs profils
+  var [staffRes] = await Promise.all([
+    sb.from('admins').select('user_id, role, added_at').order('added_at', { ascending: true })
+  ]);
+  var staffList = (staffRes && staffRes.data) || [];
+
+  var profsRes = await sb.from('profiles').select('id, full_name, avatar_url').in('id', staffList.map(function(s){return s.user_id}));
+  var profsById = {};
+  ((profsRes && profsRes.data) || []).forEach(function(p){ profsById[p.id] = p; });
+
+  function _avatar(p, name) {
+    if (p && p.avatar_url) return p.avatar_url;
+    return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(name || 'U') + '&background=E8501A&color=fff';
+  }
+
+  function _render() {
+    var html = '<h1 class="admin-h1">Équipe (' + staffList.length + ')</h1>' +
+      '<p class="admin-sub">Gère les <strong>administrateurs</strong> (tout pouvoir) et les <strong>modérateurs</strong> (modération seulement).</p>' +
+
+      '<div class="add-form">' +
+        '<h3>➕ Nommer un membre du staff</h3>' +
+        '<div class="row">' +
+          '<input type="text" id="add-uid" placeholder="UUID utilisateur (depuis sa page Détail)" required>' +
+          '<select id="add-role">' +
+            '<option value="moderator">Modérateur</option>' +
+            '<option value="admin">Administrateur</option>' +
+          '</select>' +
+          '<button class="btn btn-primary" id="add-btn">Ajouter</button>' +
+        '</div>' +
+        '<p style="font-size:.75rem;color:var(--ink-3);margin:8px 0 0">💡 Copie l\'UUID depuis la page <a href="admin-users.html" style="color:var(--primary)">Utilisateurs</a> → clic Détail → coller l\'URL sans <code>?id=</code></p>' +
+      '</div>' +
+
+      '<div id="staff-list">' +
+      staffList.map(function(s) {
+        var p = profsById[s.user_id] || {};
+        var name = p.full_name || 'Utilisateur ' + s.user_id.slice(0, 6);
+        var isMe = s.user_id === uid;
+        return '<div class="staff-card role-' + s.role + '">' +
+          '<img class="staff-avatar" src="' + _avatar(p, name) + '" alt="">' +
+          '<div class="staff-info">' +
+            '<div class="staff-name">' +
+              window.escHtml(name) +
+              '<span class="role-badge ' + s.role + '">' + s.role + '</span>' +
+              (isMe ? '<span style="font-size:.7rem;color:var(--ink-3)">(toi)</span>' : '') +
+            '</div>' +
+            '<div class="staff-meta">Ajouté ' + window.relativeDate(s.added_at) + ' · ID ' + s.user_id.slice(0,8) + '...</div>' +
+          '</div>' +
+          '<div class="staff-actions">' +
+            (!isMe ? (
+              (s.role === 'admin'
+                ? '<button class="btn btn-outline" data-act="demote-admin" data-id="' + s.user_id + '" style="color:#1E40AF">↓ Modérateur</button>'
+                : '<button class="btn btn-outline" data-act="promote-admin" data-id="' + s.user_id + '" style="color:var(--brand)">↑ Admin</button>'
+              ) +
+              '<button class="btn btn-outline" data-act="remove" data-id="' + s.user_id + '" data-name="' + window.escHtml(name) + '" style="color:var(--danger);border-color:rgba(239,68,68,.3)">Retirer</button>'
+            ) : '<span style="font-size:.75rem;color:var(--ink-3)">Action impossible sur toi-même</span>') +
+          '</div>' +
+        '</div>';
+      }).join('') +
+      '</div>';
+
+    root.innerHTML = html;
+
+    document.getElementById('add-btn').addEventListener('click', async function() {
+      var newUid = document.getElementById('add-uid').value.trim();
+      var newRole = document.getElementById('add-role').value;
+      if (!newUid || newUid.length !== 36) { window.toast('UUID invalide (doit faire 36 caractères)', 'error'); return; }
+      var r = await sb.rpc('admin_promote_to_staff', { p_user_id: newUid, p_role: newRole });
+      if (r.error) { window.toast('Échec : ' + r.error.message, 'error', 5000); return; }
+      window.toast('Membre ajouté au staff comme ' + newRole, 'success');
+      setTimeout(function(){ location.reload(); }, 600);
+    });
+
+    document.querySelectorAll('[data-act]').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        var act = btn.dataset.act, id = btn.dataset.id;
+        if (act === 'promote-admin') {
+          if (!confirm('Promouvoir ce membre en Administrateur ? Il aura TOUS les pouvoirs (peut te bannir aussi).')) return;
+          var r = await sb.rpc('admin_promote_to_staff', { p_user_id: id, p_role: 'admin' });
+          if (r.error) { window.toast('Échec : ' + r.error.message, 'error'); return; }
+        }
+        else if (act === 'demote-admin') {
+          if (!confirm('Rétrograder cet admin en Modérateur ? Il perdra ses pouvoirs de gestion du staff.')) return;
+          var r = await sb.rpc('admin_promote_to_staff', { p_user_id: id, p_role: 'moderator' });
+          if (r.error) { window.toast('Échec : ' + r.error.message, 'error'); return; }
+        }
+        else if (act === 'remove') {
+          var nm = btn.dataset.name;
+          if (!confirm('Retirer "' + nm + '" du staff ?\n\nIl redevient un utilisateur normal (son compte n\'est PAS supprimé).')) return;
+          var r = await sb.rpc('admin_demote_staff', { p_user_id: id });
+          if (r.error) { window.toast('Échec : ' + r.error.message, 'error'); return; }
+        }
+        window.toast('Fait.', 'success');
+        setTimeout(function(){ location.reload(); }, 500);
+      });
+    });
+  }
+
+  _render();
+});
+</script>
+</body>
+</html>

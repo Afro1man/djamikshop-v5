@@ -51,8 +51,9 @@ window.onDjamikReady(async function() {
   var u = await window._supabase.auth.getUser();
   var uid = u && u.data && u.data.user && u.data.user.id;
   if (!uid) { root.innerHTML = '<div class="access-denied"><h1>Connexion requise</h1></div>'; return; }
-  var ad = await window._supabase.from('admins').select('user_id').eq('user_id', uid).maybeSingle();
+  var ad = await window._supabase.from('admins').select('user_id, role').eq('user_id', uid).maybeSingle();
   if (!ad || !ad.data) { root.innerHTML = '<div class="access-denied"><h1>Accès refusé</h1></div>'; return; }
+  window._iAmAdmin = (ad.data.role === 'admin');
 
   var sb = window._supabase;
 
@@ -117,7 +118,7 @@ window.onDjamikReady(async function() {
               '<button class="btn btn-outline" data-act="ban7" data-id="' + p.id + '" style="color:var(--danger);border-color:rgba(239,68,68,.3)">7j</button>' +
               '<button class="btn btn-outline" data-act="banperma" data-id="' + p.id + '" style="color:var(--danger);border-color:rgba(239,68,68,.3)">∞</button>'
           ) +
-          '<button class="btn btn-outline" data-act="delete" data-id="' + p.id + '" data-name="' + window.escHtml(p.full_name || 'Sans nom') + '" style="color:#fff;background:var(--danger,#ef4444);border-color:var(--danger,#ef4444)" title="Supprimer définitivement">🗑</button>' +
+          (window._iAmAdmin ? '<button class="btn btn-outline" data-act="delete" data-id="' + p.id + '" data-name="' + window.escHtml(p.full_name || 'Sans nom') + '" style="color:#fff;background:var(--danger,#ef4444);border-color:var(--danger,#ef4444)" title="Supprimer définitivement (admin only)">🗑</button>' : '') +
         '</div>' +
       '</div>';
     }).join('');

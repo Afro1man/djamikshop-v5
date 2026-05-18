@@ -131,12 +131,17 @@ window.onDjamikReady(async function() {
     '</a>';
   }
 
+  // Vérifie si on est admin (pour afficher le lien Équipe, admin only)
+  var meAd = await sb.from('admins').select('role').eq('user_id', uid).maybeSingle();
+  var iAmAdmin = meAd && meAd.data && meAd.data.role === 'admin';
+
   var linksHtml = '<div class="links-grid">' +
     _link('admin-payments.html',ICON_MONEY.svg, 'Paiements', 'Vérifier et activer les abonnements', pendingPay.count > 0 ? pendingPay.count : '') +
     _link('admin-reports.html', ICONS.flag.svg, 'Signalements', 'Traiter les annonces signalées', openReports.count > 0 ? openReports.count : '') +
     _link('admin-users.html',   ICONS.user.svg, 'Utilisateurs', 'Voir et bannir les comptes') +
     _link('admin-bans.html',    ICONS.ban.svg,  'Bans actifs', 'Gérer les utilisateurs bannis') +
     _link('admin-words.html',   ICONS.alert.svg,'Mots interdits', 'Gérer la liste de modération') +
+    (iAmAdmin ? _link('admin-staff.html', ICONS.user.svg, 'Équipe', 'Nommer admins et modérateurs') : '') +
   '</div>';
 
   // ── Charts : inscriptions + annonces sur 14 derniers jours ──
