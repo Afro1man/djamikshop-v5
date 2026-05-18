@@ -182,6 +182,7 @@ window.onDjamikReady(function() {
         (phone ? '<div class="profile-meta">' + _icon('phone') + ' ' + window.formatPhoneNE(phone) + '</div>' : '') +
         (city  ? '<div class="profile-meta">' + _icon('map_pin') + ' ' + window.escHtml(city) + '</div>' : '') +
         (memberSince ? '<div class="profile-meta">' + _icon('calendar') + ' Membre depuis ' + memberSince + '</div>' : '') +
+        (p.public_id ? '<div class="profile-meta" style="margin-top:4px"><span style="background:var(--surface-2);padding:3px 9px;border-radius:6px;font-family:monospace;font-weight:700;color:var(--primary,#E8501A);font-size:.78rem;letter-spacing:.04em">' + window.escHtml(p.public_id) + '</span>' + (opts.editable ? ' <button onclick="navigator.clipboard.writeText(\'' + p.public_id + '\');window.toast&&window.toast(\'ID copié\',\'success\')" style="background:transparent;border:none;cursor:pointer;color:var(--ink-3);font-size:.7rem;text-decoration:underline;padding:0 4px">copier</button>' : '') + '</div>' : '') +
         '<div class="profile-actions">' + actions + '</div>' +
       '</div>' +
     '</div>';

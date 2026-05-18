@@ -151,6 +151,7 @@ window.onDjamikReady(async function() {
           (profile.phone ? '📞 ' + window.escHtml(profile.phone) + ' · ' : '') +
           'Inscrit ' + window.relativeDate(profile.created_at) +
         '</div>' +
+        (profile.public_id ? '<div class="ud-meta" style="margin-top:6px"><span style="background:var(--surface-2);padding:3px 8px;border-radius:6px;font-family:monospace;font-weight:700;color:var(--brand,#E8501A);font-size:.78rem">' + window.escHtml(profile.public_id) + '</span> <button onclick="navigator.clipboard.writeText(this.previousSibling.textContent);window.toast&&window.toast(\'ID copié\',\'success\')" style="background:transparent;border:none;cursor:pointer;color:var(--ink-3);font-size:.75rem;text-decoration:underline">copier</button></div>' : '') +
         (profile.bio ? '<div class="ud-meta">' + window.escHtml(profile.bio) + '</div>' : '') +
       '</div>' +
     '</div>' +

@@ -59,7 +59,7 @@ window.onDjamikReady(async function() {
 
   // Charge profils + bans + counts annonces
   var [profsRes, bansRes, prodCountRes] = await Promise.all([
-    sb.from('profiles').select('id, full_name, avatar_url, location, phone, created_at').order('created_at', { ascending: false }).limit(500),
+    sb.from('profiles').select('id, full_name, avatar_url, location, phone, public_id, created_at').order('created_at', { ascending: false }).limit(500),
     sb.from('banned_users').select('user_id, reason, banned_until, ban_count'),
     sb.from('products').select('seller_id')
   ]);
@@ -80,7 +80,8 @@ window.onDjamikReady(async function() {
       var q = filter.toLowerCase();
       list = list.filter(function(p) {
         return (p.full_name || '').toLowerCase().includes(q) ||
-               (p.location || '').toLowerCase().includes(q);
+               (p.location || '').toLowerCase().includes(q) ||
+               (p.public_id || '').toLowerCase().includes(q);
       });
     }
     var container = document.getElementById('users-list');
@@ -104,7 +105,10 @@ window.onDjamikReady(async function() {
         '<img class="user-avatar" src="' + _avatar(p) + '" alt="">' +
         '<div class="user-info">' +
           '<div class="user-name">' + (window.escHtml(p.full_name || 'Sans nom')) + (banText ? '<span class="user-banned-badge">' + banText + '</span>' : '') + '</div>' +
-          '<div class="user-meta">' + (p.location ? p.location + ' · ' : '') + 'Inscrit ' + window.relativeDate(p.created_at) + '</div>' +
+          '<div class="user-meta">' +
+            (p.public_id ? '<span style="background:var(--surface-2);padding:2px 7px;border-radius:5px;font-family:monospace;font-weight:700;color:var(--brand,#E8501A);font-size:.72rem;margin-right:6px">' + window.escHtml(p.public_id) + '</span>' : '') +
+            (p.location ? p.location + ' · ' : '') + 'Inscrit ' + window.relativeDate(p.created_at) +
+          '</div>' +
           '<div class="user-stats">' +
             '<span>📦 ' + nbAnn + ' annonce' + (nbAnn>1?'s':'') + '</span>' +
             (p.phone ? '<span>📞 ' + window.escHtml(p.phone) + '</span>' : '') +
@@ -176,7 +180,7 @@ window.onDjamikReady(async function() {
   root.innerHTML =
     '<h1 class="admin-h1">Utilisateurs (' + profiles.length + ')</h1>' +
     '<p class="admin-sub">Recherche par nom ou ville. Bannir un user l\'empêche de publier des annonces.</p>' +
-    '<input class="users-search" id="users-search" type="search" placeholder="Rechercher un utilisateur…">' +
+    '<input class="users-search" id="users-search" type="search" placeholder="Rechercher : nom, ville ou ID (ex: DJ-A7B3C9)…">' +
     '<div id="users-list"></div>';
 
   _renderUsers('');
