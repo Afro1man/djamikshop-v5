@@ -2,7 +2,7 @@
 <html lang="fr" data-theme="light">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Paiements — DjamikShop Admin</title>
   <meta name="theme-color" content="#E8501A">
   <meta name="robots" content="noindex,nofollow">
@@ -97,13 +97,27 @@ window.onDjamikReady(async function() {
     }).join('');
 
     root.innerHTML =
-      '<h1 class="admin-h1">Paiements</h1>' +
-      '<p class="admin-sub">Vérifie les paiements Mobile Money reçus et active les abonnements.</p>' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">' +
+        '<div>' +
+          '<h1 class="admin-h1">Paiements</h1>' +
+          '<p class="admin-sub">Vérifie les paiements Mobile Money reçus et active les abonnements.</p>' +
+        '</div>' +
+        '<button id="cleanup-btn" class="btn btn-outline" style="font-size:.78rem;color:var(--ink-3);border-color:var(--surface-3)">🧹 Nettoyer paiements > 30j</button>' +
+      '</div>' +
       '<div class="admin-tabs">' + tabs + '</div>' +
       '<div id="pay-list"></div>';
 
     root.querySelectorAll('.admin-tab').forEach(function(t) {
       t.addEventListener('click', function() { currentTab = t.dataset.tab; _render(); });
+    });
+
+    var cleanBtn = document.getElementById('cleanup-btn');
+    if (cleanBtn) cleanBtn.addEventListener('click', async function() {
+      if (!confirm('Supprimer définitivement tous les paiements confirmés / rejetés de plus de 30 jours ?')) return;
+      var r = await sb.rpc('admin_cleanup_old_payments', { p_days_old: 30 });
+      if (r.error) { window.toast('Échec : ' + r.error.message, 'error'); return; }
+      window.toast((r.data && r.data.deleted ? r.data.deleted : 0) + ' paiements supprimés.', 'success');
+      await _load(); _render();
     });
 
     _renderList();

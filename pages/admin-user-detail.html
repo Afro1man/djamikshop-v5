@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fiche utilisateur — DjamikShop Admin</title>
+  <meta name="theme-color" content="#E8501A">
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="/assets/icons/icon.svg">
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    .ud-hero { display:flex; align-items:center; gap:18px; padding:20px; background:var(--white); border:1px solid var(--surface-3); border-radius:var(--r-xl); margin-bottom:var(--space-4); box-shadow:var(--shadow-sm); }
+    .ud-hero img { width:80px; height:80px; border-radius:50%; flex-shrink:0; background:var(--surface-2); object-fit:cover; }
+    .ud-hero h1 { font-family: Outfit,sans-serif; font-size:1.4rem; margin:0; }
+    .ud-meta { font-size:.82rem; color:var(--ink-3); margin-top:4px; line-height:1.5; }
+    .ud-badge { display:inline-block; padding:3px 10px; border-radius:100px; font-size:.65rem; font-weight:800; text-transform:uppercase; letter-spacing:.04em; margin-left:6px; }
+    .ud-badge.banned { background:var(--danger,#ef4444); color:#fff; }
+    .ud-badge.vip { background:linear-gradient(135deg,#FFE08A,#F5B100); color:#3D2700; }
+    .ud-badge.premium { background:linear-gradient(135deg,#C4B5FD,#7C3AED); color:#fff; }
+
+    .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(140px,1fr)); gap:10px; margin-bottom:var(--space-4); }
+    .stat { background:var(--white); border:1px solid var(--surface-3); border-radius:var(--r-md); padding:14px; text-align:center; }
+    .stat-val { font-family:Outfit,sans-serif; font-size:1.6rem; font-weight:800; color:var(--brand,#E8501A); line-height:1; }
+    .stat-lbl { font-size:.7rem; color:var(--ink-3); text-transform:uppercase; letter-spacing:.05em; margin-top:6px; font-weight:600; }
+
+    .ud-actions { display:flex; gap:8px; margin-bottom:var(--space-4); flex-wrap:wrap; }
+    .ud-actions .btn { font-size:.85rem; }
+
+    .section { background:var(--white); border:1px solid var(--surface-3); border-radius:var(--r-lg); padding:14px 18px; margin-bottom:var(--space-3); }
+    .section h2 { font-family:Outfit,sans-serif; font-size:1rem; font-weight:700; margin:0 0 12px; color:var(--ink); display:flex; align-items:center; gap:6px; }
+    .item { display:flex; gap:10px; padding:10px 0; border-bottom:1px solid var(--surface-2); align-items:center; }
+    .item:last-child { border-bottom:none; }
+    .item img { width:48px; height:48px; border-radius:8px; object-fit:cover; background:var(--surface-2); flex-shrink:0; }
+    .item-body { flex:1; min-width:0; }
+    .item-title { font-weight:600; font-size:.92rem; }
+    .item-meta { font-size:.75rem; color:var(--ink-3); margin-top:2px; }
+    .empty { color:var(--ink-3); font-size:.85rem; padding:8px 0; font-style:italic; }
+
+    .access-denied { text-align:center; padding:80px 20px; }
+  </style>
+</head>
+<body>
+<script>if(typeof window.supabase==='undefined')window.supabase=null;</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" onerror=""></script>
+<script src="../assets/js/app.js"></script>
+
+<div class="page-body">
+  <div class="container">
+    <div class="breadcrumb">
+      <a href="admin.html">Admin</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <a href="admin-users.html">Utilisateurs</a>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <span>Détail</span>
+    </div>
+    <div id="content"><div style="text-align:center;padding:40px;color:var(--ink-3)">Chargement…</div></div>
+  </div>
+</div>
+
+<script>
+window.onDjamikReady(async function() {
+  var root = document.getElementById('content');
+  if (!root || !window._supabase) return;
+  var sb = window._supabase;
+
+  // Auth + admin check
+  var u = await sb.auth.getUser();
+  var uid = u && u.data && u.data.user && u.data.user.id;
+  if (!uid) { root.innerHTML = '<div class="access-denied"><h1>Connexion requise</h1></div>'; return; }
+  var ad = await sb.from('admins').select('user_id').eq('user_id', uid).maybeSingle();
+  if (!ad || !ad.data) { root.innerHTML = '<div class="access-denied"><h1>Accès refusé</h1></div>'; return; }
+
+  // Récupère le user_id depuis l'URL
+  var targetId = new URLSearchParams(location.search).get('id');
+  if (!targetId) { root.innerHTML = '<div class="access-denied"><h1>ID manquant</h1></div>'; return; }
+
+  // Fetch toutes les données en parallèle
+  var [profileRes, productsRes, messagesRes, offersRes, reportsRes, paymentsRes, banRes, subRes, tierRes] = await Promise.all([
+    sb.from('profiles').select('*').eq('id', targetId).maybeSingle(),
+    sb.from('products').select('id,title,price,city,sold,created_at,image_url').eq('seller_id', targetId).order('created_at', { ascending: false }),
+    sb.from('messages').select('id,conv_id,text,created_at', { count: 'exact', head: false }).eq('sender_id', targetId).order('created_at', { ascending: false }).limit(10),
+    sb.from('offers').select('id,product_id,amount,status,created_at', { count: 'exact', head: false }).eq('buyer_id', targetId).order('created_at', { ascending: false }).limit(10),
+    sb.from('reports').select('id,reason,status,created_at,products(title)').eq('products.seller_id', targetId).order('created_at', { ascending: false }).limit(10),
+    sb.from('payment_requests').select('id,tier,amount,status,reference,created_at').eq('user_id', targetId).order('created_at', { ascending: false }).limit(10),
+    sb.from('banned_users').select('*').eq('user_id', targetId).maybeSingle(),
+    sb.from('subscriptions').select('tier,expires_at').eq('user_id', targetId).maybeSingle(),
+    sb.rpc('users_tiers', { uids: [targetId] })
+  ]);
+
+  var profile = profileRes.data;
+  if (!profile) { root.innerHTML = '<div class="access-denied"><h1>Utilisateur introuvable</h1></div>'; return; }
+
+  var products = productsRes.data || [];
+  var activeProducts = products.filter(function(p){ return !p.sold; });
+  var soldProducts = products.filter(function(p){ return p.sold; });
+  var messages = messagesRes.data || [];
+  var msgTotal = messagesRes.count || messages.length;
+  var offers = offersRes.data || [];
+  var offersTotal = offersRes.count || offers.length;
+  var reports = reportsRes.data || [];
+  var payments = paymentsRes.data || [];
+  var ban = banRes.data;
+  var tier = (tierRes.data && tierRes.data[0] && tierRes.data[0].tier) || 'free';
+
+  function _avatar() {
+    if (profile.avatar_url) return profile.avatar_url;
+    return 'https://ui-avatars.com/api/?name=' + encodeURIComponent(profile.full_name || 'U') + '&background=E8501A&color=fff';
+  }
+
+  function _banText() {
+    if (!ban) return '';
+    if (ban.banned_until === null) return '<span class="ud-badge banned">BANNI ∞</span>';
+    var until = new Date(ban.banned_until);
+    if (until <= new Date()) return '';
+    var h = Math.round((until - new Date()) / (3600*1000));
+    return '<span class="ud-badge banned">BANNI ' + (h < 48 ? h + 'h' : Math.ceil(h/24) + 'j') + '</span>';
+  }
+
+  function _tierBadge() {
+    if (tier === 'vip') return '<span class="ud-badge vip">VIP</span>';
+    if (tier === 'premium') return '<span class="ud-badge premium">PREMIUM</span>';
+    return '';
+  }
+
+  function _prodList(list, emptyMsg) {
+    if (!list.length) return '<div class="empty">' + emptyMsg + '</div>';
+    return list.map(function(p) {
+      var img = p.image_url ? '<img src="' + p.image_url + '" alt="">' : '<div style="width:48px;height:48px;background:var(--surface-2);border-radius:8px;flex-shrink:0"></div>';
+      return '<div class="item">' + img +
+        '<div class="item-body">' +
+          '<div class="item-title"><a href="product-details.html?id=' + p.id + '" target="_blank" style="color:inherit;text-decoration:none">' + window.escHtml(p.title || '') + '</a></div>' +
+          '<div class="item-meta">' + window.formatPrice(p.price) + ' · ' + (p.city || '') + ' · ' + window.relativeDate(p.created_at) + '</div>' +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  root.innerHTML =
+    '<div class="ud-hero">' +
+      '<img src="' + _avatar() + '" alt="">' +
+      '<div style="flex:1;min-width:0">' +
+        '<h1>' + window.escHtml(profile.full_name || 'Sans nom') + _tierBadge() + _banText() + '</h1>' +
+        '<div class="ud-meta">' +
+          (profile.location ? '📍 ' + profile.location + ' · ' : '') +
+          (profile.phone ? '📞 ' + window.escHtml(profile.phone) + ' · ' : '') +
+          'Inscrit ' + window.relativeDate(profile.created_at) +
+        '</div>' +
+        (profile.bio ? '<div class="ud-meta">' + window.escHtml(profile.bio) + '</div>' : '') +
+      '</div>' +
+    '</div>' +
+
+    '<div class="stats-grid">' +
+      '<div class="stat"><div class="stat-val">' + activeProducts.length + '</div><div class="stat-lbl">Actives</div></div>' +
+      '<div class="stat"><div class="stat-val">' + soldProducts.length + '</div><div class="stat-lbl">Vendues</div></div>' +
+      '<div class="stat"><div class="stat-val">' + msgTotal + '</div><div class="stat-lbl">Messages</div></div>' +
+      '<div class="stat"><div class="stat-val">' + offersTotal + '</div><div class="stat-lbl">Offres faites</div></div>' +
+      '<div class="stat"><div class="stat-val">' + reports.length + '</div><div class="stat-lbl">Signalements reçus</div></div>' +
+      '<div class="stat"><div class="stat-val">' + payments.length + '</div><div class="stat-lbl">Paiements</div></div>' +
+    '</div>' +
+
+    '<div class="ud-actions">' +
+      '<a class="btn btn-outline" href="my-profile.html?id=' + profile.id + '" target="_blank">Voir profil public</a>' +
+      (!ban ? '<button class="btn btn-outline" id="ban-btn" style="color:var(--danger);border-color:rgba(239,68,68,.3)">🚫 Bannir</button>' :
+        '<button class="btn btn-primary" id="unban-btn">Débannir</button>') +
+      '<button class="btn btn-outline" id="delete-btn" style="color:#fff;background:var(--danger,#ef4444);border-color:var(--danger,#ef4444)">🗑 Supprimer définitivement</button>' +
+    '</div>' +
+
+    '<div class="section"><h2>📦 Annonces actives (' + activeProducts.length + ')</h2>' + _prodList(activeProducts.slice(0,10), 'Aucune annonce active.') + '</div>' +
+    '<div class="section"><h2>✓ Vendues (' + soldProducts.length + ')</h2>' + _prodList(soldProducts.slice(0,5), 'Aucune vente.') + '</div>' +
+
+    '<div class="section"><h2>🚩 Signalements reçus (' + reports.length + ')</h2>' +
+      (reports.length ? reports.map(function(r) {
+        return '<div class="item"><div class="item-body">' +
+          '<div class="item-title">' + (r.products && r.products.title ? window.escHtml(r.products.title) : '(produit supprimé)') + '</div>' +
+          '<div class="item-meta">' + r.reason + ' · ' + r.status + ' · ' + window.relativeDate(r.created_at) + '</div>' +
+        '</div></div>';
+      }).join('') : '<div class="empty">Aucun signalement.</div>') +
+    '</div>' +
+
+    '<div class="section"><h2>💰 Paiements (' + payments.length + ')</h2>' +
+      (payments.length ? payments.map(function(p) {
+        return '<div class="item"><div class="item-body">' +
+          '<div class="item-title">' + p.tier.toUpperCase() + ' · ' + window.formatPrice(p.amount) + ' · ' + p.reference + '</div>' +
+          '<div class="item-meta">' + p.status + ' · ' + window.relativeDate(p.created_at) + '</div>' +
+        '</div></div>';
+      }).join('') : '<div class="empty">Aucun paiement.</div>') +
+    '</div>' +
+
+    (ban ? '<div class="section" style="border-color:var(--danger,#ef4444);background:#FEF2F2"><h2 style="color:#991B1B">🚫 Ban actif</h2>' +
+      '<div style="font-size:.88rem;color:#7F1D1D">Raison : ' + window.escHtml(ban.reason || '—') + '</div>' +
+      '<div style="font-size:.75rem;color:#7F1D1D;margin-top:4px">' + (ban.banned_until === null ? 'Permanent' : 'Jusqu\'au ' + new Date(ban.banned_until).toLocaleString('fr-FR')) + ' · ' + (ban.ban_count || 1) + ' bannissement(s)</div>' +
+    '</div>' : '');
+
+  // Boutons
+  var bb = document.getElementById('ban-btn');
+  if (bb) bb.addEventListener('click', async function() {
+    var dur = prompt('Durée du ban : "24h", "7j", ou "perma"', '24h');
+    if (!dur) return;
+    var reason = prompt('Raison :');
+    if (reason === null) return;
+    var until = null;
+    if (dur === '24h') until = new Date(Date.now() + 24*3600*1000).toISOString();
+    else if (dur === '7j') until = new Date(Date.now() + 7*24*3600*1000).toISOString();
+    var r = await sb.from('banned_users').upsert({ user_id: targetId, reason: reason, banned_until: until, ban_count: 1 });
+    if (r.error) { window.toast('Échec : ' + r.error.message, 'error'); return; }
+    window.toast('Banni', 'success'); setTimeout(function(){ location.reload(); }, 500);
+  });
+
+  var ub = document.getElementById('unban-btn');
+  if (ub) ub.addEventListener('click', async function() {
+    if (!confirm('Débannir ?')) return;
+    var r = await sb.from('banned_users').delete().eq('user_id', targetId);
+    if (r.error) { window.toast('Échec : ' + r.error.message, 'error'); return; }
+    window.toast('Débanni', 'success'); setTimeout(function(){ location.reload(); }, 500);
+  });
+
+  var db = document.getElementById('delete-btn');
+  if (db) db.addEventListener('click', async function() {
+    var c = prompt('⚠ SUPPRESSION DÉFINITIVE\nTout sera supprimé (annonces, messages, etc.).\nTape SUPPRIMER pour confirmer :');
+    if (c !== 'SUPPRIMER') { if (c !== null) window.toast('Annulé.', 'error'); return; }
+    var r = await sb.rpc('admin_delete_user', { p_user_id: targetId });
+    if (r.error) { window.toast('Échec : ' + r.error.message, 'error', 5000); return; }
+    window.toast('Utilisateur supprimé.', 'success');
+    setTimeout(function(){ location.href = 'admin-users.html'; }, 800);
+  });
+});
+</script>
+</body>
+</html>

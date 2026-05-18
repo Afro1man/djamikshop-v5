@@ -33,6 +33,7 @@ window.onDjamikReady = function(cb) {
   // Modules NON-critiques : chargés en arrière-plan après ready (ne bloquent rien)
   var lazyModules = [
     base + 'core/back-button.js', // gestion bouton retour Android (Capacitor only)
+    base + 'core/admin-realtime.js', // notifs live admin (silent si non-admin)
     base + 'core/pwa.js',         // service worker register, install prompt
     base + 'core/share.js',       // utilisé seulement au clic "partager"
     base + 'core/payment.js',     // ancien helper (conservé pour compat)

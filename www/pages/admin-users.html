@@ -2,7 +2,7 @@
 <html lang="fr" data-theme="light">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Utilisateurs — DjamikShop Admin</title>
   <meta name="theme-color" content="#E8501A">
   <meta name="robots" content="noindex,nofollow">
@@ -110,13 +110,14 @@ window.onDjamikReady(async function() {
           '</div>' +
         '</div>' +
         '<div class="user-actions">' +
-          '<a class="btn btn-outline" href="my-profile.html?id=' + p.id + '" target="_blank">Profil</a>' +
+          '<a class="btn btn-outline" href="admin-user-detail.html?id=' + p.id + '">Détail</a>' +
           (banText
             ? '<button class="btn btn-primary" data-act="unban" data-id="' + p.id + '">Débannir</button>'
             : '<button class="btn btn-outline" data-act="ban24" data-id="' + p.id + '" style="color:var(--danger);border-color:rgba(239,68,68,.3)">Bannir 24h</button>' +
               '<button class="btn btn-outline" data-act="ban7" data-id="' + p.id + '" style="color:var(--danger);border-color:rgba(239,68,68,.3)">7j</button>' +
               '<button class="btn btn-outline" data-act="banperma" data-id="' + p.id + '" style="color:var(--danger);border-color:rgba(239,68,68,.3)">∞</button>'
           ) +
+          '<button class="btn btn-outline" data-act="delete" data-id="' + p.id + '" data-name="' + window.escHtml(p.full_name || 'Sans nom') + '" style="color:#fff;background:var(--danger,#ef4444);border-color:var(--danger,#ef4444)" title="Supprimer définitivement">🗑</button>' +
         '</div>' +
       '</div>';
     }).join('');
@@ -151,6 +152,22 @@ window.onDjamikReady(async function() {
       if (ins.error) { window.toast('Échec : ' + ins.error.message, 'error'); return; }
       bansById[userId] = { user_id: userId, banned_until: until, ban_count: 1, reason: reason };
       window.toast('Banni (' + duration + ')', 'success');
+      _renderUsers(document.getElementById('users-search').value);
+    }
+    else if (act === 'delete') {
+      var btn = document.querySelector('[data-act="delete"][data-id="' + userId + '"]');
+      var userName = btn ? btn.dataset.name : 'cet utilisateur';
+      var confirmText = prompt('⚠ SUPPRESSION DÉFINITIVE de "' + userName + '"\n\nToutes ses annonces, messages, offres seront supprimés.\nCette action est IRRÉVERSIBLE.\n\nPour confirmer, tape : SUPPRIMER');
+      if (confirmText !== 'SUPPRIMER') {
+        if (confirmText !== null) window.toast('Suppression annulée (texte incorrect).', 'error');
+        return;
+      }
+      var r = await sb.rpc('admin_delete_user', { p_user_id: userId });
+      if (r.error) { window.toast('Échec : ' + r.error.message, 'error', 5000); return; }
+      profiles = profiles.filter(function(p){ return p.id !== userId; });
+      delete bansById[userId];
+      delete prodCount[userId];
+      window.toast('Utilisateur supprimé', 'success');
       _renderUsers(document.getElementById('users-search').value);
     }
   }
