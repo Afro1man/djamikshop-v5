@@ -86,7 +86,7 @@ window.onDjamikReady(async function() {
     sb.from('products').select('id,title,price,city,sold,created_at,image_url').eq('seller_id', targetId).order('created_at', { ascending: false }),
     sb.from('messages').select('id,conv_id,text,created_at', { count: 'exact', head: false }).eq('sender_id', targetId).order('created_at', { ascending: false }).limit(10),
     sb.from('offers').select('id,product_id,amount,status,created_at', { count: 'exact', head: false }).eq('buyer_id', targetId).order('created_at', { ascending: false }).limit(10),
-    sb.from('reports').select('id,reason,status,created_at,products(title)').eq('products.seller_id', targetId).order('created_at', { ascending: false }).limit(10),
+    sb.from('reports').select('id,reason,status,created_at,products!inner(title,seller_id)').eq('products.seller_id', targetId).order('created_at', { ascending: false }).limit(20),
     sb.from('payment_requests').select('id,tier,amount,status,reference,created_at').eq('user_id', targetId).order('created_at', { ascending: false }).limit(10),
     sb.from('banned_users').select('*').eq('user_id', targetId).maybeSingle(),
     sb.from('subscriptions').select('tier,expires_at').eq('user_id', targetId).maybeSingle(),
