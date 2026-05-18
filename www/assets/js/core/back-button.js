@@ -16,20 +16,42 @@
 
   var lastBack = 0;
 
-  App.addListener('backButton', function(ev) {
-    // Si un overlay/modal est ouvert, on le ferme d'abord
-    var openModal = document.querySelector('.modal-overlay, .rep-backdrop, .pwa-modal-backdrop');
-    if (openModal) { openModal.remove(); return; }
+  // Helper : detecte si on est sur la page racine (home)
+  function _isHomePage() {
+    var path = window.location.pathname || '';
+    // Match /, /pages/, /pages/index.html, /index.html
+    return /(^\/?$)|(\/pages\/?$)|(\/pages\/index\.html$)|(\/index\.html$)/i.test(path);
+  }
 
-    // Si on peut reculer dans l'historique, on recule
-    if (window.history.length > 1 && document.referrer) {
-      window.history.back();
+  App.addListener('backButton', function(ev) {
+    // 1. Si un overlay/modal est ouvert, on le ferme d'abord
+    var openModal = document.querySelector('.modal-overlay, .rep-backdrop, .pwa-modal-backdrop, .side-menu.open, .toast-container .toast');
+    if (openModal && openModal.classList.contains('side-menu')) {
+      // Cas spécial : ferme le menu lateral
+      openModal.classList.remove('open');
+      var backdrop = document.querySelector('.side-menu-backdrop');
+      if (backdrop) backdrop.classList.remove('open');
       return;
     }
-    // Sinon (on est sur la home/racine), demande confirmation avant de quitter
+    if (openModal && (openModal.classList.contains('modal-overlay') || openModal.classList.contains('rep-backdrop') || openModal.classList.contains('pwa-modal-backdrop'))) {
+      openModal.remove();
+      return;
+    }
+
+    // 2. Si on n'est PAS sur la home → revenir en arrière (sans verifier document.referrer qui est vide en WebView)
+    if (!_isHomePage()) {
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        // Pas d'historique mais pas sur la home → retour explicite vers home
+        window.location.href = '/pages/index.html';
+      }
+      return;
+    }
+
+    // 3. Sur la home → demande confirmation avant de quitter (double-tap)
     var now = Date.now();
     if (now - lastBack < 2000) {
-      // Deuxième tap en moins de 2s → exit
       App.exitApp();
     } else {
       lastBack = now;

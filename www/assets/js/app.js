@@ -26,6 +26,7 @@ window.onDjamikReady = function(cb) {
     base + 'core/staff.js',       // helpers myStaffRole / isMyselfAdmin
     base + 'core/ban-check.js',   // overlay 'Compte suspendu' si user banni
     base + 'features/auth.js',    // requireAuth utilisé partout
+    base + 'core/back-button.js', // gestion bouton retour Android — CRITIQUE pour pas que le geste retour quitte l'app
     base + 'components/ui.js',
     base + 'components/shell.js',
     base + 'components/bottom-nav.js'
@@ -33,7 +34,6 @@ window.onDjamikReady = function(cb) {
 
   // Modules NON-critiques : chargés en arrière-plan après ready (ne bloquent rien)
   var lazyModules = [
-    base + 'core/back-button.js', // gestion bouton retour Android (Capacitor only)
     base + 'core/admin-realtime.js', // notifs live admin (silent si non-admin)
     base + 'core/pwa.js',         // service worker register, install prompt
     base + 'core/share.js',       // utilisé seulement au clic "partager"
