@@ -75,7 +75,7 @@
       '<div class="nav-inner">' +
         backBtn +
         '<a href="' + getPath('index.html') + '" class="nav-logo">' +
-          '<div class="nav-logo-mark">D</div>Djamik<span>Shop</span>' +
+          '<img class="nav-logo-mark" src="' + basePath + 'assets/icons/icon-96.png" alt="DjamikShop" width="36" height="36">Djamik<span>Shop</span>' +
         '</a>' +
         '<div class="nav-search" style="position:relative">' +
           '<input type="search" id="nav-search-input" placeholder="Chercher un produit…" autocomplete="off">' +

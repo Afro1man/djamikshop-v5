@@ -44,17 +44,13 @@
 }
 
 .nav-logo-mark {
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: var(--r-md);
-  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-hover) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  font-size: 0.95rem;
-  font-weight: 800;
+  object-fit: cover;
+  display: block;
   box-shadow: var(--shadow-brand);
+  background: transparent;
 }
 
 .nav-logo span {
@@ -295,7 +291,7 @@
 @media (max-width: 768px) {
   :root { --nav-h: 60px; --page-px: 16px; }
   .nav-logo { font-size: 1.15rem; }
-  .nav-logo-mark { width: 30px; height: 30px; font-size: 0.85rem; }
+  .nav-logo-mark { width: 32px; height: 32px; }
   .nav-search { max-width: none; }
   .nav-search input { height: 38px; font-size: 0.85rem; }
   .nav-icon-btn,
