@@ -115,9 +115,21 @@ if [ "$BUILD_APK" = true ]; then
   fi
 
   cd android
-  JAVA_HOME="/c/Program Files/Android/Android Studio/jbr" ./gradlew.bat installDebug 2>&1 | tail -5
-  cd ..
-  echo -e "  ${G}✓ APK installée sur ton téléphone${N}"
+  if JAVA_HOME="/c/Program Files/Android/Android Studio/jbr" ./gradlew.bat installDebug 2>&1 | tee /tmp/gradle-build.log | tail -5; then
+    if grep -q "BUILD SUCCESSFUL" /tmp/gradle-build.log; then
+      cd ..
+      echo -e "  ${G}✓ APK installée sur ton téléphone${N}"
+    else
+      cd ..
+      echo -e "  ${R}❌ BUILD FAILED — voir l'erreur ci-dessus${N}"
+      echo -e "  ${Y}ℹ Verifie que ton tel est branche + ecran allume + USB debug autorise${N}"
+      exit 1
+    fi
+  else
+    cd ..
+    echo -e "  ${R}❌ BUILD FAILED${N}"
+    exit 1
+  fi
 else
   echo -e "${B}▶ Étape 5/5 : APK skipped${N}"
   echo -e "  ${Y}ℹ Pour rebuild l'APK aussi, relance avec : ./update.sh \"$MSG\" --apk${N}"
