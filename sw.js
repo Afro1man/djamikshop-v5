@@ -3,7 +3,7 @@
 //  Cache-first pour assets, network-first pour pages, bypass Supabase
 // ═══════════════════════════════════════════════════════════════════
 
-var VERSION    = 'djamik-v1.1.5';
+var VERSION    = 'djamik-v1.1.6';
 var CACHE_CORE = 'djamik-core-' + VERSION;
 var CACHE_PAGE = 'djamik-pages-' + VERSION;
 var CACHE_IMG  = 'djamik-img-'   + VERSION;
