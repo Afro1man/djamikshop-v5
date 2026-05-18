@@ -90,10 +90,16 @@ window.onDjamikReady(async function() {
       '<p class="admin-sub">Gère les <strong>administrateurs</strong> (tout pouvoir) et les <strong>modérateurs</strong> (modération seulement).</p>' +
 
       '<div class="add-form">' +
-        '<h3>➕ Pour nommer un nouveau membre du staff</h3>' +
-        '<p style="font-size:.85rem;color:var(--ink-2);margin:0">' +
-          'Va sur <a href="admin-users.html" style="color:var(--primary);font-weight:600">Utilisateurs</a> → clic <strong>"Détail"</strong> sur la personne → bouton <strong>👮 Nommer Modérateur</strong> ou <strong>👑 Nommer Admin</strong>.' +
-        '</p>' +
+        '<h3>➕ Nommer un membre du staff</h3>' +
+        '<div class="row">' +
+          '<input type="text" id="add-code" placeholder="Code utilisateur (ex: DJ-A7K2N5)" style="text-transform:uppercase" maxlength="9">' +
+          '<select id="add-role">' +
+            '<option value="moderator">Modérateur</option>' +
+            '<option value="admin">Administrateur</option>' +
+          '</select>' +
+          '<button class="btn btn-primary" id="add-btn">Ajouter</button>' +
+        '</div>' +
+        '<p style="font-size:.75rem;color:var(--ink-3);margin:8px 0 0">💡 Tu peux trouver le code de chaque user sur <a href="admin-users.html" style="color:var(--primary);font-weight:600">Utilisateurs</a> (badge orange sur chaque card). Ou utiliser les boutons directs sur la page Détail.</p>' +
       '</div>' +
 
       '<div id="staff-list">' +
@@ -125,6 +131,26 @@ window.onDjamikReady(async function() {
       '</div>';
 
     root.innerHTML = html;
+
+    document.getElementById('add-btn').addEventListener('click', async function() {
+      var code = document.getElementById('add-code').value.trim().toUpperCase();
+      var newRole = document.getElementById('add-role').value;
+      if (!code) { window.toast('Saisis un code utilisateur.', 'error'); return; }
+
+      // Recherche le user par code
+      var lookup = await sb.rpc('find_user_by_public_id', { p_code: code });
+      if (lookup.error || !lookup.data || !lookup.data.length) {
+        window.toast('Aucun utilisateur trouvé avec ce code.', 'error', 4000);
+        return;
+      }
+      var targetUser = lookup.data[0];
+      if (!confirm('Nommer "' + (targetUser.full_name || 'cet utilisateur') + '" (' + code + ') comme ' + (newRole === 'admin' ? 'ADMINISTRATEUR (tous pouvoirs)' : 'Modérateur') + ' ?')) return;
+
+      var r = await sb.rpc('admin_promote_to_staff', { p_user_id: targetUser.id, p_role: newRole });
+      if (r.error) { window.toast('Échec : ' + r.error.message, 'error', 5000); return; }
+      window.toast(targetUser.full_name + ' nommé ' + newRole, 'success');
+      setTimeout(function(){ location.reload(); }, 700);
+    });
 
     document.querySelectorAll('[data-act]').forEach(function(btn) {
       btn.addEventListener('click', async function() {
