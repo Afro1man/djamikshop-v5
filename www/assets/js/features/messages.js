@@ -545,6 +545,8 @@ window.onDjamikReady(async function() {
       conv.messages.push(optimistic);
       conv.last_message    = text;
       conv.last_message_at = optimistic.created_at;
+      // Remonte la conv en tête de liste
+      cachedConvs.sort(function(a,b){ return new Date(b.last_message_at||0) - new Date(a.last_message_at||0); });
       _renderMessages(conv.messages);
       _renderConvList();
       if (inp) inp.value = '';
@@ -867,6 +869,8 @@ window.onDjamikReady(async function() {
       conv.messages.push(optimistic);
       conv.last_message    = caption || '📷 Photo';
       conv.last_message_at = optimistic.created_at;
+      // Remonte la conv en tête de liste
+      cachedConvs.sort(function(a,b){ return new Date(b.last_message_at||0) - new Date(a.last_message_at||0); });
       _renderMessages(conv.messages);
       _renderConvList();
       var ta = document.getElementById('chat-input-text');
