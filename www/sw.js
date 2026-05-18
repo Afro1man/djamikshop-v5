@@ -3,7 +3,7 @@
 //  Cache-first pour assets, network-first pour pages, bypass Supabase
 // ═══════════════════════════════════════════════════════════════════
 
-var VERSION    = 'djamik-v1.2.10';
+var VERSION    = 'djamik-v1.2.11';
 var CACHE_CORE = 'djamik-core-' + VERSION;
 var CACHE_PAGE = 'djamik-pages-' + VERSION;
 var CACHE_IMG  = 'djamik-img-'   + VERSION;
@@ -169,8 +169,8 @@ self.addEventListener('push', function(event) {
   var title = payload.title || 'DjamikShop';
   var options = {
     body:    payload.body  || '',
-    icon:    payload.icon  || '/assets/icons/icon.svg',
-    badge:   payload.badge || '/assets/icons/icon.svg',
+    icon:    payload.icon  || '/assets/icons/icon-192.png',
+    badge:   payload.badge || '/assets/icons/icon-192.png',
     image:   payload.image,
     tag:     payload.tag    || 'djamik-' + Date.now(),
     data:    payload.data   || { url: payload.url || '/pages/index.html' },
