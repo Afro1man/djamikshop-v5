@@ -354,8 +354,16 @@
     _init();
   }
 
-  function _refreshMenu() {
+  // Garde un refresh en attente si le menu est ouvert au moment du call
+  var _refreshDeferred = false;
+
+  function _refreshMenu(force) {
     var existing = document.getElementById('side-menu');
+    // ⚠️ Si le menu est ouvert, on diffère le refresh pour pas le faire disparaitre
+    if (!force && existing && existing.classList.contains('open')) {
+      _refreshDeferred = true;
+      return;
+    }
     if (existing) existing.remove();
     var smWrap = document.createElement('div');
     smWrap.innerHTML = _sideMenuHTML(_getSession());
@@ -364,6 +372,7 @@
     document.body.appendChild(sm);
     _initSideMenu();
     _updateMenuBadges();
+    _refreshDeferred = false;
   }
 
   function _updateMenuBadges() {
@@ -435,7 +444,14 @@
     if (!sideMenu) return;
 
     function open()  { var sm = document.getElementById('side-menu'); if (!sm) return; sm.classList.add('open'); if (menuBtn) menuBtn.classList.add('open'); document.body.style.overflow = 'hidden'; }
-    function close() { var sm = document.getElementById('side-menu'); if (!sm) return; sm.classList.remove('open'); if (menuBtn) menuBtn.classList.remove('open'); document.body.style.overflow = ''; }
+    function close() {
+      var sm = document.getElementById('side-menu'); if (!sm) return;
+      sm.classList.remove('open');
+      if (menuBtn) menuBtn.classList.remove('open');
+      document.body.style.overflow = '';
+      // Si un refresh est en attente (declenche pendant que menu etait ouvert), on le fait maintenant
+      if (_refreshDeferred) setTimeout(function(){ _refreshMenu(true); }, 350);
+    }
 
     // Évite les doublons : on retire l'ancien listener si on en a déjà ajouté un
     if (menuBtn) {
@@ -446,9 +462,10 @@
     sideMenu.querySelectorAll('[data-close]').forEach(function(el) {
       el.addEventListener('click', close);
     });
-    document.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') close();
-    });
+    // Escape : on retire l'ancien listener avant d'en mettre un nouveau (sinon accumulation)
+    if (document._smEscHandler) document.removeEventListener('keydown', document._smEscHandler);
+    document._smEscHandler = function(e) { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', document._smEscHandler);
 
     // Push notifications toggle
     var pushBtn = document.getElementById('sm-push-toggle');

@@ -146,7 +146,19 @@ window.onDjamikReady(async function() {
           });
           window.saveOrders ? window.saveOrders(all) : localStorage.setItem('dj_orders', JSON.stringify(all));
           window.toast && window.toast('Commande annulée', 'info');
-          setTimeout(function() { window.location.reload(); }, 600);
+
+          // Update dynamique : retrouve la card et change visuellement le statut
+          var card = btn.closest('.order-card');
+          if (card) {
+            var statusBadge = card.querySelector('.order-status, .status-badge');
+            if (statusBadge) {
+              statusBadge.textContent = 'Annulée';
+              statusBadge.className = 'order-status cancelled';
+            }
+            card.style.opacity = '0.6';
+            // Cache le bouton cancel
+            btn.style.display = 'none';
+          }
         });
       }
     });

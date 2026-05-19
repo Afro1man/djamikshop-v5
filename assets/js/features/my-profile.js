@@ -8,6 +8,9 @@ window.onDjamikReady(function() {
   var root = document.getElementById('profile-root');
   if (!root) return;
 
+  // State partage entre _renderSelf et _onAction (pour update dynamique sans reload)
+  var _selfState = null;
+
   var params      = new URLSearchParams(location.search);
   var requestedId = params.get('id');
 
@@ -134,8 +137,12 @@ window.onDjamikReady(function() {
       _tabsHtml(active.length, sold.length) +
       '<div id="profile-listings"></div>';
 
+    // State partage : permet a _onAction de muter les arrays et re-rendre dynamiquement
+    var state = { user: user, products: products, active: active, sold: sold, currentTab: 'active' };
+    _selfState = state;
+
     _renderListings(active, true);
-    _wireSelfEvents(user, products, active, sold);
+    _wireSelfEvents(state);
   }
 
   // ────────────────────────────────────────────────────────────
@@ -299,20 +306,48 @@ window.onDjamikReady(function() {
   // ────────────────────────────────────────────────────────────
   //  EVENT WIRING
   // ────────────────────────────────────────────────────────────
-  function _wireSelfEvents(user, products, active, sold) {
+  function _wireSelfEvents(state) {
     document.querySelectorAll('.profile-tab').forEach(function(tab) {
       tab.addEventListener('click', function() {
         document.querySelectorAll('.profile-tab').forEach(function(t){ t.classList.remove('active'); });
         tab.classList.add('active');
-        _renderListings(tab.dataset.tab === 'sold' ? sold : active, true);
+        state.currentTab = tab.dataset.tab;
+        _renderListings(state.currentTab === 'sold' ? state.sold : state.active, true);
       });
     });
 
     var editBtn  = document.getElementById('btn-edit-profile');
-    if (editBtn)  editBtn.addEventListener('click', function() { _openEditModal(user); });
+    if (editBtn)  editBtn.addEventListener('click', function() { _openEditModal(state.user); });
 
     var shareBtn = document.getElementById('btn-share-profile');
-    if (shareBtn) shareBtn.addEventListener('click', function() { _shareProfile(user); });
+    if (shareBtn) shareBtn.addEventListener('click', function() { _shareProfile(state.user); });
+  }
+
+  // ────────────────────────────────────────────────────────────
+  //  DYNAMIC UPDATE — re-render listings + stats sans reload
+  // ────────────────────────────────────────────────────────────
+  function _refreshSelfListings() {
+    if (!_selfState) return;
+    var s = _selfState;
+    // Re-calcule actives/vendues depuis le tableau products (apres mutation)
+    s.active = s.products.filter(function(p){ return !p.sold; });
+    s.sold   = s.products.filter(function(p){ return p.sold; });
+
+    // Update stats (badges Actives/Vendues/Vues)
+    var stats = document.querySelectorAll('.profile-stat-val');
+    if (stats.length >= 2) {
+      stats[0].textContent = s.active.length;
+      stats[1].textContent = s.sold.length;
+      var totalViews = s.active.reduce(function(tot, p){ return tot + (window.getViews ? window.getViews(p.id) : 0); }, 0);
+      if (stats[2]) stats[2].textContent = totalViews;
+    }
+    // Update tab counts
+    var tabs = document.querySelectorAll('.profile-tab');
+    if (tabs[0]) tabs[0].textContent = 'Actives (' + s.active.length + ')';
+    if (tabs[1]) tabs[1].textContent = 'Vendues (' + s.sold.length + ')';
+
+    // Re-render la liste du tab courant
+    _renderListings(s.currentTab === 'sold' ? s.sold : s.active, true);
   }
 
   function _wirePublicEvents(seller, active, sold) {
@@ -355,7 +390,8 @@ window.onDjamikReady(function() {
       try {
         await window.boostProduct(productId);
         window.toast && window.toast('Annonce boostée pendant 24h !', 'success', 4000);
-        setTimeout(function() { window.location.reload(); }, 800);
+        // Re-render dynamique (le card va afficher le badge "Boosté")
+        _refreshSelfListings();
       } catch(err) {
         var msg = (err && err.message) || 'Erreur de boost';
         if (msg.indexOf('Gratuit') !== -1 || msg.indexOf('VIP') !== -1) {
@@ -371,16 +407,25 @@ window.onDjamikReady(function() {
       window.confirm2('Marquer cette annonce comme vendue ?').then(function(ok) {
         if (!ok) return;
         _updateProduct(productId, { sold: true });
+        // Mute le product dans le state local pour re-render instantane
+        if (_selfState) {
+          var p = _selfState.products.find(function(x){ return x.id === productId; });
+          if (p) p.sold = true;
+        }
         window.toast && window.toast('Annonce marquée vendue.', 'success');
-        setTimeout(function() { window.location.reload(); }, 600);
+        _refreshSelfListings();
       });
     }
     else if (act === 'delete') {
       window.confirm2('Supprimer cette annonce définitivement ?', true).then(function(ok) {
         if (!ok) return;
         _deleteProduct(productId);
+        // Retire le product du state local pour re-render instantane
+        if (_selfState) {
+          _selfState.products = _selfState.products.filter(function(x){ return x.id !== productId; });
+        }
         window.toast && window.toast('Annonce supprimée.', 'success');
-        setTimeout(function() { window.location.reload(); }, 600);
+        _refreshSelfListings();
       });
     }
   }
@@ -512,8 +557,40 @@ window.onDjamikReady(function() {
 
       m.close();
       window.toast && window.toast('Profil mis à jour.', 'success');
-      setTimeout(function() { window.location.reload(); }, 500);
+
+      // Re-render dynamique du header de profil (avatar + nom + bio + city + phone)
+      // sans reload de la page
+      user.full_name  = newName;
+      user.bio        = newBio;
+      user.phone      = newPhone;
+      user.location   = newCity;
+      if (avatarUrl) user.avatar_url = avatarUrl;
+      _refreshProfileHeader(user);
+
+      // Trigger global update : navbar avatar/menu lateral
+      if (window.dispatchEvent) {
+        window.dispatchEvent(new Event('djamik:profile-updated'));
+      }
     };
+  }
+
+  // Re-render le bloc profil (avatar + nom + bio + meta) sans toucher au reste
+  function _refreshProfileHeader(user) {
+    var card = document.querySelector('.profile-card');
+    if (!card) return;
+    var newHtml = _profileCardHtml(user, { editable: true });
+    var tmp = document.createElement('div');
+    tmp.innerHTML = newHtml;
+    var newCard = tmp.firstChild;
+    card.parentNode.replaceChild(newCard, card);
+
+    // Re-wire les boutons (edit / share)
+    if (_selfState) {
+      var editBtn = document.getElementById('btn-edit-profile');
+      if (editBtn) editBtn.addEventListener('click', function(){ _openEditModal(_selfState.user); });
+      var shareBtn = document.getElementById('btn-share-profile');
+      if (shareBtn) shareBtn.addEventListener('click', function(){ _shareProfile(_selfState.user); });
+    }
   }
 
   // ────────────────────────────────────────────────────────────

@@ -72,15 +72,18 @@ window.onDjamikReady(async function() {
     return;
   }
 
-  // Charge tous les membres du staff + leurs profils
-  var [staffRes] = await Promise.all([
-    sb.from('admins').select('user_id, role, added_at').order('added_at', { ascending: true })
-  ]);
-  var staffList = (staffRes && staffRes.data) || [];
-
-  var profsRes = await sb.from('profiles').select('id, full_name, avatar_url').in('id', staffList.map(function(s){return s.user_id}));
+  // Charge tous les membres du staff + leurs profils (refetch a chaque action)
+  var staffList = [];
   var profsById = {};
-  ((profsRes && profsRes.data) || []).forEach(function(p){ profsById[p.id] = p; });
+
+  async function _fetchStaff() {
+    var staffRes = await sb.from('admins').select('user_id, role, added_at').order('added_at', { ascending: true });
+    staffList = (staffRes && staffRes.data) || [];
+    var profsRes = await sb.from('profiles').select('id, full_name, avatar_url').in('id', staffList.map(function(s){return s.user_id}));
+    profsById = {};
+    ((profsRes && profsRes.data) || []).forEach(function(p){ profsById[p.id] = p; });
+  }
+  await _fetchStaff();
 
   function _avatar(p, name) {
     if (p && p.avatar_url) return p.avatar_url;
@@ -151,7 +154,10 @@ window.onDjamikReady(async function() {
       var r = await sb.rpc('admin_promote_to_staff', { p_user_id: targetUser.id, p_role: newRole });
       if (r.error) { window.toast('Échec : ' + r.error.message, 'error', 5000); return; }
       window.toast(targetUser.full_name + ' nommé ' + newRole, 'success');
-      setTimeout(function(){ location.reload(); }, 700);
+      // Refresh dynamique (re-fetch + re-render)
+      await _fetchStaff();
+      _render();
+      document.getElementById('add-code').value = '';
     });
 
     document.querySelectorAll('[data-act]').forEach(function(btn) {
@@ -174,7 +180,9 @@ window.onDjamikReady(async function() {
           if (r.error) { window.toast('Échec : ' + r.error.message, 'error'); return; }
         }
         window.toast('Fait.', 'success');
-        setTimeout(function(){ location.reload(); }, 500);
+        // Refresh dynamique (re-fetch + re-render)
+        await _fetchStaff();
+        _render();
       });
     });
   }
