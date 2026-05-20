@@ -78,16 +78,29 @@ window.onDjamikReady(async function() {
     var sess = s && s.data && s.data.session;
     var user = sess && sess.user;
 
+    // Detecte si c'est un OAuth Google (provider != email) → redirige direct
+    var isOAuth = user && user.app_metadata && user.app_metadata.provider && user.app_metadata.provider !== 'email';
+
     if (user && user.email_confirmed_at) {
       ok = true;
     } else if (sess) {
       // Connecté mais pas encore confirmé : on attend un poil de plus
       await new Promise(function(r){ setTimeout(r, 1500); });
       var u2 = await window._supabase.auth.getUser();
-      if (u2 && u2.data && u2.data.user && u2.data.user.email_confirmed_at) ok = true;
+      if (u2 && u2.data && u2.data.user && u2.data.user.email_confirmed_at) {
+        ok = true;
+        user = u2.data.user;
+        isOAuth = user.app_metadata && user.app_metadata.provider && user.app_metadata.provider !== 'email';
+      }
     }
 
     if (ok) {
+      // OAuth Google : redirige direct vers la home (pas besoin d'ecran de confirmation)
+      if (isOAuth) {
+        window.toast && window.toast('Bienvenue ' + (user.user_metadata && user.user_metadata.full_name || user.email) + ' !', 'success', 2500);
+        setTimeout(function() { window.location.replace('index.html'); }, 800);
+        return;
+      }
       _showSuccess(user || (await window._supabase.auth.getUser()).data.user);
     } else {
       _showError(errMsg || 'Le lien a expiré ou a déjà été utilisé.');

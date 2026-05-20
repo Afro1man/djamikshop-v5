@@ -402,4 +402,40 @@ if (resetForm) {
   });
 }
 
+// ═══════════════════════════════════════════════════════════════════
+//  GOOGLE OAUTH (login + signup)
+// ═══════════════════════════════════════════════════════════════════
+async function signInWithGoogle(btn) {
+  if (!_sb()) { window.toast && window.toast('Service indisponible.', 'error'); return; }
+  if (btn) {
+    btn.disabled = true;
+    var originalHtml = btn.innerHTML;
+    btn.innerHTML = '<span class="btn-spinner"></span> Connexion à Google…';
+  }
+  try {
+    var redirectTo = window.location.origin + '/pages/auth-callback.html';
+    var res = await _sb().auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: redirectTo,
+        queryParams: { access_type: 'offline', prompt: 'select_account' }
+      }
+    });
+    // Si pas d'erreur, le navigateur va etre redirige automatiquement vers Google
+    if (res && res.error) throw res.error;
+  } catch(err) {
+    if (btn) { btn.disabled = false; btn.innerHTML = originalHtml; }
+    var msg = (err && err.message) || 'Erreur de connexion Google.';
+    window.toast && window.toast(msg, 'error', 5000);
+    console.warn('[google oauth]', err);
+  }
+}
+window.signInWithGoogle = signInWithGoogle;
+
+// Wire les boutons Google sur login + signup
+var btnGLogin  = document.getElementById('btn-google-login');
+var btnGSignup = document.getElementById('btn-google-signup');
+if (btnGLogin)  btnGLogin.addEventListener('click',  function(){ signInWithGoogle(btnGLogin);  });
+if (btnGSignup) btnGSignup.addEventListener('click', function(){ signInWithGoogle(btnGSignup); });
+
 } // fin garde anti-double-load
