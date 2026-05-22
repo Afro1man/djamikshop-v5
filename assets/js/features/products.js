@@ -289,18 +289,35 @@ function _initFilters() {
 }
 
 // ── STATS ──
+// On masque la barre de stats (annonces + vendeurs) jusqu'a atteindre le seuil de 200 vendeurs.
+// En-dessous, afficher de petits chiffres fait peur aux nouveaux users.
+// Au-dela, les chiffres deviennent un atout de credibilite.
+var STATS_MIN_SELLERS_THRESHOLD = 200;
+
 function _updateStats(products) {
   var pEl = document.getElementById('stat-products');
   var sEl = document.getElementById('stat-sellers');
-  if (pEl) pEl.innerHTML = '<span>' + (products ? products.length : 0) + '</span>';
-  if (sEl && window._supabase && !window.APP.demoMode) {
+  var heroStats = document.querySelector('.hero-stats');
+
+  if (window._supabase && !window.APP.demoMode) {
     window._supabase.from('profiles').select('id', { count: 'exact', head: true })
-      .then(function(res){ if(res.count != null) sEl.innerHTML = '<span>' + res.count + '</span>'; })
-      .catch(function(){});
-  } else if (sEl) {
-    var users = [];
-    try { users = JSON.parse(localStorage.getItem('dj_users') || '[]'); } catch(e){}
-    sEl.innerHTML = '<span>' + (users.length || 1) + '</span>';
+      .then(function(res){
+        var sellersCount = (res && res.count) || 0;
+        // Seuil : on n'affiche la barre que si on a depasse le minimum de vendeurs
+        if (sellersCount < STATS_MIN_SELLERS_THRESHOLD) {
+          if (heroStats) heroStats.style.display = 'none';
+          return;
+        }
+        if (heroStats) heroStats.style.display = '';
+        if (pEl) pEl.innerHTML = '<span>' + (products ? products.length : 0) + '</span>';
+        if (sEl) sEl.innerHTML = '<span>' + sellersCount + '</span>';
+      })
+      .catch(function(){
+        if (heroStats) heroStats.style.display = 'none';
+      });
+  } else {
+    // Mode demo : on cache la barre
+    if (heroStats) heroStats.style.display = 'none';
   }
 }
 
