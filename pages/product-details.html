@@ -468,12 +468,17 @@ window.onDjamikReady(async function () {
 
     // Cart
     var btnContact = document.getElementById('btn-contact');
-    if (btnContact) btnContact.addEventListener('click', function() {
+    if (btnContact) btnContact.addEventListener('click', async function() {
       if (!p.seller_id) { window.toast && window.toast('Vendeur introuvable.', 'error'); return; }
       var url = 'messages.html?seller=' + encodeURIComponent(p.seller_id) +
                 '&product=' + encodeURIComponent(p.id) +
                 '&seller_name=' + encodeURIComponent(p.seller_name || 'Vendeur') +
                 '&product_title=' + encodeURIComponent(p.title || '');
+      // Si visiteur (non connecte) -> redirige login avec next=url cible pour qu'il revienne ici
+      if (window.requireAuth) {
+        var user = await window.requireAuth(url);
+        if (!user) return; // requireAuth a deja redirige vers login
+      }
       window.location.href = url;
     });
 
@@ -489,7 +494,12 @@ window.onDjamikReady(async function () {
 
     // Offer modal
     var btnOffer = document.getElementById('btn-offer');
-    if (btnOffer) btnOffer.addEventListener('click', function() {
+    if (btnOffer) btnOffer.addEventListener('click', async function() {
+      // Visiteurs -> redirige vers login
+      if (window.requireAuth) {
+        var user = await window.requireAuth(window.location.href);
+        if (!user) return;
+      }
       var selPm = 'main_propre';
       var pms = window.APP.paymentMethods || [];
       var m = window.showModal(

@@ -364,7 +364,20 @@
     .featured-like:hover { transform: scale(1.1); color: #ef4444; }
     .featured-body { padding: 12px; }
     .featured-title-prod { font-size: .9rem; font-weight: 700; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .featured-price { color: var(--brand,#E8501A); font-weight: 800; font-size: 1rem; margin-top: 4px; }
+    /* Prix doré sur les annonces boostées (VIP & Premium) */
+    .featured-price {
+      background: linear-gradient(135deg, #F5B100 0%, #D49100 50%, #F5B100 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 800; font-size: 1rem; margin-top: 4px;
+    }
+    .featured-card.is-premium .featured-price {
+      background: linear-gradient(135deg, #FFB800 0%, #E89500 30%, #FFD700 60%, #C99100 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
     .featured-vendor {
       display: flex; align-items: center; gap: 8px;
       margin-top: 10px; padding-top: 10px;
