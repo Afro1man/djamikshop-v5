@@ -189,9 +189,17 @@ djamikshop-v5/
 8. **Viewport meta** : Capacitor inclut `user-scalable=no, maximum-scale=1` partout.
 9. **APK release** : pas encore signée (juste debug). Pour Play Store : faut keystore + AAB.
 
+## ⚠️ État config Auth (mai 2026)
+
+- **"Confirm email" DÉSACTIVÉ** dans Supabase (Auth → Providers → Email)
+  - Raison : Resend en mode testing (sans domaine vérifié), ne peut envoyer qu'à maliksaley19@gmail.com (erreur SMTP `550 You can only send testing emails to your own email address`)
+  - Workaround : email vérif désactivée, users peuvent signer avec emails bidons mais s'inscrivent instantanément
+  - **À faire dès domaine acquis** : vérifier domaine sur Resend → re-activer Confirm email dans Supabase
+- **Google OAuth ACTIVÉ** : fonctionne nickel, bypass email vérif (Google vérifie déjà)
+
 ## 🚧 Pending / TODO
 
-1. **Logo Djamik définitif** : user veut faire son logo (carte Niger + D noir). En attendant icône Android par défaut.
+1. **Acheter un domaine** (djamikshop.com / .ne) → vérifier sur Resend → re-activer Confirm email
 2. **Keystore release** : signer APK pour Play Store
 3. **Compte Google Play Developer** : 25$ à payer + vérif 24-48h
 4. **Screenshots Play Store** : 2-8 captures à faire
