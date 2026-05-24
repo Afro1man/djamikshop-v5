@@ -321,6 +321,8 @@ window.onDjamikReady(async function () {
   function renderProduct(p) {
     window.addToHistory && window.addToHistory(p.id);
     window.incrementViews && window.incrementViews(p.id);
+    // Track clic (ouverture page detail) → DB Supabase via batch
+    window.trackProductClick && window.trackProductClick(p.id);
     updateSocialMeta(p);
 
     var cat   = window.getCatById ? window.getCatById(p.category) : null;

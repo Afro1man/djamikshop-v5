@@ -27,6 +27,7 @@ window.onDjamikReady = function(cb) {
     base + 'core/ban-check.js',   // overlay 'Compte suspendu' si user banni
     base + 'features/auth.js',    // requireAuth utilisé partout
     base + 'core/back-button.js', // gestion bouton retour Android — CRITIQUE pour pas que le geste retour quitte l'app
+    base + 'core/stats.js',       // tracking vues + clics produits (batch toutes les 30s)
     base + 'components/ui.js',
     base + 'components/shell.js',
     base + 'components/bottom-nav.js'

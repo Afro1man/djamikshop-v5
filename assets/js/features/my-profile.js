@@ -93,7 +93,7 @@ window.onDjamikReady(function() {
 
     var active     = products.filter(function(p){ return !p.sold; });
     var sold       = products.filter(function(p){ return p.sold; });
-    var totalViews = active.reduce(function(s, p){ return s + (window.getViews ? window.getViews(p.id) : 0); }, 0);
+    var totalViews = active.reduce(function(s, p){ return s + ((typeof p.views === "number") ? p.views : 0); }, 0);
 
     // Tier du profil consulté
     if (window.fetchUserTiers) {
@@ -121,7 +121,7 @@ window.onDjamikReady(function() {
     var products = await _fetchProducts(user.id || user.sub);
     var active     = products.filter(function(p){ return !p.sold; });
     var sold       = products.filter(function(p){ return p.sold; });
-    var totalViews = active.reduce(function(s, p){ return s + (window.getViews ? window.getViews(p.id) : 0); }, 0);
+    var totalViews = active.reduce(function(s, p){ return s + ((typeof p.views === "number") ? p.views : 0); }, 0);
 
     // Mon tier + sub info + boosts restants
     var subInfo = { tier:'free', days_left:null };
@@ -282,10 +282,23 @@ window.onDjamikReady(function() {
         '<div class="profile-listing-body">' +
           '<div class="profile-listing-title">' + window.escHtml(p.title || '') + '</div>' +
           '<div class="profile-listing-price">' + window.formatPrice(p.price) + '</div>' +
-          '<div class="profile-listing-meta">' +
-            _icon('eye') + ' ' + (window.getViews ? window.getViews(p.id) : 0) + ' vues · ' +
-            window.relativeDate(p.created_at) +
-          '</div>' +
+          (function(){
+            // Stats : vues + clics depuis la DB (synchronisation batch 30s)
+            var v = (typeof p.views  === 'number') ? p.views  : 0;
+            var c = (typeof p.clicks === 'number') ? p.clicks : 0;
+            // Pas encore vue → CTA boost (encourage upsell)
+            if (v === 0 && !p.sold) {
+              return '<div class="profile-listing-meta" style="color:var(--brand,#E8501A);font-weight:600">' +
+                _icon('eye') + ' Pas encore vue — Booste !' +
+                '</div>' +
+                '<div class="profile-listing-meta">' + window.relativeDate(p.created_at) + '</div>';
+            }
+            return '<div class="profile-listing-meta">' +
+              _icon('eye') + ' ' + v + ' vue' + (v > 1 ? 's' : '') +
+              ' · <span title="Clics sur l\'annonce">' + c + ' clic' + (c > 1 ? 's' : '') + '</span>' +
+              ' · ' + window.relativeDate(p.created_at) +
+            '</div>';
+          })() +
           (withActions && !p.sold ? '<div class="profile-listing-actions">' +
             '<button class="profile-act-btn edit" data-id="' + p.id + '" data-act="edit">' + _icon('edit') + ' Modifier</button>' +
             (boosted ? '' : '<button class="profile-act-btn boost" data-id="' + p.id + '" data-act="boost">' + _icon('rocket') + ' Booster</button>') +
@@ -338,7 +351,7 @@ window.onDjamikReady(function() {
     if (stats.length >= 2) {
       stats[0].textContent = s.active.length;
       stats[1].textContent = s.sold.length;
-      var totalViews = s.active.reduce(function(tot, p){ return tot + (window.getViews ? window.getViews(p.id) : 0); }, 0);
+      var totalViews = s.active.reduce(function(tot, p){ return tot + ((typeof p.views === "number") ? p.views : 0); }, 0);
       if (stats[2]) stats[2].textContent = totalViews;
     }
     // Update tab counts
