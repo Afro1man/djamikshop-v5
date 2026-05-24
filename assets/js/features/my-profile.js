@@ -266,7 +266,7 @@ window.onDjamikReady(function() {
         '<div class="empty-state"><div class="empty-icon">' + _icon('package') + '</div>' +
           '<h3>Aucune annonce</h3>' +
           '<p>' + (withActions ? 'Publiez votre première annonce pour commencer à vendre.' : 'Ce vendeur n\'a pas encore publié d\'annonce.') + '</p>' +
-          (withActions ? '<a href="add-product.html" class="btn btn-primary mt-4">' + _icon('plus') + ' Publier</a>' : '') +
+          (withActions ? '<a href="add-product.html" class="btn btn-primary mt-4">' + _icon('plus') + ' Vendre</a>' : '') +
         '</div>';
       return;
     }
@@ -404,7 +404,7 @@ window.onDjamikReady(function() {
       }
     }
     else if (act === 'sold') {
-      window.confirm2('Marquer cette annonce comme vendue ?').then(function(ok) {
+      window.confirm2('Marquer comme vendu ? Cette annonce sera archivee.').then(function(ok) {
         if (!ok) return;
         _updateProduct(productId, { sold: true });
         // Mute le product dans le state local pour re-render instantane

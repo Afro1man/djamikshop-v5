@@ -1,5 +1,5 @@
 // ═══════════════════════════════════════════════════════════════════
-//  FEATURES / ADD-PRODUCT — Publier une annonce
+//  FEATURES / ADD-PRODUCT — Vendre
 // ═══════════════════════════════════════════════════════════════════
 
 window.onDjamikReady(function() {
@@ -11,8 +11,31 @@ window.onDjamikReady(function() {
   var editId    = urlParams.get('edit');
   var editMode  = !!editId;
 
-  (window.requireAuth ? window.requireAuth('add-product.html' + (editMode ? '?edit=' + editId : '')) : Promise.resolve(true)).then(async function(user) {
-    if (!user) return;
+  (async function() {
+    // ── Auth check IMMEDIAT : evite l'ecran blanc/spinner pour les visiteurs ──
+    var sess = null;
+    if (window._supabase) {
+      try { sess = (await window._supabase.auth.getSession()).data.session; } catch(e){}
+    }
+    if (!sess || !sess.user) {
+      var nextUrl = 'add-product.html' + (editMode ? '?edit=' + editId : '');
+      panel.innerHTML =
+        '<div style="text-align:center;padding:60px 24px">' +
+          '<div style="width:72px;height:72px;border-radius:50%;background:rgba(232,80,26,.1);display:inline-flex;align-items:center;justify-content:center;margin-bottom:18px">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="36" height="36" style="color:var(--brand,#E8501A)"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>' +
+          '</div>' +
+          '<h2 style="font-family:Outfit,sans-serif;font-size:1.4rem;margin-bottom:10px">Connecte-toi pour vendre</h2>' +
+          '<p style="color:var(--ink-3);margin-bottom:28px;max-width:340px;margin-left:auto;margin-right:auto;line-height:1.5">' +
+            'Cree un compte gratuit en 30 secondes pour publier ta premiere annonce sur DjamikShop.' +
+          '</p>' +
+          '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">' +
+            '<a href="login.html?next=' + encodeURIComponent(nextUrl) + '" class="btn btn-primary btn-lg">Se connecter</a>' +
+            '<a href="signup.html?next=' + encodeURIComponent(nextUrl) + '" class="btn btn-outline btn-lg">Creer un compte</a>' +
+          '</div>' +
+        '</div>';
+      return;
+    }
+    var user = sess.user;
 
     var existingProduct = null;
     if (editMode) {
@@ -28,7 +51,7 @@ window.onDjamikReady(function() {
     }
 
     _buildForm(panel, user, existingProduct);
-  });
+  })();
 
   // ── Récupère l'annonce à éditer + check ownership ──
   async function _fetchProductForEdit(productId, user) {
