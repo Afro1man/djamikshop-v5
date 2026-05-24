@@ -2,6 +2,27 @@
    CARDS — Product & UI cards
    ═══════════════════════════════════════════════════════════════════ */
 
+/* Petite etoile discrete pour annonces boostees dans la liste normale.
+   La differentiation premium = section "Vedette" en haut de la home
+   (voir .featured-card dans index.html). */
+.boost-star {
+  position: absolute;
+  top: 8px; left: 8px;
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(245, 177, 0, 0.35);
+  z-index: 4;
+  pointer-events: none;
+}
+.boost-star svg {
+  width: 14px; height: 14px;
+  color: #F5B100;
+  filter: drop-shadow(0 1px 1px rgba(212, 145, 0, 0.5));
+}
+
 .card {
   background: var(--white);
   border-radius: var(--r-lg);
