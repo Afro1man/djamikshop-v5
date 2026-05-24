@@ -13,7 +13,10 @@
 --    - Si 30 annonces eligibles : matrice rotative qui change toutes les 12h
 -- ═══════════════════════════════════════════════════════════════════
 
-create or replace function public.get_vedette_products(p_limit int default 9, p_per_seller int default 3)
+-- IMPORTANT : drop avant recreate car le RETURNS TABLE change (ajout de score)
+drop function if exists public.get_vedette_products(int, int);
+
+create function public.get_vedette_products(p_limit int default 9, p_per_seller int default 3)
 returns table(
   product_id   uuid,
   seller_id    uuid,
