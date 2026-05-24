@@ -119,7 +119,9 @@
 
   // ─── IntersectionObserver pour cards de listes ───
   // Auto-installe sur tous les elements [data-track-view] qui apparaissent.
-  // Une card est "vue" quand 50% visible pendant >800ms.
+  // Une card est "vue" quand 50% visible pendant >= 10s (evite de compter
+  // les flashes de scroll, ne compte que les vues "intentionnelles").
+  var VIEW_THRESHOLD_MS = 10 * 1000;
   var observer = null;
   var pendingIds = new Map(); // id -> timeoutId
   function _initObserver() {
@@ -129,17 +131,17 @@
         var pid = entry.target.dataset.trackView;
         if (!pid) return;
         if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
-          // Attends 800ms pour eviter de compter le scroll-flash
+          // Attends 10s pour qualifier une vraie "vue"
           if (!pendingIds.has(pid)) {
             pendingIds.set(pid, setTimeout(function() {
               window.trackProductView(pid);
               pendingIds.delete(pid);
               // Une fois trackee, on arrete d'observer (economie CPU)
               observer.unobserve(entry.target);
-            }, 800));
+            }, VIEW_THRESHOLD_MS));
           }
         } else {
-          // Card sortie du viewport avant 800ms → on annule
+          // Card sortie du viewport avant 10s → on annule
           if (pendingIds.has(pid)) {
             clearTimeout(pendingIds.get(pid));
             pendingIds.delete(pid);
