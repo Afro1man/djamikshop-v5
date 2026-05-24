@@ -218,7 +218,7 @@ window.onDjamikReady(function() {
 
     var meta = nfo.limit + ' annonces';
     if (nfo.boosts > 0) {
-      meta += ' · <strong style="color:' + nfo.accent + '">' + boostsLeft + '/' + nfo.boosts + ' boosts restants</strong>';
+      meta += ' · <strong style="color:' + nfo.accent + '">' + boostsLeft + '/' + nfo.boosts + ' boosts ce mois</strong>';
     } else {
       meta += ' · pas de boost';
     }
@@ -402,7 +402,7 @@ window.onDjamikReady(function() {
       if (!window.boostProduct) return;
       try {
         await window.boostProduct(productId);
-        window.toast && window.toast('Annonce boostée pendant 24h !', 'success', 4000);
+        window.toast && window.toast('Annonce boost 7 jours !', 'success', 4000);
         // Re-render dynamique (le card va afficher le badge "Boosté")
         _refreshSelfListings();
       } catch(err) {

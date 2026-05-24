@@ -732,31 +732,30 @@ window.onDjamikReady && window.onDjamikReady(async function() {
   var scroll  = document.getElementById('featured-scroll');
   if (!section || !scroll) return;
   try {
-    // Récupère les boosts actifs
-    var bRes = await window._supabase.from('boosts')
-      .select('product_id, products(*)')
-      .gt('expires_at', new Date().toISOString())
-      .order('started_at', { ascending: false })
-      .limit(12);
-    var boosts = (bRes && bRes.data) || [];
-    if (!boosts.length) return;
+    // ── Recupere les annonces Vedette via RPC : max 9 total, max 3 par vendeur, PREMIUM uniquement ──
+    var bRes = await window._supabase.rpc('get_vedette_products', { p_limit: 9, p_per_seller: 3 });
+    if (!bRes || bRes.error || !bRes.data || !bRes.data.length) return;
+    // Normalise la forme (RPC retourne product_id mais le code attend p.id)
+    var prods = bRes.data.map(function(row) {
+      return {
+        id:          row.product_id,
+        seller_id:   row.seller_id,
+        title:       row.title,
+        price:       row.price,
+        city:        row.city,
+        image_url:   row.image_url,
+        images:      row.images,
+        views:       row.views,
+        clicks:      row.clicks,
+        created_at:  row.created_at
+      };
+    });
 
-    // Filtre les products non null + non vendus + non inactifs
-    var prods = boosts
-      .map(function(b){ return b.products; })
-      .filter(function(p){ return p && !p.sold && !p.inactive_at; });
-    if (!prods.length) return;
-
-    // Fetch les profils des vendeurs + tiers
+    // Fetch les profils des vendeurs (le tier est deja garanti Premium par la RPC)
     var sellerIds = Array.from(new Set(prods.map(function(p){ return p.seller_id; }).filter(Boolean)));
-    var [profiles, tiers] = await Promise.all([
-      window.fetchUserProfiles ? window.fetchUserProfiles(sellerIds) : Promise.resolve({}),
-      window.fetchUserTiers    ? window.fetchUserTiers(sellerIds)    : Promise.resolve({})
-    ]);
-
-    // ── La section "Annonces vedette" est RESERVEE aux vendeurs PREMIUM ──
-    prods = prods.filter(function(p){ return tiers[p.seller_id] === 'premium'; });
-    if (!prods.length) return;
+    var profiles = window.fetchUserProfiles ? await window.fetchUserProfiles(sellerIds) : {};
+    var tiers = {};
+    sellerIds.forEach(function(sid){ tiers[sid] = 'premium'; });
 
     // Render
     scroll.innerHTML = prods.map(function(p) {

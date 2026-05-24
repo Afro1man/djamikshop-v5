@@ -109,21 +109,34 @@
     return true;
   };
 
-  // ── Quota boosts du jour (utilise SQL helper) ──
+  // ── Quota boosts utilises ce mois (calendrier) ──
+  // Note : on garde le nom boostsUsedToday pour retro-compat avec les pages existantes
+  // mais le contenu retourne maintenant le compteur MENSUEL.
   window.boostsUsedToday = async function() {
     if (!window._supabase) return 0;
+    try {
+      // RPC qui calcule depuis le 1er du mois courant
+      var r = await window._supabase.rpc('my_boosts_used_this_month');
+      if (r && !r.error && typeof r.data === 'number') return r.data;
+    } catch(e) {}
+    // Fallback : compte depuis le debut du mois local
     try {
       var u = await window._supabase.auth.getUser();
       var uid = u.data && u.data.user && u.data.user.id;
       if (!uid) return 0;
-      var r = await window._supabase
+      var firstOfMonth = new Date();
+      firstOfMonth.setDate(1);
+      firstOfMonth.setHours(0,0,0,0);
+      var r2 = await window._supabase
         .from('boosts')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', uid)
-        .gt('started_at', new Date(Date.now() - 24*3600*1000).toISOString());
-      return (r && r.count) || 0;
+        .gte('started_at', firstOfMonth.toISOString());
+      return (r2 && r2.count) || 0;
     } catch(e) { return 0; }
   };
+  // Alias plus clair (utilisable dans le code futur)
+  window.boostsUsedThisMonth = window.boostsUsedToday;
 
   window.tierBoostDailyLimit = function(t) {
     if (t === 'premium') return 15;
