@@ -98,12 +98,107 @@ window.onDjamikReady(async function() {
   }
   var meId = session.id;
 
+  // ────────────────────────────────────────────────────────────
+  //  HELPERS NOTIF : son court + flash titre onglet
+  // ────────────────────────────────────────────────────────────
+  function _playMessageSound() {
+    try {
+      // Beep tres court via WebAudio (pas de fichier mp3 a charger)
+      var ctx = new (window.AudioContext || window.webkitAudioContext)();
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.frequency.value = 880;     // La aigu
+      gain.gain.value = 0.08;        // discret
+      osc.start();
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.18);
+      osc.stop(ctx.currentTime + 0.2);
+    } catch(e) {}
+  }
+
+  var _originalTitle = document.title;
+  var _flashIv = null;
+  function _flashTitle() {
+    if (!document.hidden && currentConvId) return; // ne flash que si onglet inactif ou aucun chat ouvert
+    if (_flashIv) return; // deja en cours
+    var toggle = false;
+    _flashIv = setInterval(function() {
+      document.title = toggle ? _originalTitle : '🔴 Nouveau message';
+      toggle = !toggle;
+    }, 1000);
+    // Stop le flash quand l'onglet redevient actif
+    var stop = function() {
+      clearInterval(_flashIv); _flashIv = null;
+      document.title = _originalTitle;
+      document.removeEventListener('visibilitychange', stop);
+      window.removeEventListener('focus', stop);
+    };
+    document.addEventListener('visibilitychange', stop);
+    window.addEventListener('focus', stop);
+  }
+
+  // ────────────────────────────────────────────────────────────
+  //  PRESENCE GLOBALE (Supabase Realtime) - qui est en ligne
+  // ────────────────────────────────────────────────────────────
+  function _initPresence() {
+    if (presenceChannel) { try { presenceChannel.unsubscribe(); } catch(e) {} }
+    presenceChannel = sb.channel('online-users', {
+      config: { presence: { key: meId } }
+    });
+    presenceChannel
+      .on('presence', { event: 'sync' }, function() {
+        var state = presenceChannel.presenceState();
+        onlineUsers.clear();
+        Object.keys(state).forEach(function(uid) { onlineUsers.add(uid); });
+        _refreshOnlineUI();
+      })
+      .on('presence', { event: 'join' }, function(payload) {
+        if (payload.key) onlineUsers.add(payload.key);
+        _refreshOnlineUI();
+      })
+      .on('presence', { event: 'leave' }, function(payload) {
+        if (payload.key) onlineUsers.delete(payload.key);
+        _refreshOnlineUI();
+      })
+      .subscribe(async function(status) {
+        if (status === 'SUBSCRIBED') {
+          await presenceChannel.track({ uid: meId, online_at: new Date().toISOString() });
+        }
+      });
+  }
+
+  // Met a jour l'indicateur "En ligne" du partenaire courant
+  function _refreshOnlineUI() {
+    if (!currentConvId) return;
+    var conv = cachedConvs.find(function(c){ return c.id === currentConvId; });
+    if (!conv || !conv.otherUser) return;
+    var partnerId = conv.otherUser.id;
+    var isOnline = onlineUsers.has(partnerId);
+    var dot = document.getElementById('chat-partner-online-dot');
+    var status = document.getElementById('chat-partner-status');
+    if (dot)    dot.style.display = isOnline ? '' : 'none';
+    if (status) {
+      status.style.display = isOnline ? '' : 'none';
+      if (isOnline) status.textContent = 'En ligne';
+    }
+  }
+
+  // Init la presence quand on charge la page messages
+  _initPresence();
+
+  // Cleanup quand on quitte la page
+  window.addEventListener('beforeunload', function() {
+    if (presenceChannel) { try { presenceChannel.unsubscribe(); } catch(e) {} }
+  });
+
   var currentConvId   = null;
   var msgRealtimeSub  = null;
   var convRealtimeSub = null;
   var typingChannel   = null;
   var typingTimeout   = null;
   var lastTypingSent  = 0;
+  var presenceChannel = null;     // canal Supabase Realtime de presence globale
+  var onlineUsers     = new Set(); // set des uids actuellement en ligne
 
   var cachedConvs = [];      // {id, productId, product, otherUser, last_message, last_message_at, unread, messages:[]}
   var profileCache = {};
@@ -361,6 +456,7 @@ window.onDjamikReady(async function() {
     if (nameEl)   nameEl.textContent = conv.otherUser.name;
     if (avatarEl) avatarEl.src       = conv.otherUser.avatar;
     if (profBtn)  profBtn.href       = 'my-profile.html?id=' + conv.otherUser.id;
+    _refreshOnlineUI();   // ← affiche le vrai statut "En ligne" si le partenaire est present
 
     // Mobile : passe en mode chat (cache la liste)
     var msgApp = document.getElementById('msg-app');
@@ -658,7 +754,13 @@ window.onDjamikReady(async function() {
           conv.last_message_at = m.created_at;
           _renderMessages(conv.messages);
           _renderConvList();
-          if (currentConvId === convId) _markAsRead(convId);
+          if (currentConvId === convId) {
+            _markAsRead(convId);
+          } else {
+            // Nouveau message dans une conv NON ouverte : son + flash titre
+            _playMessageSound();
+            _flashTitle();
+          }
         }
         else if (payload.eventType === 'UPDATE') {
           // Le destinataire a lu mon message → met à jour les ✓✓
@@ -972,7 +1074,11 @@ window.onDjamikReady(async function() {
     if (!hadMessages && productId && sendInpEl) {
       var prodTitle = (productCache[productId] && productCache[productId].title) || params.get('product_title') || 'votre annonce';
       sendInpEl.value = 'Bonjour, votre annonce « ' + prodTitle + ' » est-elle toujours disponible ?';
+      // Fire input event pour que le bouton 'Envoyer' s'active + textarea s'auto-resize
+      sendInpEl.dispatchEvent(new Event('input', { bubbles: true }));
       sendInpEl.focus();
+      // Place le curseur en fin de texte (pour pouvoir continuer a taper)
+      try { sendInpEl.setSelectionRange(sendInpEl.value.length, sendInpEl.value.length); } catch(e) {}
     }
   }
 
