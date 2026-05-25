@@ -564,9 +564,10 @@
 <body>
 
 <script>if(typeof window.supabase==='undefined')window.supabase=null;</script>
-<!-- defer = ne bloque pas le parsing HTML, execute apres DOMContentLoaded -->
-<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" onerror=""></script>
-<script defer src="../assets/js/app.js"></script>
+<!-- IMPORTANT : app.js NE PEUT PAS etre defer car d'autres scripts (products.js, etc.)
+     l'utilisent en sync via window.onDjamikReady. Garder en synchrone. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" onerror=""></script>
+<script src="../assets/js/app.js"></script>
 
 <!-- ═══ HERO ═══ -->
 <section class="hero">
