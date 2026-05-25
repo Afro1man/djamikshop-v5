@@ -151,18 +151,10 @@
         '</div>'
       : '';
 
-    // Paiements acceptés (read-only chips)
-    var methods = (window.APP && window.APP.paymentMethods) || [];
-    var paymentChips = methods.map(function(m) {
-      return '<div class="sm-pay-chip" title="' + m.label + '">' +
-        '<span class="sm-pay-dot" style="background:' + m.color + '"></span>' + m.label +
-      '</div>';
-    }).join('');
-    var payments =
-      '<div class="sm-section">' +
-        '<div class="sm-section-title">Paiements acceptés</div>' +
-        '<div class="sm-pay-grid">' + paymentChips + '</div>' +
-      '</div>';
+    // ── Section "Paiements acceptés" retiree : DjamikShop ne gere pas la transaction directe ──
+    // (les Mobile Money Mynita/Amanata servent uniquement pour les abonnements VIP/Premium,
+    //  pas pour les ventes acheteur-vendeur qui se font directement entre eux)
+    var payments = '';
 
     // Aide & Infos
     var help =
@@ -239,9 +231,7 @@
       '.sm-badge{margin-left:auto;background:var(--primary,#E8501A);color:#fff;font-size:.65rem;font-weight:700;padding:2px 6px;border-radius:10px;min-width:18px;text-align:center}',
 
       // Paiements grid
-      '.sm-pay-grid{display:flex;flex-wrap:wrap;gap:6px}',
-      '.sm-pay-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;background:var(--surface-2);border:1px solid var(--surface-3);border-radius:999px;font-size:.74rem;font-weight:600;color:var(--ink-2)}',
-      '.sm-pay-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}',
+      // (CSS sm-pay-* retire avec la section Paiements acceptes du menu)
 
       // Footer du menu
       '.sm-footer{padding:14px 18px 22px;border-top:1px solid var(--surface-2);background:var(--surface-2);text-align:center}',
