@@ -547,16 +547,36 @@ window.onDjamikReady(async function() {
           : '<svg class="msg-tick" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="2 8 7 13 14 4"/></svg>';
       }
 
-      // Bulle : image OU texte
+      // Bulle : audio OU image OU texte
       var bubbleContent;
-      if (m.image_url) {
+      if (m.audio_url) {
+        // Bulle vocal
+        var bubbleClass = 'msg-bubble ' + (mine ? 'sent' : 'received');
+        if (m._uploading || m.audio_url === 'pending') {
+          bubbleContent = '<div class="' + bubbleClass + '"><div class="msg-bubble-audio">' +
+            '<span class="btn-spinner"></span>' +
+            '<div class="audio-bar"><div class="audio-bar-fill" style="width:0%"></div></div>' +
+            '<span class="audio-duration">' + _fmtDuration(m.audio_duration || 0) + '</span>' +
+          '</div></div>';
+        } else {
+          var audioId = 'audio-' + m.id;
+          bubbleContent = '<div class="' + bubbleClass + '"><div class="msg-bubble-audio">' +
+            '<button onclick="window._toggleVoice(\'' + audioId + '\', this)">' +
+              '<svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><polygon points="5 3 19 12 5 21 5 3"/></svg>' +
+            '</button>' +
+            '<div class="audio-bar" data-audio-bar="' + audioId + '"><div class="audio-bar-fill"></div></div>' +
+            '<span class="audio-duration" data-audio-time="' + audioId + '">' + _fmtDuration(m.audio_duration || 0) + '</span>' +
+            '<audio id="' + audioId + '" preload="none" src="' + m.audio_url + '" data-duration="' + (m.audio_duration || 0) + '"></audio>' +
+          '</div></div>';
+        }
+      } else if (m.image_url) {
         var caption = m.text ? '<div class="msg-caption">' + window.escHtml(m.text) + '</div>' : '';
         bubbleContent = '<div class="msg-bubble msg-bubble-img">' +
           '<img src="' + m.image_url + '" alt="" loading="lazy" onclick="window.open(this.src,\'_blank\')">' +
           caption +
         '</div>';
       } else {
-        bubbleContent = '<div class="msg-bubble">' + window.escHtml(m.text) + '</div>';
+        bubbleContent = '<div class="msg-bubble">' + window.escHtml(m.text || '') + '</div>';
       }
 
       html +=
@@ -731,6 +751,203 @@ window.onDjamikReady(async function() {
       });
     }
   }
+
+  // ────────────────────────────────────────────────────────────
+  //  MESSAGES VOCAUX
+  // ────────────────────────────────────────────────────────────
+  var _mediaRecorder = null;
+  var _audioChunks   = [];
+  var _recordStartAt = 0;
+  var _recordTimerIv = null;
+
+  function _fmtDuration(s) {
+    s = Math.max(0, Math.floor(s));
+    var m = Math.floor(s / 60);
+    return m + ':' + (s % 60).toString().padStart(2, '0');
+  }
+
+  async function _startRecording() {
+    if (!currentConvId) {
+      window.toast && window.toast('Ouvre une conversation d\'abord.', 'info');
+      return;
+    }
+    if (!navigator.mediaDevices || !window.MediaRecorder) {
+      window.toast && window.toast('Vocaux non supportes par ton navigateur.', 'error');
+      return;
+    }
+    try {
+      var stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Preference codec : webm (compact, supporte Android Chrome), fallback mp4
+      var mimeType = 'audio/webm;codecs=opus';
+      if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = 'audio/mp4';
+      if (!MediaRecorder.isTypeSupported(mimeType)) mimeType = ''; // browser choisit
+      _mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType: mimeType } : undefined);
+      _audioChunks = [];
+      _mediaRecorder.ondataavailable = function(e) { if (e.data && e.data.size > 0) _audioChunks.push(e.data); };
+      _mediaRecorder.onstop = function() {
+        stream.getTracks().forEach(function(t){ t.stop(); });
+      };
+      _mediaRecorder.start();
+      _recordStartAt = Date.now();
+      _updateRecordTimer();
+      _recordTimerIv = setInterval(_updateRecordTimer, 200);
+      document.getElementById('voice-recording-ui').hidden = false;
+    } catch(err) {
+      var msg = (err && err.name === 'NotAllowedError')
+        ? 'Permission micro refusee. Active-la dans tes parametres navigateur.'
+        : 'Impossible d\'acceder au micro : ' + (err && err.message);
+      window.toast && window.toast(msg, 'error', 5000);
+    }
+  }
+
+  function _updateRecordTimer() {
+    var el = document.getElementById('voice-timer');
+    if (!el) return;
+    var s = (Date.now() - _recordStartAt) / 1000;
+    el.textContent = _fmtDuration(s);
+    // Auto-stop apres 2 min
+    if (s >= 120) _stopRecording(true);
+  }
+
+  function _cancelRecording() {
+    if (_mediaRecorder && _mediaRecorder.state === 'recording') {
+      try { _mediaRecorder.stop(); } catch(e) {}
+    }
+    _audioChunks = [];
+    clearInterval(_recordTimerIv);
+    var ui = document.getElementById('voice-recording-ui');
+    if (ui) ui.hidden = true;
+  }
+
+  async function _stopRecording(autoSend) {
+    if (!_mediaRecorder || _mediaRecorder.state !== 'recording') return;
+    var duration = Math.floor((Date.now() - _recordStartAt) / 1000);
+    clearInterval(_recordTimerIv);
+    var ui = document.getElementById('voice-recording-ui');
+    if (ui) ui.hidden = true;
+
+    // Wait for the recording to finalize
+    var finishPromise = new Promise(function(resolve) {
+      _mediaRecorder.addEventListener('stop', resolve, { once: true });
+    });
+    _mediaRecorder.stop();
+    await finishPromise;
+
+    if (duration < 1) {
+      window.toast && window.toast('Vocal trop court (1s min)', 'info');
+      return;
+    }
+
+    var blob = new Blob(_audioChunks, { type: _mediaRecorder.mimeType || 'audio/webm' });
+    await _uploadAndSendVoice(blob, duration);
+  }
+
+  async function _uploadAndSendVoice(blob, duration) {
+    if (!currentConvId) return;
+    var conv = cachedConvs.find(function(c){ return c.id === currentConvId; });
+    if (!conv) return;
+    var recipient = conv.participants.find(function(uid){ return uid !== meId; });
+
+    // Nom du fichier : userId/timestamp.webm
+    var ext = (blob.type.indexOf('mp4') !== -1) ? 'm4a' : 'webm';
+    var filename = meId + '/' + Date.now() + '.' + ext;
+
+    // Optimistic UI - bulle "Envoi en cours..."
+    var optimistic = {
+      id: 'tmp-' + Date.now(), conv_id: currentConvId,
+      sender_id: meId, recipient_id: recipient,
+      text: null, audio_url: 'pending', audio_duration: duration,
+      read_at: null, created_at: new Date().toISOString(),
+      _uploading: true
+    };
+    conv.messages.push(optimistic);
+    conv.last_message = '[Vocal]';
+    conv.last_message_at = optimistic.created_at;
+    _renderMessages(conv.messages);
+    _renderConvList();
+
+    try {
+      // Upload vers Supabase Storage
+      var up = await sb.storage.from('voice-messages').upload(filename, blob, {
+        contentType: blob.type, upsert: false
+      });
+      if (up.error) throw up.error;
+
+      // Recupere l'URL publique
+      var pub = sb.storage.from('voice-messages').getPublicUrl(filename);
+      var audioUrl = pub.data.publicUrl;
+
+      // Insert le message en DB
+      var ins = await sb.from('messages').insert([{
+        conv_id:        currentConvId,
+        sender_id:      meId,
+        recipient_id:   recipient,
+        text:           null,
+        audio_url:      audioUrl,
+        audio_duration: duration
+      }]).select().single();
+
+      if (ins && ins.error) throw ins.error;
+
+      // Remplace l'optimistic par le vrai
+      if (ins && ins.data) {
+        var idx = conv.messages.findIndex(function(m){ return m.id === optimistic.id; });
+        if (idx !== -1) conv.messages[idx] = ins.data;
+        _renderMessages(conv.messages);
+      }
+    } catch(err) {
+      window.toast && window.toast('Echec envoi vocal : ' + (err.message || 'erreur'), 'error', 5000);
+      // Retire l'optimistic
+      conv.messages = conv.messages.filter(function(m){ return m.id !== optimistic.id; });
+      _renderMessages(conv.messages);
+    }
+  }
+
+  // Wire les boutons
+  var btnMic        = document.getElementById('btn-mic');
+  var btnVoiceSend  = document.getElementById('btn-voice-send');
+  var btnVoiceCancel = document.getElementById('btn-voice-cancel');
+  if (btnMic)         btnMic.addEventListener('click', _startRecording);
+  if (btnVoiceSend)   btnVoiceSend.addEventListener('click', function(){ _stopRecording(true); });
+  if (btnVoiceCancel) btnVoiceCancel.addEventListener('click', _cancelRecording);
+
+  // ── Player vocaux : play/pause + barre de progression ──
+  window._toggleVoice = function(audioId, btn) {
+    var audio = document.getElementById(audioId);
+    if (!audio) return;
+    // Stop tous les autres
+    document.querySelectorAll('audio').forEach(function(a) {
+      if (a !== audio && !a.paused) { a.pause(); a.currentTime = 0; }
+    });
+    document.querySelectorAll('[data-audio-bar] .audio-bar-fill').forEach(function(f) {
+      if (!f.closest('.msg-bubble-audio').querySelector('#' + audioId)) f.style.width = '0%';
+    });
+    document.querySelectorAll('.msg-bubble-audio button svg polygon').forEach(function(p) {
+      if (p.closest('button') !== btn) p.setAttribute('points', '5 3 19 12 5 21 5 3');
+    });
+
+    if (audio.paused) {
+      audio.play();
+      btn.querySelector('svg').innerHTML = '<rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/>';
+      var bar = document.querySelector('[data-audio-bar="' + audioId + '"] .audio-bar-fill');
+      var timeEl = document.querySelector('[data-audio-time="' + audioId + '"]');
+      var totalDuration = parseInt(audio.dataset.duration, 10) || 0;
+      audio.ontimeupdate = function() {
+        var dur = audio.duration || totalDuration;
+        if (bar && dur) bar.style.width = ((audio.currentTime / dur) * 100) + '%';
+        if (timeEl) timeEl.textContent = _fmtDuration(audio.currentTime);
+      };
+      audio.onended = function() {
+        btn.querySelector('svg').innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+        if (bar) bar.style.width = '0%';
+        if (timeEl) timeEl.textContent = _fmtDuration(totalDuration);
+        audio.currentTime = 0;
+      };
+    } else {
+      audio.pause();
+      btn.querySelector('svg').innerHTML = '<polygon points="5 3 19 12 5 21 5 3"/>';
+    }
+  };
 
   // ────────────────────────────────────────────────────────────
   //  REALTIME : nouveaux messages dans la conv ouverte
