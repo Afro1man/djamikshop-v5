@@ -103,7 +103,7 @@ window.onDjamikReady(function() {
 
     root.innerHTML =
       _profileCardHtml(profile, { editable: false, viewerId: viewer && (viewer.id || viewer.sub) }) +
-      _statsHtml(active.length, sold.length, totalViews) +
+      _statsHtml(active.length, sold.length, 0, false) +   // public : pas de stat Vues
       _tabsHtml(active.length, sold.length) +
       '<div id="profile-listings"></div>';
 
@@ -133,7 +133,7 @@ window.onDjamikReady(function() {
     root.innerHTML =
       _profileCardHtml(user, { editable: true }) +
       _subscriptionBlock(user._tier, subInfo.days_left, boostsUsed) +
-      _statsHtml(active.length, sold.length, totalViews) +
+      _statsHtml(active.length, sold.length, totalViews, true) +   // self : stat Vues privee visible
       _tabsHtml(active.length, sold.length) +
       '<div id="profile-listings"></div>';
 
@@ -240,11 +240,12 @@ window.onDjamikReady(function() {
     '</div>';
   }
 
-  function _statsHtml(activeN, soldN, viewsN) {
+  function _statsHtml(activeN, soldN, viewsN, includePrivate) {
+    // Le compteur Vues est PRIVE (seller-only) — pas affiche sur vue publique
     return '<div class="profile-stats">' +
       '<div class="profile-stat"><div class="profile-stat-val">' + activeN + '</div><div class="profile-stat-lbl">Actives</div></div>' +
       '<div class="profile-stat"><div class="profile-stat-val">' + soldN + '</div><div class="profile-stat-lbl">Vendues</div></div>' +
-      '<div class="profile-stat"><div class="profile-stat-val">' + viewsN + '</div><div class="profile-stat-lbl">Vues</div></div>' +
+      (includePrivate ? '<div class="profile-stat"><div class="profile-stat-val">' + viewsN + '</div><div class="profile-stat-lbl">Vues</div></div>' : '') +
     '</div>';
   }
 
@@ -283,7 +284,11 @@ window.onDjamikReady(function() {
           '<div class="profile-listing-title">' + window.escHtml(p.title || '') + '</div>' +
           '<div class="profile-listing-price">' + window.formatPrice(p.price) + '</div>' +
           (function(){
-            // Stats : vues + clics depuis la DB (synchronisation batch 30s)
+            // ── Stats vues/clics : VISIBLES UNIQUEMENT PAR LE VENDEUR (= withActions=true sur son propre profil) ──
+            if (!withActions) {
+              // Vue publique : juste la date, pas de stats privees
+              return '<div class="profile-listing-meta">' + window.relativeDate(p.created_at) + '</div>';
+            }
             var v = (typeof p.views  === 'number') ? p.views  : 0;
             var c = (typeof p.clicks === 'number') ? p.clicks : 0;
             // Pas encore vue → CTA boost (encourage upsell)

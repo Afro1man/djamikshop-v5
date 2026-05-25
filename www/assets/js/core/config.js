@@ -51,10 +51,12 @@ window.APP = {
     { id: 'occasion',     label: 'Pour pièces',      badge: 'danger' }
   ],
 
+  // ── Mode de paiement pour les VENTES entre acheteur/vendeur ──
+  // DjamikShop NE GERE PAS la transaction directe (securite des users).
+  // Seuls les modes "rencontre physique" sont proposes - les users negocient eux-memes.
+  // Mynita/Amanata sont utilises UNIQUEMENT pour les abonnements VIP/Premium (voir pages/payment.html).
   paymentMethods: [
-    { id: 'mynita',       label: 'Mynita',        icon: window.ICONS.purple_dot, color: '#7C3AED', desc: 'Portefeuille digital',mobile: true },
-    { id: 'amanata',      label: 'Amanata',       icon: window.ICONS.green_dot,  color: '#16A34A', desc: 'Transfert mobile',    mobile: true },
-    { id: 'cod',          label: 'À la livraison',icon: window.ICONS.banknote,   color: '#059669', desc: 'Payer à réception',   mobile: false },
-    { id: 'main_propre',  label: 'En main propre',icon: window.ICONS.handshake,  color: '#6B7280', desc: 'Rencontre vendeur',   mobile: false }
+    { id: 'cod',          label: 'Paiement à la livraison', icon: window.ICONS.banknote,  color: '#059669', desc: 'Payer à réception', mobile: false },
+    { id: 'main_propre',  label: 'En main propre',          icon: window.ICONS.handshake, color: '#6B7280', desc: 'Rencontre vendeur', mobile: false }
   ]
 };
