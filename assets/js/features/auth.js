@@ -264,6 +264,10 @@ if (signupForm) {
     fieldOk('confirm', cnfInp.value === pwdInp.value && cnfInp.value.length > 0, 'Mots de passe différents');
   });
 
+  // ── Honeypot : marque le timestamp d'ouverture du formulaire ──
+  var hpStart = document.getElementById('hp-formstart');
+  if (hpStart) hpStart.value = Date.now().toString();
+
   signupForm.addEventListener('submit', async function(e) {
     e.preventDefault();
     var btn = signupForm.querySelector('[type=submit]');
@@ -274,6 +278,26 @@ if (signupForm) {
     var phone = (document.getElementById('phone') || {value:''}).value.trim();
     var location = (document.getElementById('location') || {value:''}).value;
     var terms = document.getElementById('terms');
+
+    // ── HONEYPOT CHECKS (silencieux : un bot ne voit pas l'erreur, on simule un succes) ──
+    var hpWebsite = (document.getElementById('hp-website') || {value:''}).value;
+    var hpEmail2  = (document.getElementById('hp-email2')  || {value:''}).value;
+    var hpStartVal = parseInt((document.getElementById('hp-formstart') || {value:'0'}).value, 10) || 0;
+    var elapsedMs = Date.now() - hpStartVal;
+    if (hpWebsite || hpEmail2) {
+      // Un humain ne remplit JAMAIS ces champs (cache hors viewport + tabindex -1)
+      console.warn('[anti-spam] honeypot triggered');
+      // Faux success pour ne pas alerter le bot
+      btn.disabled = true; btn.innerHTML = '<span class="btn-spinner"></span> Création…';
+      setTimeout(function(){ window.toast('Compte créé ! Vérifie ton email.', 'success'); btn.disabled = false; btn.innerHTML = 'Créer mon compte'; }, 1500);
+      return;
+    }
+    if (hpStartVal > 0 && elapsedMs < 2000) {
+      // Submit en <2s = humain impossible, c'est un bot
+      console.warn('[anti-spam] form filled too fast', elapsedMs, 'ms');
+      setTimeout(function(){ window.toast('Compte créé ! Vérifie ton email.', 'success'); }, 1500);
+      return;
+    }
 
     if (fname.length < 2) { window.toast('Nom trop court.', 'error'); return; }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { window.toast('Email invalide.', 'error'); return; }

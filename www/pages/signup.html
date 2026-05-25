@@ -89,7 +89,19 @@
     <div class="auth-box">
       <h1>Créer un compte</h1>
       <p class="subtitle">Remplissez le formulaire ci-dessous pour vous inscrire</p>
-      <form id="signup-form" class="flex flex-col gap-3">
+      <form id="signup-form" class="flex flex-col gap-3" autocomplete="on">
+        <!-- ── HONEYPOT anti-bot : invisible aux humains, les bots remplissent automatiquement ── -->
+        <div style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden" aria-hidden="true">
+          <label>Ne pas remplir (anti-spam)
+            <input type="text" id="hp-website" name="website" tabindex="-1" autocomplete="off" value="">
+          </label>
+          <label>Ne pas remplir non plus
+            <input type="email" id="hp-email2" name="email_confirm" tabindex="-1" autocomplete="off" value="">
+          </label>
+        </div>
+        <!-- Timestamp pour anti-bot rapide (bot submit en <2s = rejete) -->
+        <input type="hidden" id="hp-formstart" value="">
+
         <div class="form-group">
           <label class="form-label">Nom complet <span>*</span></label>
           <input type="text" id="full_name" class="form-input" placeholder="Amadou Issoufou">

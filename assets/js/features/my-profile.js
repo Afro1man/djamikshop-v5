@@ -286,8 +286,8 @@ window.onDjamikReady(function() {
           (function(){
             // ── Stats vues/clics : VISIBLES UNIQUEMENT PAR LE VENDEUR (= withActions=true sur son propre profil) ──
             if (!withActions) {
-              // Vue publique : juste la date, pas de stats privees
-              return '<div class="profile-listing-meta">' + window.relativeDate(p.created_at) + '</div>';
+              // Vue publique : ni stats ni date (privacy + evite l'effet vieillesse)
+              return '';
             }
             var v = (typeof p.views  === 'number') ? p.views  : 0;
             var c = (typeof p.clicks === 'number') ? p.clicks : 0;

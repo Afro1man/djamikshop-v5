@@ -13,36 +13,37 @@ window.onDjamikReady = function(cb) {
 (function() {
   var base = window.location.pathname.includes('/pages/') ? '../assets/js/' : 'assets/js/';
 
-  // Modules CRITIQUES : doivent etre chargés avant le ready event
-  // (utilisés par le rendu initial des pages : icons, config, utils, state,
-  // auth pour requireAuth, sponsor pour les badges/tiers, etc.)
+  // Modules CRITIQUES : strictement minimum pour le premier rendu
+  // OPTIMISATION 3G Niger : on garde seulement ce qui est UTILISE des le 1er paint.
+  // Tout le reste est lazy (charge apres ready, ne bloque pas le LCP).
   var modules = [
     base + 'core/icons.js',
     base + 'core/config.js',
     base + 'core/utils.js',
     base + 'core/state.js',
     base + 'core/theme.js',
-    base + 'core/sponsor.js',     // utilisé par products + my-profile au boot
-    base + 'core/staff.js',       // helpers myStaffRole / isMyselfAdmin
-    base + 'core/ban-check.js',   // overlay 'Compte suspendu' si user banni
-    base + 'features/auth.js',    // requireAuth utilisé partout
-    base + 'core/back-button.js', // gestion bouton retour Android — CRITIQUE pour pas que le geste retour quitte l'app
-    base + 'core/stats.js',       // tracking vues + clics produits (batch toutes les 30s)
+    base + 'features/auth.js',    // requireAuth utilise partout
     base + 'components/ui.js',
     base + 'components/shell.js',
     base + 'components/bottom-nav.js'
   ];
 
-  // Modules NON-critiques : chargés en arrière-plan après ready (ne bloquent rien)
+  // Modules NON-critiques : charges en arriere-plan apres ready (ne bloquent rien)
+  // = tout ce qui n'est PAS necessaire dans les 100 premieres ms
   var lazyModules = [
-    base + 'core/admin-realtime.js', // notifs live admin (silent si non-admin)
-    base + 'core/pwa.js',         // service worker register, install prompt
-    base + 'core/share.js',       // utilisé seulement au clic "partager"
-    base + 'core/payment.js',     // ancien helper (conservé pour compat)
-    base + 'core/push.js',        // notifications push, opt-in
-    base + 'core/security.js',    // anti-spam helpers en background
-    base + 'core/geo.js',         // géoloc (chargé avant l'utilisateur clique sur "Activer")
-    base + 'core/email-verify.js' // bandeau email verif
+    base + 'core/sponsor.js',     // badges/tiers (charge avant que la grid render)
+    base + 'core/staff.js',       // admin only
+    base + 'core/ban-check.js',   // execute apres ready
+    base + 'core/back-button.js', // APK only, peut etre lazy
+    base + 'core/stats.js',       // tracking, charge en idle
+    base + 'core/admin-realtime.js',
+    base + 'core/pwa.js',
+    base + 'core/share.js',
+    base + 'core/payment.js',
+    base + 'core/push.js',
+    base + 'core/security.js',
+    base + 'core/geo.js',
+    base + 'core/email-verify.js'
   ];
 
   // Helper : injecte une liste de scripts en parallèle, exécution ordonnée

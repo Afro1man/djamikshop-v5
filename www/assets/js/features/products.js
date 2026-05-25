@@ -117,18 +117,34 @@ async function _fetchProducts(f) {
         });
       }
 
+      // ── Tri aleatoire stable par slot de 2h pour les annonces classiques ──
+      // Donne a chacun sa chance, et change toutes les 2h pour eviter monotonie.
+      // Hash simple (FNV-1a) de productId + slot2h.
+      var slot2h = Math.floor(Date.now() / (2 * 3600 * 1000));
+      function _hashOrder(id) {
+        var h = 2166136261;
+        var s = String(id) + ':' + slot2h;
+        for (var i = 0; i < s.length; i++) {
+          h ^= s.charCodeAt(i);
+          h = (h * 16777619) >>> 0;
+        }
+        return h;
+      }
+      all.forEach(function(p){ p._randOrder = _hashOrder(p.id); });
+
       all.sort(function(a, b) {
         if (a._isBoosted && !b._isBoosted) return -1;
         if (!a._isBoosted && b._isBoosted) return 1;
         var ra = TIER_RANK[a._sellerTier] || 1;
         var rb = TIER_RANK[b._sellerTier] || 1;
         if (ra !== rb) return rb - ra;
-        // Tiebreaker géo : annonces proches d'abord (dans le même groupe tier)
+        // Tiebreaker geo (si geoloc active)
         if (useGeoBoost) {
           var da = a._distance, db = b._distance;
           if (da !== db) return da - db;
         }
-        return 0;
+        // Tiebreaker final : ordre aleatoire stable (change toutes les 2h)
+        return a._randOrder - b._randOrder;
       });
     } catch(e) { console.warn('[products] tier/boost enrich failed', e); }
   }
@@ -161,7 +177,7 @@ function _renderGrid(grid, products) {
       (disc > 0 ? '<div class="card-badge badge-discount" style="' + (boosted ? 'top:36px' : '') + '">-' + disc + '%</div>' : '') +
       '<button class="card-like-btn ' + (liked ? 'liked' : '') + '" onclick="window.toggleLikeCard(\'' + p.id + '\',this);event.stopPropagation()">' + (liked ? '<svg class="dj-icon" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>' : '<svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>') + '</button>' +
       '<div class="card-img-wrap" onclick="window.location.href=\'product-details.html?id=' + p.id + '\'">' +
-        (p.image_url ? '<img src="' + p.image_url + '" alt="' + window.escHtml(p.title || '') + '" loading="lazy">' : '<div class="card-img-placeholder">' + (cat ? cat.icon : '<svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>') + '</div>') +
+        (p.image_url ? '<img src="' + p.image_url + '" alt="' + window.escHtml(p.title || '') + '" loading="lazy" decoding="async">' : '<div class="card-img-placeholder">' + (cat ? cat.icon : '<svg class="dj-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>') + '</div>') +
       '</div>' +
       '<div class="card-body" onclick="window.location.href=\'product-details.html?id=' + p.id + '\'">' +
         '<div class="card-title">' + window.escHtml(p.title || '') + '</div>' +
@@ -184,7 +200,8 @@ function _renderGrid(grid, products) {
             var d = window.distanceToProduct ? window.distanceToProduct(p) : null;
             return d != null ? ' <span style="color:var(--brand,#E8501A);font-weight:600">· ' + window.formatDistance(d) + '</span>' : '';
           })() +
-          ' · ' + window.relativeDate(p.created_at) + '</div>' +
+          // Date masquee pour le public (privacy + evite l'effet "annonce ancienne")
+          '</div>' +
         (p.condition ? '<div style="margin-top:6px">' + window.conditionBadge(p.condition) + '</div>' : '') +
       '</div></div>';
   }).join('');
