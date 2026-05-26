@@ -202,24 +202,38 @@ window.onDjamikReady(async function() {
     var notifPerm = notifSupported ? Notification.permission : 'unsupported';
     if (notifSupported && notifPerm === 'default') {
       items.push({
-        icon: '🔔',
-        label: 'Notifications',
+        icon: '🔔', label: 'Notifications',
         sub: 'Sois alerte des nouveaux messages',
-        btnLabel: 'Activer',
-        action: 'notif'
+        btnLabel: 'Activer', action: 'notif'
+      });
+    } else if (notifSupported && notifPerm === 'denied') {
+      items.push({
+        icon: '🔔', label: 'Notifications bloquees',
+        sub: 'Appuie sur "Aide" pour reactiver',
+        btnLabel: 'Aide', action: 'notif-help'
       });
     }
 
-    // Micro (pas de vraie API pour checker l'etat sans prompt → on demande au 1er clic mic)
-    // On affiche juste un bouton info si jamais utilise
-    var micGranted = localStorage.getItem('dj_mic_granted') === '1';
-    if (!micGranted) {
+    // Micro — verifie l'etat via Permissions API si dispo
+    var micState = 'unknown';
+    if (navigator.permissions && navigator.permissions.query) {
+      try {
+        var p = await navigator.permissions.query({ name: 'microphone' });
+        micState = p.state; // 'granted' | 'prompt' | 'denied'
+      } catch(e) {}
+    }
+    var micGranted = localStorage.getItem('dj_mic_granted') === '1' || micState === 'granted';
+    if (micState === 'denied') {
       items.push({
-        icon: '🎙️',
-        label: 'Micro pour les vocaux',
+        icon: '🎙️', label: 'Micro bloque',
+        sub: 'Appuie sur "Aide" pour reactiver',
+        btnLabel: 'Aide', action: 'mic-help'
+      });
+    } else if (!micGranted) {
+      items.push({
+        icon: '🎙️', label: 'Micro pour les vocaux',
         sub: 'Envoie des messages vocaux',
-        btnLabel: 'Tester',
-        action: 'mic'
+        btnLabel: 'Tester', action: 'mic'
       });
     }
 
@@ -251,22 +265,80 @@ window.onDjamikReady(async function() {
           setTimeout(_renderPermBanner, 500);
         }
         else if (act === 'mic') {
-          // Demande la permission micro en ouvrant un mini-stream qu'on stop tout de suite
           try {
             var stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             stream.getTracks().forEach(function(t){ t.stop(); });
             localStorage.setItem('dj_mic_granted', '1');
-            window.toast && window.toast('Micro activé ! Tu peux maintenant envoyer des vocaux.', 'success');
+            window.toast && window.toast('Micro active ! Tu peux maintenant envoyer des vocaux.', 'success');
             _renderPermBanner();
           } catch(err) {
-            var msg = (err && err.name === 'NotAllowedError')
-              ? 'Permission micro refusée. Active-la dans tes paramètres navigateur.'
-              : 'Micro indisponible : ' + (err && err.message);
-            window.toast && window.toast(msg, 'error', 5000);
+            // Permission denied → on bascule sur le mode "aide"
+            _showPermHelp('mic');
           }
+        }
+        else if (act === 'notif-help') {
+          _showPermHelp('notif');
+        }
+        else if (act === 'mic-help') {
+          _showPermHelp('mic');
         }
       });
     });
+  }
+
+  // ── Modal d'aide avec instructions pour reactiver permissions ──
+  function _showPermHelp(type) {
+    var isMic = type === 'mic';
+    var ua = (navigator.userAgent || '').toLowerCase();
+    var isIOS = /iphone|ipad|ipod/.test(ua);
+    var isAndroid = /android/.test(ua);
+    var isChrome = /chrome/.test(ua) && !/edge|edg|opr/.test(ua);
+
+    var permName = isMic ? 'Micro' : 'Notifications';
+    var icon = isMic ? '🎙️' : '🔔';
+
+    var steps;
+    if (isAndroid && isChrome) {
+      steps = [
+        '1. Appuie sur les <strong>3 points (⋮)</strong> en haut a droite de Chrome',
+        '2. Choisis <strong>"Parametres du site"</strong> (ou "Site settings")',
+        '3. Trouve <strong>djamikshop-v5.vercel.app</strong> dans la liste',
+        '4. Appuie sur <strong>' + permName + '</strong>',
+        '5. Choisis <strong>Autoriser</strong>',
+        '6. <strong>Reviens ici et recharge la page</strong>'
+      ];
+    } else if (isIOS) {
+      steps = [
+        '1. Ouvre <strong>Reglages iOS</strong>',
+        '2. Cherche et appuie sur <strong>Safari</strong>',
+        '3. Va dans <strong>Reglages des sites web</strong> > ' + (isMic ? 'Micro' : 'Notifications'),
+        '4. Trouve djamikshop-v5.vercel.app et autorise',
+        '5. Reviens ici et recharge la page'
+      ];
+    } else {
+      steps = [
+        '1. Clique sur le <strong>cadenas 🔒</strong> a gauche de l\'URL',
+        '2. Trouve <strong>' + permName + '</strong> dans la liste',
+        '3. Choisis <strong>Autoriser</strong>',
+        '4. Recharge la page (F5)'
+      ];
+    }
+
+    var modal = document.createElement('div');
+    modal.className = 'perm-help-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px';
+    modal.innerHTML =
+      '<div style="background:#fff;border-radius:16px;max-width:420px;width:100%;padding:24px;max-height:85vh;overflow:auto">' +
+        '<div style="text-align:center;font-size:2.5rem;margin-bottom:8px">' + icon + '</div>' +
+        '<h2 style="font-family:Outfit,sans-serif;font-size:1.2rem;text-align:center;margin:0 0 8px;color:#9A3412">Reactive ' + permName + '</h2>' +
+        '<p style="text-align:center;color:#666;font-size:.85rem;margin:0 0 20px">Tu as bloque cette permission. Voici comment la reactiver :</p>' +
+        '<ol style="list-style:none;padding:0;margin:0 0 20px;display:flex;flex-direction:column;gap:10px">' +
+          steps.map(function(s, i) { return '<li style="background:#FFF7ED;border-left:3px solid #E8501A;padding:10px 12px;border-radius:6px;font-size:.85rem;line-height:1.5">' + s + '</li>'; }).join('') +
+        '</ol>' +
+        '<button onclick="this.closest(\'.perm-help-modal\').remove()" style="width:100%;background:#E8501A;color:white;border:none;padding:12px;border-radius:8px;font-weight:700;cursor:pointer">J\'ai compris</button>' +
+      '</div>';
+    document.body.appendChild(modal);
+    modal.addEventListener('click', function(e) { if (e.target === modal) modal.remove(); });
   }
   _renderPermBanner();
 
