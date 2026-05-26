@@ -791,7 +791,8 @@ window.onDjamikReady(async function() {
       _recordStartAt = Date.now();
       _updateRecordTimer();
       _recordTimerIv = setInterval(_updateRecordTimer, 200);
-      document.getElementById('voice-recording-ui').hidden = false;
+      var ui = document.getElementById('voice-recording-ui');
+      if (ui) ui.classList.add('active');
     } catch(err) {
       var msg = (err && err.name === 'NotAllowedError')
         ? 'Permission micro refusee. Active-la dans tes parametres navigateur.'
@@ -816,7 +817,7 @@ window.onDjamikReady(async function() {
     _audioChunks = [];
     clearInterval(_recordTimerIv);
     var ui = document.getElementById('voice-recording-ui');
-    if (ui) ui.hidden = true;
+    if (ui) ui.classList.remove('active');
   }
 
   async function _stopRecording(autoSend) {
@@ -824,7 +825,7 @@ window.onDjamikReady(async function() {
     var duration = Math.floor((Date.now() - _recordStartAt) / 1000);
     clearInterval(_recordTimerIv);
     var ui = document.getElementById('voice-recording-ui');
-    if (ui) ui.hidden = true;
+    if (ui) ui.classList.remove('active');
 
     // Wait for the recording to finalize
     var finishPromise = new Promise(function(resolve) {
