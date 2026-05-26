@@ -186,6 +186,90 @@ window.onDjamikReady(async function() {
   // Init la presence quand on charge la page messages
   _initPresence();
 
+  // ────────────────────────────────────────────────────────────
+  //  PANEL PERMISSIONS (notif + micro)
+  //  Affiche les permissions manquantes pour que l'user les active depuis l'app
+  // ────────────────────────────────────────────────────────────
+  async function _renderPermBanner() {
+    var banner = document.getElementById('perm-banner');
+    var list   = document.getElementById('perm-list');
+    if (!banner || !list) return;
+
+    var items = [];
+
+    // Notifications
+    var notifSupported = ('Notification' in window) && navigator.serviceWorker;
+    var notifPerm = notifSupported ? Notification.permission : 'unsupported';
+    if (notifSupported && notifPerm === 'default') {
+      items.push({
+        icon: '🔔',
+        label: 'Notifications',
+        sub: 'Sois alerte des nouveaux messages',
+        btnLabel: 'Activer',
+        action: 'notif'
+      });
+    }
+
+    // Micro (pas de vraie API pour checker l'etat sans prompt → on demande au 1er clic mic)
+    // On affiche juste un bouton info si jamais utilise
+    var micGranted = localStorage.getItem('dj_mic_granted') === '1';
+    if (!micGranted) {
+      items.push({
+        icon: '🎙️',
+        label: 'Micro pour les vocaux',
+        sub: 'Envoie des messages vocaux',
+        btnLabel: 'Tester',
+        action: 'mic'
+      });
+    }
+
+    if (!items.length) { banner.style.display = 'none'; return; }
+
+    list.innerHTML = items.map(function(it) {
+      return '<div style="display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #FED7AA;border-radius:8px;padding:8px 10px">' +
+        '<span style="font-size:1.1rem">' + it.icon + '</span>' +
+        '<div style="flex:1;min-width:0">' +
+          '<div style="font-weight:600;color:#9A3412;font-size:.85rem">' + it.label + '</div>' +
+          '<div style="font-size:.72rem;color:#9A3412;opacity:.8">' + it.sub + '</div>' +
+        '</div>' +
+        '<button data-perm="' + it.action + '" style="background:#E8501A;color:white;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-weight:600;font-size:.78rem;white-space:nowrap">' + it.btnLabel + '</button>' +
+      '</div>';
+    }).join('');
+
+    banner.style.display = 'block';
+
+    list.querySelectorAll('[data-perm]').forEach(function(btn) {
+      btn.addEventListener('click', async function() {
+        var act = btn.dataset.perm;
+        if (act === 'notif') {
+          if (window.subscribeToPush) {
+            await window.subscribeToPush();
+          } else if (Notification && Notification.requestPermission) {
+            var r = await Notification.requestPermission();
+            window.toast && window.toast(r === 'granted' ? 'Notifications activees !' : 'Refusees', r === 'granted' ? 'success' : 'info');
+          }
+          setTimeout(_renderPermBanner, 500);
+        }
+        else if (act === 'mic') {
+          // Demande la permission micro en ouvrant un mini-stream qu'on stop tout de suite
+          try {
+            var stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            stream.getTracks().forEach(function(t){ t.stop(); });
+            localStorage.setItem('dj_mic_granted', '1');
+            window.toast && window.toast('Micro activé ! Tu peux maintenant envoyer des vocaux.', 'success');
+            _renderPermBanner();
+          } catch(err) {
+            var msg = (err && err.name === 'NotAllowedError')
+              ? 'Permission micro refusée. Active-la dans tes paramètres navigateur.'
+              : 'Micro indisponible : ' + (err && err.message);
+            window.toast && window.toast(msg, 'error', 5000);
+          }
+        }
+      });
+    });
+  }
+  _renderPermBanner();
+
   // Cleanup quand on quitte la page
   window.addEventListener('beforeunload', function() {
     if (presenceChannel) { try { presenceChannel.unsubscribe(); } catch(e) {} }
@@ -793,6 +877,8 @@ window.onDjamikReady(async function() {
       _recordTimerIv = setInterval(_updateRecordTimer, 200);
       var ui = document.getElementById('voice-recording-ui');
       if (ui) ui.classList.add('active');
+      // Memorise que le micro est OK (cache la banniere a la prochaine ouverture)
+      localStorage.setItem('dj_mic_granted', '1');
     } catch(err) {
       var msg = (err && err.name === 'NotAllowedError')
         ? 'Permission micro refusee. Active-la dans tes parametres navigateur.'
