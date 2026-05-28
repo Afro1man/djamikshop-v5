@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acheter des boosters — DjamikShop</title>
+  <meta name="theme-color" content="#E8501A">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" type="image/png" href="/assets/icons/favicon-32.png?v=129">
+  <link rel="apple-touch-icon" href="/assets/icons/icon-180.png?v=129">
+  <link rel="stylesheet" href="../assets/css/main.css">
+  <style>
+    .bp-page { padding: 24px 16px 80px; max-width: 720px; margin: 0 auto; }
+    .bp-hero { text-align: center; margin-bottom: 28px; }
+    .bp-hero h1 { font-family: Outfit, sans-serif; font-size: 1.7rem; font-weight: 800; margin: 0 0 8px; }
+    .bp-hero .bp-emoji { font-size: 2.5rem; }
+    .bp-hero p { color: var(--ink-3); font-size: .92rem; margin: 0; }
+    .bp-stock-badge { display: inline-flex; align-items: center; gap: 8px; background: linear-gradient(135deg, #FFD700, #FFA500); color: #1a1a1a; padding: 8px 16px; border-radius: 100px; font-weight: 700; margin-top: 14px; box-shadow: 0 4px 12px rgba(255,167,0,.3); }
+    .bp-promise { background: linear-gradient(135deg, #DCFCE7, #BBF7D0); border-left: 4px solid #16A34A; padding: 12px 16px; border-radius: 10px; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; font-size: .88rem; color: #166534; }
+    .bp-promise svg { flex-shrink: 0; }
+
+    .bp-grid { display: grid; gap: 14px; }
+    .bp-pack { background: var(--white); border: 2px solid var(--surface-3); border-radius: 16px; padding: 22px; transition: all .2s; position: relative; }
+    .bp-pack:hover { border-color: #E8501A; box-shadow: 0 8px 24px rgba(232,80,26,.15); transform: translateY(-2px); }
+    .bp-pack.popular { border-color: #E8501A; background: linear-gradient(135deg, #fff, #fff7f0); }
+    .bp-pack-badge { position: absolute; top: -10px; right: 18px; background: #E8501A; color: white; padding: 4px 12px; border-radius: 100px; font-size: .7rem; font-weight: 700; }
+    .bp-pack-name { font-family: Outfit, sans-serif; font-size: 1.3rem; font-weight: 800; margin: 0 0 4px; }
+    .bp-pack-tagline { color: var(--ink-3); font-size: .82rem; margin-bottom: 14px; }
+    .bp-pack-price { display: flex; align-items: baseline; gap: 6px; margin-bottom: 16px; }
+    .bp-pack-price .num { font-size: 1.8rem; font-weight: 900; color: #E8501A; font-family: Outfit, sans-serif; }
+    .bp-pack-price .currency { font-size: .85rem; color: var(--ink-3); font-weight: 600; }
+    .bp-pack-price .qty { margin-left: auto; background: var(--surface-2); padding: 6px 12px; border-radius: 8px; font-weight: 700; font-size: .85rem; color: var(--ink); }
+    .bp-pack-savings { color: #16A34A; font-size: .78rem; font-weight: 600; margin-bottom: 14px; }
+    .bp-pack-features { list-style: none; padding: 0; margin: 0 0 18px; }
+    .bp-pack-features li { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: .85rem; }
+    .bp-pack-features li::before { content: '✓'; color: #16A34A; font-weight: 800; }
+    .bp-pack button { width: 100%; padding: 13px; border: none; border-radius: 10px; background: #E8501A; color: white; font-weight: 700; font-size: .95rem; cursor: pointer; transition: all .2s; }
+    .bp-pack button:hover { background: #C03E0E; }
+    .bp-pack button:disabled { opacity: .6; cursor: wait; }
+
+    .bp-faq { margin-top: 30px; }
+    .bp-faq h2 { font-family: Outfit, sans-serif; font-size: 1.1rem; margin: 0 0 12px; }
+    .bp-faq details { background: var(--white); border: 1px solid var(--surface-3); border-radius: 10px; padding: 12px 16px; margin-bottom: 8px; }
+    .bp-faq summary { cursor: pointer; font-weight: 600; font-size: .9rem; }
+    .bp-faq details[open] summary { margin-bottom: 8px; color: #E8501A; }
+    .bp-faq details p { margin: 0; color: var(--ink-3); font-size: .85rem; line-height: 1.55; }
+  </style>
+</head>
+<body>
+<script>if(typeof window.supabase==='undefined')window.supabase=null;</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" onerror=""></script>
+<script src="../assets/js/app.js"></script>
+
+<div class="page-body">
+  <div class="bp-page">
+    <div class="bp-hero">
+      <div class="bp-emoji">🚀</div>
+      <h1>Booste tes annonces</h1>
+      <p>Plus de visibilité, plus d'acheteurs.</p>
+      <div class="bp-stock-badge" id="stock-badge">
+        <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        <span id="stock-count">…</span> booster<span id="stock-plural">s</span> dans ton stock
+      </div>
+    </div>
+
+    <div class="bp-promise">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" width="22" height="22"><polyline points="20 6 9 17 4 12"/></svg>
+      <strong>Tes boosters n'expirent jamais.</strong> Utilise-les quand tu veux.
+    </div>
+
+    <div class="bp-grid">
+
+      <!-- Pack Starter -->
+      <div class="bp-pack">
+        <h3 class="bp-pack-name">Starter</h3>
+        <div class="bp-pack-tagline">Pour découvrir</div>
+        <div class="bp-pack-price">
+          <span class="num">1 200</span><span class="currency">FCFA</span>
+          <span class="qty">3 boosters</span>
+        </div>
+        <div class="bp-pack-savings">≈ 400 FCFA / booster</div>
+        <ul class="bp-pack-features">
+          <li>3 boosters utilisables quand tu veux</li>
+          <li>Chaque boost dure 7 jours</li>
+          <li>Annonce en haut des résultats</li>
+        </ul>
+        <button data-pack="starter">Acheter — 1 200 FCFA</button>
+      </div>
+
+      <!-- Pack Business (popular) -->
+      <div class="bp-pack popular">
+        <span class="bp-pack-badge">⭐ Populaire</span>
+        <h3 class="bp-pack-name">Business</h3>
+        <div class="bp-pack-tagline">Pour les vendeurs actifs</div>
+        <div class="bp-pack-price">
+          <span class="num">3 500</span><span class="currency">FCFA</span>
+          <span class="qty">10 boosters</span>
+        </div>
+        <div class="bp-pack-savings">≈ 350 FCFA / booster — économise 15%</div>
+        <ul class="bp-pack-features">
+          <li>10 boosters dans ton stock</li>
+          <li>Peut booster 5 annonces en Vedette (2 boosters chacune)</li>
+          <li>Idéal pour vendeurs réguliers</li>
+        </ul>
+        <button data-pack="business">Acheter — 3 500 FCFA</button>
+      </div>
+
+      <!-- Pack Pro -->
+      <div class="bp-pack">
+        <h3 class="bp-pack-name">Pro</h3>
+        <div class="bp-pack-tagline">Pour les pros</div>
+        <div class="bp-pack-price">
+          <span class="num">7 500</span><span class="currency">FCFA</span>
+          <span class="qty">25 boosters</span>
+        </div>
+        <div class="bp-pack-savings">≈ 300 FCFA / booster — économise 25%</div>
+        <ul class="bp-pack-features">
+          <li>25 boosters dans ton stock</li>
+          <li>12+ annonces Vedette possibles</li>
+          <li>Meilleur rapport qualité/prix</li>
+        </ul>
+        <button data-pack="pro">Acheter — 7 500 FCFA</button>
+      </div>
+
+    </div>
+
+    <div class="bp-faq">
+      <h2>Questions fréquentes</h2>
+      <details>
+        <summary>C'est quoi exactement un booster ?</summary>
+        <p>Un booster te permet de mettre une annonce <strong>en haut des résultats pendant 7 jours</strong>. Tes annonces normales restent gratuites et visibles, mais les boostées sont vues en premier.</p>
+      </details>
+      <details>
+        <summary>Comment fonctionne la section Vedette ?</summary>
+        <p>Avec <strong>2 boosters</strong>, ton annonce passe en section <strong>Vedette</strong> sur la page d'accueil pendant 7 jours. Elle brille avec un design spécial et reçoit jusqu'à 10× plus de vues.</p>
+      </details>
+      <details>
+        <summary>Mes boosters expirent-ils ?</summary>
+        <p>Non ! <strong>Jamais.</strong> Tu peux les utiliser quand tu veux : aujourd'hui, dans 6 mois, dans 2 ans. C'est notre promesse.</p>
+      </details>
+      <details>
+        <summary>Comment payer ?</summary>
+        <p>Mobile Money <strong>MyNita</strong> au +227 89 77 00 02. Après ton achat, tu reçois une référence à mettre en motif du transfert. L'admin valide manuellement (sous 24h).</p>
+      </details>
+      <details>
+        <summary>Je peux essayer avant d'acheter ?</summary>
+        <p>Oui ! Chaque nouveau compte reçoit <strong>1 booster offert</strong> à l'inscription. Tu peux le tester avant d'acheter un pack.</p>
+      </details>
+    </div>
+
+  </div>
+</div>
+
+<script>
+window.onDjamikReady(async function() {
+  if (!window._supabase) return;
+  var sb = window._supabase;
+
+  // Verifie auth
+  var s = await sb.auth.getSession();
+  if (!s || !s.data || !s.data.session) {
+    window.location.href = 'login.html?next=' + encodeURIComponent('/pages/buy-boosters.html');
+    return;
+  }
+  var uid = s.data.session.user.id;
+
+  // Affiche stock actuel
+  async function _loadStock() {
+    var r = await sb.rpc('my_booster_stock');
+    var n = (r && r.data) || 0;
+    document.getElementById('stock-count').textContent = n;
+    document.getElementById('stock-plural').textContent = n === 1 ? '' : 's';
+  }
+  _loadStock();
+
+  // Wire les boutons d'achat
+  document.querySelectorAll('[data-pack]').forEach(function(btn) {
+    btn.addEventListener('click', async function() {
+      var pack = btn.dataset.pack;
+      // Affiche un modal de confirmation + choix paiement
+      _showCheckoutModal(pack);
+    });
+  });
+
+  function _showCheckoutModal(pack) {
+    var prices = { starter: { qty: 3, amount: 1200 }, business: { qty: 10, amount: 3500 }, pro: { qty: 25, amount: 7500 } };
+    var p = prices[pack];
+    if (!p) return;
+
+    var modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px';
+    modal.innerHTML =
+      '<div style="background:#fff;border-radius:18px;max-width:440px;width:100%;padding:28px;max-height:90vh;overflow:auto">' +
+        '<h2 style="font-family:Outfit,sans-serif;font-size:1.3rem;margin:0 0 4px">Confirmer l\'achat</h2>' +
+        '<p style="color:#666;font-size:.88rem;margin:0 0 18px">Pack ' + pack + ' : <strong>' + p.qty + ' boosters</strong> pour <strong>' + p.amount.toLocaleString('fr-FR').replace(/,/g,' ') + ' FCFA</strong></p>' +
+        '<div style="background:#FFF7ED;border-left:3px solid #E8501A;padding:12px 14px;border-radius:8px;margin-bottom:16px;font-size:.85rem">' +
+          '<strong>Étapes paiement MyNita :</strong><br>' +
+          '1. Clique "Confirmer" ci-dessous<br>' +
+          '2. Envoie <strong>' + p.amount + ' FCFA</strong> par MyNita au <strong>+227 89 77 00 02</strong><br>' +
+          '3. Mets la référence reçue en motif du transfert<br>' +
+          '4. Tes boosters arrivent dans ton stock sous 24h' +
+        '</div>' +
+        '<div style="display:flex;gap:10px">' +
+          '<button id="bp-cancel" style="flex:1;background:#f1f5f9;color:#333;border:none;padding:13px;border-radius:10px;font-weight:600;cursor:pointer">Annuler</button>' +
+          '<button id="bp-confirm" style="flex:2;background:#E8501A;color:white;border:none;padding:13px;border-radius:10px;font-weight:700;cursor:pointer">Confirmer l\'achat</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(modal);
+
+    modal.querySelector('#bp-cancel').addEventListener('click', function(){ modal.remove(); });
+    modal.querySelector('#bp-confirm').addEventListener('click', async function() {
+      var btn = modal.querySelector('#bp-confirm');
+      btn.disabled = true; btn.textContent = 'Création…';
+      var r = await sb.rpc('buy_booster_pack', { p_pack: pack, p_payment_method: 'mynita', p_user_note: null });
+      if (r.error) {
+        window.toast && window.toast('Erreur : ' + r.error.message, 'error');
+        btn.disabled = false; btn.textContent = 'Confirmer l\'achat';
+        return;
+      }
+      var data = r.data;
+      modal.querySelector('div').innerHTML =
+        '<div style="text-align:center;padding:8px 0">' +
+          '<div style="font-size:3rem;margin-bottom:8px">✅</div>' +
+          '<h2 style="font-family:Outfit,sans-serif;font-size:1.3rem;margin:0 0 14px">Achat enregistré !</h2>' +
+          '<div style="background:linear-gradient(135deg,#FFE3D1,#FFD4AA);padding:18px;border-radius:12px;margin-bottom:18px">' +
+            '<div style="font-size:.78rem;color:#9A3412;margin-bottom:6px;font-weight:600">RÉFÉRENCE À METTRE EN MOTIF :</div>' +
+            '<div style="font-family:monospace;font-size:1.6rem;font-weight:900;letter-spacing:.1em;color:#E8501A">' + data.reference + '</div>' +
+          '</div>' +
+          '<p style="margin:0 0 18px;color:#666;font-size:.88rem;line-height:1.5">Envoie <strong>' + data.amount + ' FCFA</strong> via <strong>MyNita</strong> au <strong>+227 89 77 00 02</strong> avec cette référence en motif.</p>' +
+          '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="width:100%;background:#E8501A;color:white;border:none;padding:13px;border-radius:10px;font-weight:700;cursor:pointer">J\'ai compris</button>' +
+        '</div>';
+    });
+  }
+});
+</script>
+</body>
+</html>

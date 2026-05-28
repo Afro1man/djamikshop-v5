@@ -211,9 +211,9 @@ window.onDjamikReady(function() {
 
     var cta;
     if (tier === 'free') {
-      cta = '<a href="tarifs.html" class="btn btn-primary btn-sm">Booster mon compte</a>';
+      cta = '<a href="buy-boosters.html" class="btn btn-primary btn-sm">Acheter des boosters</a>';
     } else {
-      cta = '<a href="tarifs.html" class="btn btn-outline btn-sm">' + (tier === 'vip' ? 'Passer Premium' : 'Tarifs') + '</a>';
+      cta = '<a href="buy-boosters.html" class="btn btn-outline btn-sm">Acheter boosters</a>';
     }
 
     var meta = nfo.limit + ' annonces';
@@ -404,22 +404,47 @@ window.onDjamikReady(function() {
       return;
     }
     if (act === 'boost') {
-      if (!window.boostProduct) return;
-      try {
-        await window.boostProduct(productId);
-        window.toast && window.toast('Annonce boost 7 jours !', 'success', 4000);
-        // Re-render dynamique (le card va afficher le badge "Boosté")
-        _refreshSelfListings();
-      } catch(err) {
-        var msg = (err && err.message) || 'Erreur de boost';
-        if (msg.indexOf('Gratuit') !== -1 || msg.indexOf('VIP') !== -1) {
-          window.confirm2('Le boost est réservé aux comptes VIP & Premium. Voir les tarifs ?').then(function(ok) {
-            if (ok) window.location.href = 'tarifs.html';
-          });
-        } else {
-          window.toast && window.toast(msg, 'error', 5000);
+      // V2 : on demande au user s'il veut booster simple (1) ou Vedette (2)
+      var sb = window._supabase;
+      if (!sb) return;
+      var stockRes = await sb.rpc('my_booster_stock');
+      var stock = (stockRes && stockRes.data) || 0;
+
+      // Build modal
+      var modal = document.createElement('div');
+      modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px';
+      modal.innerHTML =
+        '<div style="background:#fff;border-radius:18px;max-width:420px;width:100%;padding:24px;max-height:90vh;overflow:auto">' +
+          '<h2 style="font-family:Outfit,sans-serif;font-size:1.2rem;margin:0 0 4px">Booster cette annonce</h2>' +
+          '<p style="color:#666;font-size:.85rem;margin:0 0 14px">Tu as <strong>' + stock + ' booster' + (stock !== 1 ? 's' : '') + '</strong> en stock.</p>' +
+          '<div style="display:flex;flex-direction:column;gap:10px;margin-bottom:14px">' +
+            '<button id="bp-simple" ' + (stock < 1 ? 'disabled' : '') + ' style="background:#fff;border:2px solid ' + (stock < 1 ? '#ddd' : '#E8501A') + ';color:' + (stock < 1 ? '#aaa' : '#1a1a1a') + ';padding:14px;border-radius:12px;cursor:' + (stock < 1 ? 'not-allowed' : 'pointer') + ';text-align:left">' +
+              '<div style="display:flex;align-items:center;gap:10px"><span style="font-size:1.5rem">⭐</span><div><div style="font-weight:700">Boost simple — 1 booster</div><div style="font-size:.78rem;color:#666">Annonce en haut des résultats pendant 7 jours</div></div></div>' +
+            '</button>' +
+            '<button id="bp-vedette" ' + (stock < 2 ? 'disabled' : '') + ' style="background:' + (stock < 2 ? '#f8f8f8' : 'linear-gradient(135deg,#FFF9E6,#FFE8B0)') + ';border:2px solid ' + (stock < 2 ? '#ddd' : '#F5B100') + ';color:' + (stock < 2 ? '#aaa' : '#1a1a1a') + ';padding:14px;border-radius:12px;cursor:' + (stock < 2 ? 'not-allowed' : 'pointer') + ';text-align:left">' +
+              '<div style="display:flex;align-items:center;gap:10px"><span style="font-size:1.5rem">✨</span><div><div style="font-weight:700">Vedette — 2 boosters</div><div style="font-size:.78rem;color:#666">Section Vedette home + design qui brille, 7 jours</div></div></div>' +
+            '</button>' +
+          '</div>' +
+          (stock < 2 ? '<a href="buy-boosters.html" style="display:block;text-align:center;background:#E8501A;color:white;padding:13px;border-radius:10px;font-weight:700;text-decoration:none;margin-bottom:8px">Acheter des boosters</a>' : '') +
+          '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="width:100%;background:transparent;color:#666;border:none;padding:10px;font-weight:600;cursor:pointer">Annuler</button>' +
+        '</div>';
+      document.body.appendChild(modal);
+
+      async function _doBoost(vedette) {
+        try {
+          var r = await sb.rpc('use_booster', { p_product_id: productId, p_vedette: !!vedette });
+          if (r.error) throw r.error;
+          modal.remove();
+          window.toast && window.toast(vedette ? 'Annonce en Vedette pour 7 jours ! ✨' : 'Annonce boostée 7 jours !', 'success', 4000);
+          _refreshSelfListings();
+        } catch(err) {
+          window.toast && window.toast((err.message || 'Erreur boost'), 'error', 5000);
         }
       }
+      var btnS = modal.querySelector('#bp-simple');
+      var btnV = modal.querySelector('#bp-vedette');
+      if (btnS && !btnS.disabled) btnS.addEventListener('click', function(){ _doBoost(false); });
+      if (btnV && !btnV.disabled) btnV.addEventListener('click', function(){ _doBoost(true); });
     }
     else if (act === 'sold') {
       window.confirm2('Marquer comme vendu ? Cette annonce sera archivee.').then(function(ok) {

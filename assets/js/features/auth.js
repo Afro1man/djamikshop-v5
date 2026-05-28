@@ -276,6 +276,7 @@ if (signupForm) {
     var pwd = document.getElementById('password').value;
     var cnf = document.getElementById('confirm').value;
     var phone = (document.getElementById('phone') || {value:''}).value.trim();
+    var whatsapp = (document.getElementById('whatsapp_number') || {value:''}).value.trim();
     var location = (document.getElementById('location') || {value:''}).value;
     var terms = document.getElementById('terms');
 
@@ -305,6 +306,7 @@ if (signupForm) {
     if (pwd !== cnf) { window.toast('Les mots de passe ne correspondent pas.', 'error'); return; }
     if (window.checkPasswordStrength(pwd).score < 2) { window.toast('Mot de passe trop faible.', 'error'); return; }
     if (terms && !terms.checked) { window.toast('Acceptez les conditions.', 'error'); return; }
+    if (!whatsapp || whatsapp.length < 6) { window.toast('Numéro WhatsApp requis (pour qu\'on te contacte).', 'error'); return; }
     if (!_sb()) { window.toast('Service indisponible.', 'error'); return; }
 
     btn.disabled = true; btn.innerHTML = '<span class="btn-spinner"></span> Création…';
@@ -313,11 +315,21 @@ if (signupForm) {
       email: email,
       password: pwd,
       options: {
-        data: { full_name: fname },
-        // Redirige vers notre page de callback après confirmation email
+        data: { full_name: fname, whatsapp_number: whatsapp, phone: phone, location: location },
         emailRedirectTo: window.location.origin + '/pages/auth-callback.html'
       }
     }).catch(function(err){ return { error: err }; });
+
+    // Met a jour profile avec WhatsApp + phone + location (le trigger handle_new_user gere full_name)
+    if (res && res.data && res.data.user && res.data.user.id) {
+      try {
+        await _sb().from('profiles').update({
+          whatsapp_number: whatsapp,
+          phone: phone || null,
+          location: location || null
+        }).eq('id', res.data.user.id);
+      } catch(e) {}
+    }
 
     if (res.error) {
       var raw = (res.error.message || '').toLowerCase();

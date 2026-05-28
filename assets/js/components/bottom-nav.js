@@ -29,12 +29,13 @@
       fab:   true,
       svg:   '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>'
     },
+    // V2 : messagerie remplacee par WhatsApp direct sur les annonces
     {
-      id:    'messages',
-      label: 'Messages',
-      href:  'messages.html',
-      match: ['messages.html'],
-      svg:   '<path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>'
+      id:    'boosters',
+      label: 'Boosters',
+      href:  'buy-boosters.html',
+      match: ['buy-boosters.html', 'tarifs.html'],
+      svg:   '<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>'
     },
     {
       id:    'profile',
