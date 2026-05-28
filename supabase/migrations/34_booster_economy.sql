@@ -226,13 +226,13 @@ begin
         updated_at = now();
 
   -- Notif au user
-  insert into notifications (user_id, type, title, message, link)
+  insert into notifications (user_id, type, title, body, data)
   values (
     v_purchase.user_id,
     'subscription',
     'Boosters credites !',
     v_purchase.qty || ' booster(s) ont ete ajoutes a ton stock. Ils n''expirent jamais.',
-    '/pages/my-profile.html'
+    '{"link": "/pages/my-profile.html"}'::jsonb
   );
 
   return json_build_object('ok', true, 'qty', v_purchase.qty);
@@ -275,13 +275,13 @@ begin
   values (new.id, 'single', 1, 0, 'confirmed', 'signup_gift', now());
 
   -- Notif de bienvenue
-  insert into public.notifications (user_id, type, title, message, link)
+  insert into public.notifications (user_id, type, title, body, data)
   values (
     new.id,
     'subscription',
     'Bienvenue ! 1 booster offert',
     'Tu as 1 booster gratuit pour mettre une annonce en avant pendant 7 jours.',
-    '/pages/my-profile.html'
+    '{"link": "/pages/my-profile.html"}'::jsonb
   );
 
   return new;
@@ -299,11 +299,11 @@ insert into public.user_boosters (user_id, count, total_received)
 on conflict (user_id) do nothing;
 
 -- Notif "Bonne nouvelle V2" pour tous les users existants
-insert into public.notifications (user_id, type, title, message, link)
+insert into public.notifications (user_id, type, title, body, data)
   select u.id, 'subscription',
          'DjamikShop devient gratuit illimite !',
          'Annonces illimitees + 1 booster offert pour celebrer. Achete des packs des 1200 FCFA quand tu veux.',
-         '/pages/buy-boosters.html'
+         '{"link": "/pages/buy-boosters.html"}'::jsonb
   from auth.users u
   where not exists (
     select 1 from notifications n
