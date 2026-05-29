@@ -78,17 +78,18 @@ window.onDjamikReady(async function() {
 
   // Fetch stats
   var sb = window._supabase;
-  var [users, products, soldProducts, openReports, activeBans, openIncidents, conversations, pendingPay, activeSubs] = await Promise.all([
+  var [users, products, soldProducts, openReports, activeBans, openIncidents, pendingPay, v2stats, activeBoosts] = await Promise.all([
     sb.from('profiles').select('id', { count: 'exact', head: true }),
     sb.from('products').select('id', { count: 'exact', head: true }).eq('sold', false),
     sb.from('products').select('id', { count: 'exact', head: true }).eq('sold', true),
     sb.from('reports').select('id', { count: 'exact', head: true }).eq('status', 'open'),
     sb.from('banned_users').select('user_id', { count: 'exact', head: true }),
     sb.from('security_events').select('id', { count: 'exact', head: true }).eq('resolved', false).in('severity', ['medium','high','critical']),
-    sb.from('conversations').select('id', { count: 'exact', head: true }),
     sb.from('payment_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-    sb.from('subscriptions').select('user_id', { count: 'exact', head: true }).neq('tier', 'free')
+    sb.from('v2_stats').select('*').single(),
+    sb.from('boosts').select('id', { count: 'exact', head: true }).gt('expires_at', new Date().toISOString())
   ]);
+  var v2 = (v2stats && v2stats.data) || {};
 
   function _stat(icon, val, lbl, alert) {
     return '<div class="stat-card' + (alert ? ' alert' : '') + '">' +
@@ -108,19 +109,25 @@ window.onDjamikReady(async function() {
     chat:    { color:'purple', svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>' }
   };
 
-  var ICON_MONEY = { color:'green', svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>' };
-  var ICON_CROWN = { color:'orange', svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 7l4.5 4L12 4l5.5 7L22 7l-2 12H4L2 7z"/></svg>' };
+  var ICON_MONEY = { color:'green',  svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>' };
+  var ICON_BOLT  = { color:'orange', svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>' };
+  var ICON_STAR  = { color:'purple', svg:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>' };
+
+  var revenue = v2.revenue_total || 0;
+  var revenueStr = revenue >= 1000 ? (revenue/1000).toFixed(1) + 'k' : String(revenue);
 
   var statsHtml = '<div class="stats-grid">' +
-    _stat(ICONS.user,    users.count,        'Utilisateurs') +
-    _stat(ICONS.product, products.count,     'Annonces actives') +
-    _stat(ICONS.sold,    soldProducts.count, 'Annonces vendues') +
-    _stat(ICONS.chat,    conversations.count,'Conversations') +
-    _stat(ICON_CROWN,    activeSubs.count,   'Abonnés VIP/Premium') +
-    _stat(ICON_MONEY,    pendingPay.count,   'Paiements en attente', pendingPay.count > 0) +
-    _stat(ICONS.flag,    openReports.count,  'Signalements ouverts', openReports.count > 0) +
-    _stat(ICONS.ban,     activeBans.count,   'Bans actifs') +
-    _stat(ICONS.alert,   openIncidents.count,'Incidents sécurité', openIncidents.count > 0) +
+    _stat(ICONS.user,    users.count,                          'Utilisateurs') +
+    _stat(ICONS.product, products.count,                       'Annonces actives') +
+    _stat(ICONS.sold,    soldProducts.count,                   'Annonces vendues') +
+    _stat(ICON_BOLT,     v2.total_boosters_in_circulation || 0,'Boosters en circulation') +
+    _stat(ICON_BOLT,     v2.total_boosters_consumed || 0,      'Boosters consommés') +
+    _stat(ICON_STAR,     activeBoosts.count,                   'Boosts actifs') +
+    _stat(ICON_MONEY,    revenueStr + ' FCFA',                 'Revenu total V2') +
+    _stat(ICON_MONEY,    pendingPay.count,                     'Paiements en attente', pendingPay.count > 0) +
+    _stat(ICONS.flag,    openReports.count,                    'Signalements ouverts', openReports.count > 0) +
+    _stat(ICONS.ban,     activeBans.count,                     'Bans actifs') +
+    _stat(ICONS.alert,   openIncidents.count,                  'Incidents sécurité', openIncidents.count > 0) +
   '</div>';
 
   function _link(href, icon, title, sub, badge) {
@@ -138,7 +145,7 @@ window.onDjamikReady(async function() {
   var iAmAdmin = meAd && meAd.data && meAd.data.role === 'admin';
 
   var linksHtml = '<div class="links-grid">' +
-    _link('admin-payments.html',ICON_MONEY.svg, 'Paiements', 'Vérifier et activer les abonnements', pendingPay.count > 0 ? pendingPay.count : '') +
+    _link('admin-payments.html',ICON_MONEY.svg, 'Paiements', 'Confirmer les achats de packs boosters', pendingPay.count > 0 ? pendingPay.count : '') +
     _link('admin-reports.html', ICONS.flag.svg, 'Signalements', 'Traiter les annonces signalées', openReports.count > 0 ? openReports.count : '') +
     _link('admin-users.html',   ICONS.user.svg, 'Utilisateurs', 'Voir et bannir les comptes') +
     _link('admin-bans.html',    ICONS.ban.svg,  'Bans actifs', 'Gérer les utilisateurs bannis') +

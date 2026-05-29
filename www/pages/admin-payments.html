@@ -24,6 +24,7 @@
     .pay-card-tier { width: 60px; flex-shrink: 0; text-align: center; padding: 8px; border-radius: var(--r-md); font-family: Outfit,sans-serif; font-weight: 800; font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; }
     .pay-card-tier.vip { background: linear-gradient(135deg,#FFE08A,#F5B100); color: #5C3D00; }
     .pay-card-tier.premium { background: linear-gradient(135deg,#A78BFA,#7C3AED); color: #fff; }
+    .pay-card-tier.booster { background: linear-gradient(135deg,#FFB770,#FF7A18); color: #fff; }
     .pay-card-body { flex: 1; min-width: 0; }
     .pay-card-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; }
     .pay-card-amount { font-family: Outfit,sans-serif; font-weight: 800; color: var(--brand,#E8501A); font-size: 1rem; }
@@ -102,7 +103,7 @@ window.onDjamikReady(async function() {
       '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">' +
         '<div>' +
           '<h1 class="admin-h1">Paiements</h1>' +
-          '<p class="admin-sub">Vérifie les paiements Mobile Money reçus et active les abonnements.</p>' +
+          '<p class="admin-sub">Vérifie les paiements Mynita reçus, crédite les boosters ou active les abonnements.</p>' +
         '</div>' +
         '<button id="cleanup-btn" class="btn btn-outline" style="font-size:.78rem;color:var(--ink-3);border-color:var(--surface-3)">🧹 Nettoyer paiements > 30j</button>' +
       '</div>' +
@@ -138,8 +139,11 @@ window.onDjamikReady(async function() {
     container.innerHTML = list.map(function(r) {
       var p = profiles[r.user_id] || {};
       var name = p.full_name || ('User ' + r.user_id.slice(0,6));
+      var isBooster = r.tier && r.tier.indexOf('booster_pack:') === 0;
+      var tierClass = isBooster ? 'booster' : r.tier;
+      var tierLabel = isBooster ? ('PACK ' + r.tier.split(':')[1]) : r.tier;
       return '<div class="pay-card' + (r.status==='pending'?' urgent':'') + '">' +
-        '<div class="pay-card-tier ' + r.tier + '">' + r.tier + '</div>' +
+        '<div class="pay-card-tier ' + tierClass + '">' + tierLabel + '</div>' +
         '<div class="pay-card-body">' +
           '<div class="pay-card-head">' +
             '<span class="pay-card-amount">' + r.amount.toLocaleString('fr-FR').replace(',', ' ') + ' FCFA</span>' +
@@ -154,7 +158,7 @@ window.onDjamikReady(async function() {
           (r.user_note ? '<div class="pay-card-note">📝 ' + window.escHtml(r.user_note) + '</div>' : '') +
           (r.admin_note ? '<div class="pay-card-note" style="border-left-color:#ef4444">⚠ ' + window.escHtml(r.admin_note) + '</div>' : '') +
           (r.status === 'pending' ? '<div class="pay-card-actions">' +
-            '<button class="btn btn-primary" data-act="confirm" data-id="' + r.id + '">✓ Confirmer & activer</button>' +
+            '<button class="btn btn-primary" data-act="confirm" data-id="' + r.id + '" data-ref="' + r.reference + '" data-booster="' + (isBooster?'1':'0') + '">✓ ' + (isBooster ? 'Créditer les boosters' : 'Confirmer & activer') + '</button>' +
             '<button class="btn btn-outline" data-act="reject" data-id="' + r.id + '" style="color:var(--danger);border-color:rgba(239,68,68,.3)">✗ Rejeter</button>' +
           '</div>' : '') +
         '</div>' +
@@ -165,11 +169,22 @@ window.onDjamikReady(async function() {
       btn.addEventListener('click', async function() {
         var act = btn.dataset.act, id = btn.dataset.id;
         if (act === 'confirm') {
-          if (!confirm('Confirmer ce paiement et activer l\'abonnement (30 jours) ?')) return;
+          var isBoosterPay = btn.dataset.booster === '1';
+          var ref = btn.dataset.ref;
+          if (!confirm(isBoosterPay ? 'Confirmer ce paiement et créditer les boosters ?' : 'Confirmer ce paiement et activer l\'abonnement (30 jours) ?')) return;
           btn.disabled = true; btn.textContent = '...';
-          var r = await sb.rpc('admin_confirm_payment', { p_request_id: id });
-          if (r.error) { window.toast('Erreur : ' + r.error.message, 'error'); btn.disabled = false; btn.textContent = '✓ Confirmer & activer'; return; }
-          window.toast('Abonnement activé jusqu\'au ' + new Date(r.data.expires_at).toLocaleDateString('fr-FR'), 'success', 6000);
+          var r;
+          if (isBoosterPay) {
+            r = await sb.rpc('admin_confirm_booster_purchase', { p_reference: ref });
+          } else {
+            r = await sb.rpc('admin_confirm_payment', { p_request_id: id });
+          }
+          if (r.error) { window.toast('Erreur : ' + r.error.message, 'error'); btn.disabled = false; btn.textContent = '✓ Confirmer'; return; }
+          if (isBoosterPay) {
+            window.toast((r.data && r.data.qty ? r.data.qty : '') + ' booster(s) crédité(s).', 'success', 6000);
+          } else {
+            window.toast('Abonnement activé jusqu\'au ' + new Date(r.data.expires_at).toLocaleDateString('fr-FR'), 'success', 6000);
+          }
           await _load(); _render();
         }
         else if (act === 'reject') {

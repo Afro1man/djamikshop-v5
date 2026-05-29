@@ -83,16 +83,16 @@ window.onDjamikReady(async function() {
   var targetStaffRole = (staffRes && staffRes.data && staffRes.data.role) || null;
 
   // Fetch toutes les données en parallèle
-  var [profileRes, productsRes, messagesRes, offersRes, reportsRes, paymentsRes, banRes, subRes, tierRes] = await Promise.all([
+  var [profileRes, productsRes, reportsRes, paymentsRes, banRes, tierRes, boosterStockRes, boosterPurchasesRes, activeBoostsRes] = await Promise.all([
     sb.from('profiles').select('*').eq('id', targetId).maybeSingle(),
     sb.from('products').select('id,title,price,city,sold,created_at,image_url').eq('seller_id', targetId).order('created_at', { ascending: false }),
-    sb.from('messages').select('id,conv_id,text,created_at', { count: 'exact', head: false }).eq('sender_id', targetId).order('created_at', { ascending: false }).limit(10),
-    sb.from('offers').select('id,product_id,amount,status,created_at', { count: 'exact', head: false }).eq('buyer_id', targetId).order('created_at', { ascending: false }).limit(10),
     sb.from('reports').select('id,reason,status,created_at,products!inner(title,seller_id)').eq('products.seller_id', targetId).order('created_at', { ascending: false }).limit(20),
     sb.from('payment_requests').select('id,tier,amount,status,reference,created_at').eq('user_id', targetId).order('created_at', { ascending: false }).limit(10),
     sb.from('banned_users').select('*').eq('user_id', targetId).maybeSingle(),
-    sb.from('subscriptions').select('tier,expires_at').eq('user_id', targetId).maybeSingle(),
-    sb.rpc('users_tiers', { uids: [targetId] })
+    sb.rpc('users_tiers', { uids: [targetId] }),
+    sb.from('user_boosters').select('count,total_received,total_spent').eq('user_id', targetId).maybeSingle(),
+    sb.from('booster_purchases').select('pack,qty,amount,status,source,created_at').eq('user_id', targetId).order('created_at', { ascending: false }).limit(10),
+    sb.from('boosts').select('id', { count: 'exact', head: true }).eq('user_id', targetId).gt('expires_at', new Date().toISOString())
   ]);
 
   var profile = profileRes.data;
@@ -101,14 +101,15 @@ window.onDjamikReady(async function() {
   var products = productsRes.data || [];
   var activeProducts = products.filter(function(p){ return !p.sold; });
   var soldProducts = products.filter(function(p){ return p.sold; });
-  var messages = messagesRes.data || [];
-  var msgTotal = messagesRes.count || messages.length;
-  var offers = offersRes.data || [];
-  var offersTotal = offersRes.count || offers.length;
   var reports = reportsRes.data || [];
   var payments = paymentsRes.data || [];
   var ban = banRes.data;
   var tier = (tierRes.data && tierRes.data[0] && tierRes.data[0].tier) || 'free';
+  var boosterStock = (boosterStockRes.data && boosterStockRes.data.count) || 0;
+  var boosterReceived = (boosterStockRes.data && boosterStockRes.data.total_received) || 0;
+  var boosterSpent = (boosterStockRes.data && boosterStockRes.data.total_spent) || 0;
+  var boosterPurchases = boosterPurchasesRes.data || [];
+  var activeBoostsCount = activeBoostsRes.count || 0;
 
   function _avatar() {
     if (profile.avatar_url) return profile.avatar_url;
@@ -151,6 +152,7 @@ window.onDjamikReady(async function() {
         '<div class="ud-meta">' +
           (profile.location ? '📍 ' + profile.location + ' · ' : '') +
           (profile.phone ? '📞 ' + window.escHtml(profile.phone) + ' · ' : '') +
+          (profile.whatsapp_number ? '💬 ' + window.escHtml(profile.whatsapp_number) + ' · ' : '') +
           'Inscrit ' + window.relativeDate(profile.created_at) +
         '</div>' +
         (profile.public_id ? '<div class="ud-meta" style="margin-top:6px"><span style="background:var(--surface-2);padding:3px 8px;border-radius:6px;font-family:monospace;font-weight:700;color:var(--brand,#E8501A);font-size:.78rem">' + window.escHtml(profile.public_id) + '</span> <button onclick="navigator.clipboard.writeText(this.previousSibling.textContent);window.toast&&window.toast(\'ID copié\',\'success\')" style="background:transparent;border:none;cursor:pointer;color:var(--ink-3);font-size:.75rem;text-decoration:underline">copier</button></div>' : '') +
@@ -161,14 +163,16 @@ window.onDjamikReady(async function() {
     '<div class="stats-grid">' +
       '<div class="stat"><div class="stat-val">' + activeProducts.length + '</div><div class="stat-lbl">Actives</div></div>' +
       '<div class="stat"><div class="stat-val">' + soldProducts.length + '</div><div class="stat-lbl">Vendues</div></div>' +
-      '<div class="stat"><div class="stat-val">' + msgTotal + '</div><div class="stat-lbl">Messages</div></div>' +
-      '<div class="stat"><div class="stat-val">' + offersTotal + '</div><div class="stat-lbl">Offres faites</div></div>' +
+      '<div class="stat"><div class="stat-val">' + boosterStock + '</div><div class="stat-lbl">Boosters dispo</div></div>' +
+      '<div class="stat"><div class="stat-val">' + boosterSpent + '</div><div class="stat-lbl">Boosters utilisés</div></div>' +
+      '<div class="stat"><div class="stat-val">' + activeBoostsCount + '</div><div class="stat-lbl">Boosts actifs</div></div>' +
       '<div class="stat"><div class="stat-val">' + reports.length + '</div><div class="stat-lbl">Signalements reçus</div></div>' +
       '<div class="stat"><div class="stat-val">' + payments.length + '</div><div class="stat-lbl">Paiements</div></div>' +
     '</div>' +
 
     '<div class="ud-actions">' +
       '<a class="btn btn-outline" href="my-profile.html?id=' + profile.id + '" target="_blank">Voir profil public</a>' +
+      '<button class="btn btn-outline" id="gift-booster-btn" style="color:#C03E0E;border-color:#FFB770">⚡ Offrir des boosters</button>' +
       (!ban ? '<button class="btn btn-outline" id="ban-btn" style="color:var(--danger);border-color:rgba(239,68,68,.3)">🚫 Bannir</button>' :
         '<button class="btn btn-primary" id="unban-btn">Débannir</button>') +
       (iAmAdmin ? (
@@ -201,6 +205,20 @@ window.onDjamikReady(async function() {
       }).join('') : '<div class="empty">Aucun signalement.</div>') +
     '</div>' +
 
+    '<div class="section"><h2>⚡ Historique boosters (' + boosterPurchases.length + ')</h2>' +
+      '<div class="empty" style="background:linear-gradient(135deg,#FFF7ED,#FFEDD5);border:1px solid #FFB770;color:#7C2D12;text-align:left;padding:10px 14px;margin-bottom:10px;border-radius:8px"><strong>Stock actuel : ' + boosterStock + '</strong> · Reçus à vie : ' + boosterReceived + ' · Consommés : ' + boosterSpent + '</div>' +
+      (boosterPurchases.length ? boosterPurchases.map(function(b) {
+        var lbl = b.source === 'signup_gift' ? '🎁 Cadeau signup' :
+                  b.source === 'migration_v2' ? '🎁 Cadeau V2' :
+                  b.source === 'admin_grant' ? '👑 Don admin' :
+                  ('💰 Achat ' + b.pack);
+        return '<div class="item"><div class="item-body">' +
+          '<div class="item-title">' + lbl + ' · ' + b.qty + ' booster(s)' + (b.amount > 0 ? ' · ' + window.formatPrice(b.amount) : '') + '</div>' +
+          '<div class="item-meta">' + b.status + ' · ' + window.relativeDate(b.created_at) + '</div>' +
+        '</div></div>';
+      }).join('') : '<div class="empty">Aucun mouvement booster.</div>') +
+    '</div>' +
+
     '<div class="section"><h2>💰 Paiements (' + payments.length + ')</h2>' +
       (payments.length ? payments.map(function(p) {
         return '<div class="item"><div class="item-body">' +
@@ -228,6 +246,17 @@ window.onDjamikReady(async function() {
     var r = await sb.from('banned_users').upsert({ user_id: targetId, reason: reason, banned_until: until, ban_count: 1 });
     if (r.error) { window.toast('Échec : ' + r.error.message, 'error'); return; }
     window.toast('Banni', 'success'); setTimeout(function(){ location.reload(); }, 500);
+  });
+
+  var gb = document.getElementById('gift-booster-btn');
+  if (gb) gb.addEventListener('click', async function() {
+    var qStr = prompt('Combien de booster(s) offrir à ' + (profile.full_name || 'cet utilisateur') + ' ?', '1');
+    if (qStr === null) return;
+    var q = parseInt(qStr);
+    if (!q || q < 1 || q > 100) { window.toast('Entre 1 et 100.', 'error'); return; }
+    var r = await sb.rpc('grant_booster', { p_user_id: targetId, p_qty: q, p_source: 'admin_grant' });
+    if (r.error) { window.toast('Échec : ' + r.error.message, 'error'); return; }
+    window.toast(q + ' booster(s) crédités.', 'success'); setTimeout(function(){ location.reload(); }, 500);
   });
 
   var ub = document.getElementById('unban-btn');
