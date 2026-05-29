@@ -1,7 +1,37 @@
-# DjamikShop v1.2.5 — Mémoire projet pour Claude
+# DjamikShop v1.2.41 — Mémoire projet pour Claude
 
 Document de référence pour reprendre le travail après reset du contexte.
 **À lire EN PREMIER à chaque nouvelle session** avant toute modification.
+
+---
+
+## 🔥 V2 — Pivot majeur (mai 2026)
+
+Refonte du modèle économique pour la survie long terme au Niger.
+
+### Changements clés
+- **Annonces illimitées et 100% gratuites** (plus de quotas free/VIP/Premium)
+- **Boosters à l'unité** au lieu d'abonnements mensuels
+  - 1 booster = 7 jours en haut des résultats (étoile dorée)
+  - 2 boosters = section Vedette (bordure brillante, en haut de l'accueil), 7 jours
+  - **Les boosters n'expirent JAMAIS** (argument commercial central)
+  - 1 booster offert à l'inscription + 1 offert à tous les users existants (backfill migration 34)
+- **3 packs Mynita** (paiement +227 89 77 00 02, validation admin manuelle) :
+  - Starter : 3 boosters / 1 200 FCFA
+  - Business : 10 boosters / 3 500 FCFA
+  - Pro : 25 boosters / 7 500 FCFA
+- **Messagerie interne SUPPRIMÉE** → tout passe par WhatsApp
+  - Bouton vert "Contacter sur WhatsApp" sur chaque fiche produit
+  - Message pré-rempli : "Bonjour, je suis intéressé par votre annonce [titre]…"
+  - Tables `messages` + `conversations` DROP (migration 35)
+  - Champ obligatoire `profiles.whatsapp_number` au signup
+- **Système d'offres caché** (table conservée, UI retirée — bouton + lien menu) car tout passe par WhatsApp
+- **VIP/Premium suspendus** (code conservé mais UI cachée)
+
+### Pages clés V2
+- `/pages/buy-boosters.html` — achat de packs avec affichage stock temps réel
+- Page `tarifs.html` → redirige vers `buy-boosters.html`
+- `/pages/comment-ca-marche.html` — mise à jour : WhatsApp + boosters
 
 ---
 
@@ -65,13 +95,7 @@ djamikshop-v5/
 - Limite annonces actives : Free=10, VIP=50, Premium=100
 
 ### Messages chat
-- Realtime Supabase (postgres_changes)
-- Bouton supprimer (soft delete via `deleted_for` uuid[])
-- Upload image (Supabase Storage `product-images`)
-- Read receipts (✓✓)
-- Typing indicator (broadcast channel)
-- Card produit dans le header si conv liée
-- Tri par last_message_at desc (auto-resort sur envoi/réception)
+- ⛔ **SUPPRIMÉ en V2** (migration 35) — remplacé par WhatsApp deep links
 
 ### Notifications
 - Table `notifications` (insert via RLS, RPC pour admin)
@@ -81,10 +105,9 @@ djamikshop-v5/
 - Bandeau "Activer notifs" sur page messages
 
 ### Offres
+- ⛔ **UI cachée en V2** (bouton fiche + lien menu retirés) — table conservée
 - Table `offers` (buyer_id, product_id, amount, status, note)
-- Pages "Mes offres" (Reçues/Envoyées) avec accept/reject/delete
-- Soft delete `deleted_for`
-- Validation par trigger (email vérif + rate limit 10/h + ban check)
+- Logique : tout passe par WhatsApp maintenant
 
 ### Signalements
 - Table `reports` (reason, status, message)
@@ -99,17 +122,18 @@ djamikshop-v5/
 - Distance affichée sur cartes produit
 - Bandeau d'activation sur home
 
-### Sponsorisation (système monétisation)
-- 3 tiers : **Free** (10 annonces) / **VIP** 1500 FCFA/mois (50 ann + 5 boosts/j) / **Premium** 2500 FCFA/mois (100 ann + 15 boosts/j)
-- Boost = 24h, anti-double-boost sur même annonce
-- Section "Annonces vedette" sur home = **Premium boostés uniquement**
-- Auto-downgrade quand abo expire + 48h grâce avant suppression annonces excédentaires
-- Design VIP : étoile dorée + ruban "VIP" + bordure or animée
-- Design Premium : diamant violet rotatif + ruban "PREMIUM" + bordure violette animée
-- Promo `WELCOME50` : -50% sur 1er mois VIP = 750 FCFA (eligible si signup <30j + jamais payé)
-- Paiement Mobile Money Mynita/Amanata au +227 89 77 00 02
-- Code RPC `create_payment_request` génère un ref unique
-- Admin valide via `admin_confirm_payment` / `admin_reject_payment`
+### Sponsorisation (ANCIEN — VIP/Premium suspendus en V2)
+- Code conservé mais UI cachée — voir section V2 en haut
+
+### Économie boosters (V2)
+- Table `user_boosters` (user_id, count, total_received, total_spent)
+- Table `booster_purchases` (audit + historique signup_gift/purchase/admin_grant/migration_v2)
+- Colonne `boosts.vedette` boolean
+- RPCs : `my_booster_stock()`, `use_booster(product_id, vedette)`, `buy_booster_pack(pack, payment_method, note)`, `admin_confirm_booster_purchase(ref)`, `grant_booster(user_id, qty, source)`
+- Trigger `on_user_signup_gift_booster` sur auth.users → 1 booster gratuit
+- Validation admin via flow `payment_requests` existant (admin_note = `"PURCHASE_ID:..."`, tier = `"booster_pack:starter|business|pro"`)
+- Vue `v2_stats` pour dashboard admin
+- `tier_listing_limit()` renvoie 999999 (annonces illimitées)
 
 ### Sécurité
 - RLS strict sur toutes les tables
@@ -175,6 +199,8 @@ djamikshop-v5/
 21_admin_delete_user.sql            RPC admin_delete_user + cleanup payments
 22_moderators.sql                   Hiérarchie admin/moderator, is_staff()
 23_public_user_id.sql               profiles.public_id 'DJ-XXXXXX'
+34_booster_economy.sql              V2 : économie boosters à l'unité, annonces illimitées, backfill 1 booster + notif V2 à tous les users
+35_whatsapp_drop_messaging.sql      Ajoute profiles.whatsapp_number, drop messages + conversations + bump_conversation + validate_message_insert
 ```
 
 ## 🐛 Gotchas / pièges connus
@@ -188,6 +214,10 @@ djamikshop-v5/
 7. **Path absolu `/pages/...`** ne marche pas dans Capacitor → toujours relatif.
 8. **Viewport meta** : Capacitor inclut `user-scalable=no, maximum-scale=1` partout.
 9. **APK release** : pas encore signée (juste debug). Pour Play Store : faut keystore + AAB.
+10. **Notifications schema** : colonnes = `user_id, type, title, body, data` (PAS `message`/`link`). Pour le lien, mettre dans `data: {"link":"/pages/..."}`. Erreur facile à faire si on relit du vieux code.
+11. **Types notifications** : check constraint accepte uniquement `'order','offer','message','system','promo','subscription','boost','report'`. Pour les notifs boosters V2, réutiliser `'subscription'`.
+12. **`buy_booster_pack`** crée à la fois un row dans `booster_purchases` ET un `payment_requests` pour que le flow admin existant marche. Le tier vaut `'booster_pack:starter|business|pro'`.
+13. **WhatsApp deep link** : normaliser le numéro — si 8 chiffres locaux, préfixer `227`. Format final `https://wa.me/<digits>?text=<encoded>`.
 
 ## ⚠️ État config Auth (mai 2026)
 
@@ -199,12 +229,18 @@ djamikshop-v5/
 
 ## 🚧 Pending / TODO
 
-1. **Acheter un domaine** (djamikshop.com / .ne) → vérifier sur Resend → re-activer Confirm email
-2. **Keystore release** : signer APK pour Play Store
-3. **Compte Google Play Developer** : 25$ à payer + vérif 24-48h
-4. **Screenshots Play Store** : 2-8 captures à faire
-5. **Description longue Play Store** : 4000 caractères à rédiger
-6. **Plugins Capacitor natifs** (optionnel, pour plus tard) : @capacitor/camera, /push-notifications, /share, /network, /preferences
+1. **Notifications intelligentes** (P3 V2) :
+   - 50 vues sans booster → suggestion d'améliorer photos
+   - Vendeur inactif 2 semaines → nudge
+   - Booster expiré → propo renouvellement
+   - Première vente → célébration + suggestion booster
+2. **Dashboard admin V2** : utiliser vue `v2_stats` (revenue, boosters circulation/consumed, active vedette, etc.)
+3. **Acheter un domaine** (djamikshop.com / .ne) → vérifier sur Resend → re-activer Confirm email
+4. **Keystore release** : signer APK pour Play Store
+5. **Compte Google Play Developer** : 25$ à payer + vérif 24-48h
+6. **Screenshots Play Store** : 2-8 captures à faire
+7. **Description longue Play Store** : 4000 caractères à rédiger
+8. **Plugins Capacitor natifs** (optionnel) : @capacitor/camera, /push-notifications, /share, /network, /preferences
 
 ## 📞 Commandes utiles
 
@@ -237,8 +273,8 @@ git add -A && git commit -m "..." && git push
 
 ## 🔄 État au moment de l'écriture
 
-- **Version** : v1.2.5 sur prod (Vercel + APK debug sur tel)
-- **Sponsorisation** : 100% fonctionnelle, en test
+- **Version** : v1.2.41 sur prod (Vercel + APK debug sur tel)
+- **V2 livrée** : économie boosters + WhatsApp + annonces illimitées + offres cachées
+- **Migrations 34 + 35** : exécutées en prod Supabase
 - **Admin panel** : complet avec hiérarchie staff
-- **Public_id** : généré pour tous les users
 - **Phase** : test grandeur nature WhatsApp en cours (avant Play Store)
