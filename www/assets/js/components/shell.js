@@ -140,7 +140,6 @@
       ? '<div class="sm-section">' +
           '<div class="sm-section-title">Mon compte</div>' +
           '<a href="' + getPath('my-profile.html') + '" class="side-menu-item">' + _icon('user') + ' Mon profil</a>' +
-          '<a href="' + getPath('offers.html') + '" class="side-menu-item">' + _icon('chat') + ' Mes offres</a>' +
           '<a href="' + getPath('wishlist.html') + '" class="side-menu-item">' + _icon('heart') + ' Mes favoris <span class="sm-badge hidden" id="sm-fav-badge">0</span></a>' +
           '<a href="' + getPath('notifications.html') + '" class="side-menu-item">' + _icon('bell') + ' Notifications <span class="sm-badge hidden" id="sm-notif-badge">0</span></a>' +
           // Lien admin (caché par défaut, dévoilé par JS si user est admin)
