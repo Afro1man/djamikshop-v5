@@ -8,8 +8,8 @@
   // ┌─────────────────────────────────────────────────────────────┐
   // │  CONFIG — remplace ces 2 valeurs quand tu auras ton compte  │
   // └─────────────────────────────────────────────────────────────┘
-  var POSTHOG_KEY  = 'POSTHOG_KEY_PLACEHOLDER'; // ex: 'phc_xxxxxxxxxxxxxxxxxxxx'
-  var POSTHOG_HOST = 'https://eu.i.posthog.com'; // ou 'https://us.i.posthog.com'
+  var POSTHOG_KEY  = 'phc_B2YmbDxyWtYNZREDj5XuoTSFf5UShwPEnu8QmK3vH8rP';
+  var POSTHOG_HOST = 'https://us.i.posthog.com';
 
   // Queue pour buffer les events si posthog pas encore prêt
   var _queue = [];
