@@ -36,6 +36,7 @@ window.onDjamikReady = function(cb) {
     base + 'core/ban-check.js',   // execute apres ready
     base + 'core/back-button.js', // APK only, peut etre lazy
     base + 'core/stats.js',       // tracking, charge en idle
+    base + 'core/analytics.js',   // PostHog (no-op si non configure)
     base + 'core/admin-realtime.js',
     base + 'core/pwa.js',
     base + 'core/share.js',

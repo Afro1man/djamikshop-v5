@@ -155,6 +155,7 @@
 window.onDjamikReady(async function() {
   if (!window._supabase) return;
   var sb = window._supabase;
+  window.track && window.track('buy_boosters_page_viewed');
 
   // Verifie auth
   var s = await sb.auth.getSession();
@@ -211,13 +212,16 @@ window.onDjamikReady(async function() {
     modal.querySelector('#bp-confirm').addEventListener('click', async function() {
       var btn = modal.querySelector('#bp-confirm');
       btn.disabled = true; btn.textContent = 'Création…';
+      window.track && window.track('booster_pack_purchase_started', { pack: pack });
       var r = await sb.rpc('buy_booster_pack', { p_pack: pack, p_payment_method: 'mynita', p_user_note: null });
       if (r.error) {
+        window.track && window.track('booster_pack_purchase_failed', { pack: pack, error: r.error.message });
         window.toast && window.toast('Erreur : ' + r.error.message, 'error');
         btn.disabled = false; btn.textContent = 'Confirmer l\'achat';
         return;
       }
       var data = r.data;
+      window.track && window.track('booster_pack_purchase_requested', { pack: pack, qty: data.qty, amount: data.amount, reference: data.reference });
       modal.querySelector('div').innerHTML =
         '<div style="text-align:center;padding:8px 0">' +
           '<div style="font-size:3rem;margin-bottom:8px">✅</div>' +

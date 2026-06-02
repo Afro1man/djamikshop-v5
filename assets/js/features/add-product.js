@@ -492,6 +492,7 @@ window.onDjamikReady(function() {
               supabaseOK = true;
               product.id         = existing.id;
               product.created_at = existing.created_at;
+              window.track && window.track('product_edited', { product_id: existing.id, category: dbPayload.category, price: dbPayload.price });
             } else if (upd && upd.error) {
               console.warn('[add-product] Supabase update failed:', upd.error);
               window._lastSupabaseError = upd.error.message || JSON.stringify(upd.error);
@@ -527,6 +528,13 @@ window.onDjamikReady(function() {
               product.id         = ins.data.id;
               product.created_at = ins.data.created_at || product.created_at;
             }
+            window.track && window.track('product_published', {
+              product_id: product.id,
+              category: dbPayload.category,
+              price: dbPayload.price,
+              city: dbPayload.city,
+              has_photos: (dbPayload.images || dbPayload.image_url) ? true : false
+            });
           } else if (ins && ins.error) {
             console.warn('[add-product] Supabase insert failed:', ins.error);
             window._lastSupabaseError = ins.error.message || JSON.stringify(ins.error);

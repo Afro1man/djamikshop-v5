@@ -435,6 +435,12 @@ window.onDjamikReady(function() {
           var r = await sb.rpc('use_booster', { p_product_id: productId, p_vedette: !!vedette });
           if (r.error) throw r.error;
           modal.remove();
+          window.track && window.track('booster_used', {
+            product_id: productId,
+            type: vedette ? 'vedette' : 'simple',
+            consumed: (r.data && r.data.consumed) || (vedette ? 2 : 1),
+            stock_left: (r.data && r.data.stock_left) || 0
+          });
           window.toast && window.toast(vedette ? 'Annonce en Vedette pour 7 jours ! ✨' : 'Annonce boostée 7 jours !', 'success', 4000);
           _refreshSelfListings();
         } catch(err) {
@@ -449,6 +455,7 @@ window.onDjamikReady(function() {
     else if (act === 'sold') {
       window.confirm2('Marquer comme vendu ? Cette annonce sera archivee.').then(function(ok) {
         if (!ok) return;
+        window.track && window.track('product_marked_sold', { product_id: productId });
         _updateProduct(productId, { sold: true });
         // Mute le product dans le state local pour re-render instantane
         if (_selfState) {

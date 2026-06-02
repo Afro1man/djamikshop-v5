@@ -323,6 +323,14 @@ window.onDjamikReady(async function () {
     window.incrementViews && window.incrementViews(p.id);
     // Track clic (ouverture page detail) → DB Supabase via batch
     window.trackProductClick && window.trackProductClick(p.id);
+    window.track && window.track('product_viewed', {
+      product_id: p.id,
+      seller_id: p.seller_id,
+      category: p.category,
+      price: p.price,
+      city: p.city,
+      sold: !!p.sold
+    });
     updateSocialMeta(p);
 
     var cat   = window.getCatById ? window.getCatById(p.category) : null;
@@ -486,6 +494,13 @@ window.onDjamikReady(async function () {
       if (clean.length === 8) clean = '227' + clean; // numero local Niger sans prefix
       var msg = 'Bonjour, je suis intéressé par votre annonce *' + (p.title || '') + '* sur DjamikShop. Est-ce toujours disponible ?\n\n👉 ' + window.location.href;
       var url = 'https://wa.me/' + clean + '?text=' + encodeURIComponent(msg);
+      window.track && window.track('whatsapp_contact_clicked', {
+        product_id: p.id,
+        seller_id: p.seller_id,
+        product_title: p.title,
+        product_price: p.price,
+        category: p.category
+      });
       window.open(url, '_blank');
     });
 

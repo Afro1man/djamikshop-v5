@@ -55,6 +55,8 @@ window.requireAuth = async function(redirectUrl) {
 };
 
 window.logout = async function() {
+  window.track && window.track('user_logout');
+  window.resetAnalytics && window.resetAnalytics();
   if (_sb()) await _sb().auth.signOut().catch(function(){});
   _setUserCache(null);
   // Nettoie aussi l'ancienne clé démo (rétrocompat)
@@ -226,7 +228,11 @@ if (loginForm) {
     }
 
     resetRate();
-    if (res.data && res.data.user) _setUserCache(res.data.user);
+    if (res.data && res.data.user) {
+      _setUserCache(res.data.user);
+      window.identifyUser && window.identifyUser(res.data.user.id, { email: res.data.user.email });
+      window.track && window.track('user_login', { method: 'password' });
+    }
     window.toast('Connexion réussie !', 'success');
     var p = new URLSearchParams(window.location.search);
     setTimeout(function(){ window.location.href = p.get('next') || 'index.html'; }, 800);
@@ -329,6 +335,8 @@ if (signupForm) {
           location: location || null
         }).eq('id', res.data.user.id);
       } catch(e) {}
+      window.identifyUser && window.identifyUser(res.data.user.id, { email: email, location: location, has_whatsapp: !!whatsapp });
+      window.track && window.track('user_signup', { method: 'email', has_whatsapp: !!whatsapp, location: location || null });
     }
 
     if (res.error) {
@@ -443,6 +451,7 @@ if (resetForm) {
 // ═══════════════════════════════════════════════════════════════════
 async function signInWithGoogle(btn) {
   if (!_sb()) { window.toast && window.toast('Service indisponible.', 'error'); return; }
+  window.track && window.track('user_login_attempt', { method: 'google' });
   if (btn) {
     btn.disabled = true;
     var originalHtml = btn.innerHTML;
