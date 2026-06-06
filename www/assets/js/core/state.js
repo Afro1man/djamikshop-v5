@@ -169,6 +169,35 @@ window.addToHistory = function(productId) {
 };
 window.getHistory = function() { return _ls.get('dj_history', []); };
 
+// ── CATEGORY AFFINITY ──
+// Score par categorie pour personnaliser le feed.
+// Chaque clic ajoute du score, decay exponentiel sur 7 jours.
+window.recordCategoryInterest = function(category, weight) {
+  if (!category) return;
+  var w = weight || 1;
+  var aff = _ls.get('dj_cat_affinity', {});
+  var now = Date.now();
+  // decay all existing scores: -50% tous les 7 jours
+  Object.keys(aff).forEach(function(c) {
+    var entry = aff[c];
+    if (entry && entry.t) {
+      var daysAgo = (now - entry.t) / (24 * 3600 * 1000);
+      entry.s = entry.s * Math.pow(0.5, daysAgo / 7);
+      if (entry.s < 0.1) delete aff[c];
+    }
+  });
+  if (!aff[category]) aff[category] = { s: 0, t: now };
+  aff[category].s = (aff[category].s || 0) + w;
+  aff[category].t = now;
+  _ls.set('dj_cat_affinity', aff);
+};
+window.getCategoryAffinity = function() {
+  var aff = _ls.get('dj_cat_affinity', {});
+  var out = {};
+  Object.keys(aff).forEach(function(c){ out[c] = (aff[c] && aff[c].s) || 0; });
+  return out;
+};
+
 // ── VIEWS (compteur global du produit, pas user-specific) ──
 window.incrementViews = function(id) {
   var key = 'dj_views_' + id;

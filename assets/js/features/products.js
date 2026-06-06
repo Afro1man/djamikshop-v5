@@ -95,21 +95,40 @@ async function _fetchProducts(f) {
         window.fetchActiveBoosts(prodIds),
         window.fetchUserProfiles ? window.fetchUserProfiles(sellerIds) : Promise.resolve({})
       ]);
+      // Fetch boost details (vedette flag) — on a besoin de distinguer vedette vs simple
+      var boostMap = {};
+      try {
+        var br = await window._supabase.from('boosts')
+          .select('product_id, vedette, expires_at')
+          .in('product_id', prodIds)
+          .gt('expires_at', new Date().toISOString());
+        (br.data || []).forEach(function(b){ boostMap[b.product_id] = { vedette: !!b.vedette }; });
+      } catch(e) {}
+
       all.forEach(function(p) {
         p._sellerTier = tiers[p.seller_id] || 'free';
         p._isBoosted  = boostSet.has(p.id);
+        p._isVedette  = !!(boostMap[p.id] && boostMap[p.id].vedette);
         p._sellerProfile = profiles[p.seller_id] || null;
       });
-      // 6. Tri prioritaire stable :
-      //    1) Boostés (toutes catégories) toujours en premier
-      //    2) Premium > VIP > Free
-      //    3) Si beaucoup de résultats ET géoloc dispo : annonces proches en premier
-      //    4) Sinon, garde l'ordre du sort précédent (created_at, prix, etc.)
-      var TIER_RANK = { premium: 3, vip: 2, free: 1 };
+
+      // ═══════════════════════════════════════════════════════════════
+      //  ALGO DE TRI V2
+      //  Ordre de priorité (stable) :
+      //    1) Vedette (2 boosters)         → tout en haut
+      //    2) Boost simple (1 booster)     → en haut (sous vedette)
+      //    3) Affinité catégorie user      → si user a cliqué sur cette cat
+      //    4) Géoloc                        → proches d'abord
+      //    5) Random stable slot 20min     → rotation égalitaire
+      //  (VIP/Premium retirés en V2 — suspendus)
+      // ═══════════════════════════════════════════════════════════════
       var userLoc = window.getStoredLocation && window.getStoredLocation();
       var useGeoBoost = !!userLoc && all.length >= 10 && f.sort !== 'distance' && f.sort !== 'price_asc' && f.sort !== 'price_desc';
 
-      // Pré-calcul des distances (une seule fois)
+      // Affinité catégorie : map { category: score }
+      var catAffinity = (window.getCategoryAffinity && window.getCategoryAffinity()) || {};
+
+      // Pré-calcul des distances
       if (useGeoBoost && window.distanceToProduct) {
         all.forEach(function(p){
           p._distance = window.distanceToProduct(p);
@@ -117,33 +136,37 @@ async function _fetchProducts(f) {
         });
       }
 
-      // ── Tri aleatoire stable par slot de 2h pour les annonces classiques ──
-      // Donne a chacun sa chance, et change toutes les 2h pour eviter monotonie.
-      // Hash simple (FNV-1a) de productId + slot2h.
-      var slot2h = Math.floor(Date.now() / (2 * 3600 * 1000));
+      // Random stable par slot de 20min (au lieu de 2h)
+      var slot20m = Math.floor(Date.now() / (20 * 60 * 1000));
       function _hashOrder(id) {
         var h = 2166136261;
-        var s = String(id) + ':' + slot2h;
+        var s = String(id) + ':' + slot20m;
         for (var i = 0; i < s.length; i++) {
           h ^= s.charCodeAt(i);
           h = (h * 16777619) >>> 0;
         }
         return h;
       }
-      all.forEach(function(p){ p._randOrder = _hashOrder(p.id); });
+      all.forEach(function(p){
+        p._randOrder = _hashOrder(p.id);
+        p._catScore  = catAffinity[p.category] || 0;
+      });
 
       all.sort(function(a, b) {
+        // 1) Vedette d'abord
+        if (a._isVedette && !b._isVedette) return -1;
+        if (!a._isVedette && b._isVedette) return 1;
+        // 2) Boost simple ensuite
         if (a._isBoosted && !b._isBoosted) return -1;
         if (!a._isBoosted && b._isBoosted) return 1;
-        var ra = TIER_RANK[a._sellerTier] || 1;
-        var rb = TIER_RANK[b._sellerTier] || 1;
-        if (ra !== rb) return rb - ra;
-        // Tiebreaker geo (si geoloc active)
+        // 3) Affinité catégorie (score décroissant)
+        if (a._catScore !== b._catScore) return b._catScore - a._catScore;
+        // 4) Géoloc (distance croissante)
         if (useGeoBoost) {
           var da = a._distance, db = b._distance;
           if (da !== db) return da - db;
         }
-        // Tiebreaker final : ordre aleatoire stable (change toutes les 2h)
+        // 5) Random stable 20min
         return a._randOrder - b._randOrder;
       });
     } catch(e) { console.warn('[products] tier/boost enrich failed', e); }

@@ -321,6 +321,8 @@ window.onDjamikReady(async function () {
   function renderProduct(p) {
     window.addToHistory && window.addToHistory(p.id);
     window.incrementViews && window.incrementViews(p.id);
+    // Affinité catégorie : clic = +1 point sur la catégorie du produit
+    window.recordCategoryInterest && window.recordCategoryInterest(p.category, 1);
     // Track clic (ouverture page detail) → DB Supabase via batch
     window.trackProductClick && window.trackProductClick(p.id);
     window.track && window.track('product_viewed', {
